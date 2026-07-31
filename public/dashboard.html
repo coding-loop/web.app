@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="solarized-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Coding Loop</title>
+
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    <!-- Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics-compat.js"></script>
+</head>
+<body>
+
+        <div id='coding-loop'>
+
+            <!-- ===================================================== -->
+            <!-- DASHBOARD — só é alcançado com sessão válida.          -->
+            <!-- CL.auth.guard() (chamado no boot) redireciona de volta -->
+            <!-- para a Landing se não houver login confirmado.         -->
+            <!-- ===================================================== -->
+
+            <div data-language='pt-BR' data-page='dashboard' data-version='1.0.0' hidden='hidden' id='cl-app'>
+
+                <!-- ===================================================== -->
+                <!-- INDICADOR :: TOGGLE DA NAV (sempre visível) -->
+                <!-- ===================================================== -->
+
+                <button aria-label='Mostrar ou esconder o menu' id='cl-nav-toggle' title='Mostrar/esconder menu' type='button'>
+                    <span aria-hidden='true' id='cl-nav-toggle-icon'>&#9662;</span>
+                </button>
+
+                <!-- ===================================================== -->
+                <!-- NAV SHELL :: HEADER (some sozinho e com o toggle)      -->
+                <!-- ===================================================== -->
+
+                <div id='cl-nav-shell'>
+
+                    <!-- ===================================================== -->
+                    <!-- COMPONENT :: HEADER -->
+                    <!-- ===================================================== -->
+
+                    <header id='cl-header'>
+
+                        <div class='cl-header-brand' id='cl-header-brand'>
+                            <a class='cl-logo' data-page='dashboard' href='#dashboard'>
+                                <!-- TROQUE o src abaixo pela URL real do logo (ex: hospedado
+                                     nas imagens do Blogger). Mantido pequeno (2rem) para caber
+                                     nos 10vh do header em qualquer tela. -->
+                                <img alt='Coding Loop' class='cl-header-logo-img' id='cl-header-logo' src='https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhYlZuYvvMwdj9_pd7QhrBAKWdRsdtBbiqtAtFwDrrxdmdlZiBRsAJSfVItMeE7Vk2iiN3APt0IZA97NOnvRxMqJGraW-CkoeA_gH5T0EMFMT3xs3nueHihPaRBYpRpIOs8ctQ53B2SwdiY99FcOOfRtLVVLpidWMSWGbi1xtUb-xIY2A/s1600/Logo-Azul.png'/>
+                                <span>Coding-Loop</span>
+                            </a>
+                            <a class='cl-tech-badges'> 
+                              <img alt="Front-End" class="front-end" id="front-end-img" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgn-WX4yojSTM1yS4kQbbRoeQvqJhXEHtepv_ZCNYbUAiJEAfgOsTESFdNEMmkiZTprTqR6tZlZMfILyka-et2z2TuHVuORDeuXp6cCcQYoQbrZic4KhliFBUH3rX3PxVgxPMFJXU1YgRTJY3xLbSei_yKXBLa2H2tvmn1EvEGO5Kk4Gw/s1600/front_end_developer_labels_1.png"/>
+                              <img alt='HTML5 , CSS3 , JS' class='cl-header-htmlCssJs-img' id='htmlCssJs-img' src='https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhifDLwnhdkUzXYuprb90GsH60Z9gctbcZEGdPljvSWVyp2SXFpFVh_IQGHUjwWtfJ9pC0WaseYJT1eCGOzp323umlU3B2fHJQumvPjvXg6zxnUyf3WCmYEOK1xXrzi8ywylqXtZ_KGyhrUMA0D0by6rUxPE_to5vKGbGxu7aCMbiKTaw/s1600/Html5,Css3,JS.png'/>
+                              <img alt="Developer" class="developer" id="developer-img" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEho-Srk81vrGReU19aHs_d5uV-IEo7YQk2UTHTin31uMfFEy0mV9Awmzfs-tiGLPqtMTgTCLuuxMwuZfS8qFYhDvu6TQoLOSYk24aDqA_le0AtgOI1yhmH5Yw-MAHepfvpC4xOE1OioRPEiPziBYCQsv7BG3Gg6LIlCCJiu86WR9nFBLw/s1600/front_end_developer_labels_2.png"/>
+                            </a>
+                        </div> 
+
+                      <div class='cl-header-spacer'> </div>
+
+                        <div class='cl-header-auth' id='cl-header-auth'>
+
+                            <!-- TEMA CLARO/ESCURO — sempre ao lado da foto de perfil -->
+                            <button aria-label='Alternar tema claro/escuro' class='cl-btn' data-theme-toggle='' type='button'>
+                                <span class='cl-btn-icon' id='cl-theme-icon'>☀</span>
+                            </button>
+
+                            <!-- O dashboard só é alcançado com sessão válida (ver guard
+                                 no boot, que redireciona pra landing antes de renderizar
+                                 qualquer coisa aqui) — por isso não existe estado de
+                                 "visitante" neste header. -->
+
+                            <div class='cl-auth-state' id='cl-auth-user'>
+                                <button aria-expanded='false' aria-haspopup='true' class='cl-user-button' data-dropdown-toggle='' id='cl-user-button' type='button'>
+                                    <img alt='Avatar' class='cl-avatar' id='cl-user-avatar' src=''/>
+                                </button>
+
+                           
+                                <!-- DROPDOWN :: acesso rápido, Perfil, Configurações e Sair -->
+                                <div class='cl-dropdown cl-topbar-dropdown' hidden='hidden' id='cl-user-dropdown'>
+                                    <div class='cl-dropdown-menu'>
+
+                                        <button class='cl-dropdown-item' data-action='profile' type='button'>
+                                            <span class='cl-dropdown-icon'>👤</span>
+                                            <span class='cl-dropdown-label'>Perfil 🚧</span>
+                                        </button>
+
+                                        <button class='cl-dropdown-item' data-action='settings' type='button'>
+                                            <span class='cl-dropdown-icon'>⚙️</span>
+                                            <span class='cl-dropdown-label'>Configurações 🚧</span>
+                                        </button>
+
+                                        <button class='cl-dropdown-item' data-action='logout' type='button'>
+                                            <span class='cl-dropdown-icon'>⏻</span>
+                                            <span class='cl-dropdown-label'>Sair</span>
+                                        </button>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </header>
+
+                </div>
+
+                <!-- ===================================================== -->
+                <!-- COMPONENT :: ASIDE (barra horizontal de navegação)      -->
+                <!-- Fora do #cl-nav-shell de propósito: não sobe/some junto -->
+                <!-- com o header — tem posicionamento fixo próprio no CSS.  -->
+                <!-- ===================================================== -->
+
+                <nav aria-label='Navegação principal' id='cl-sidebar'>
+                    <ul class='cl-topbar-menu'>
+
+                        <!-- COURSES -->
+                        <li class='cl-topbar-item'>
+                            <a class='cl-topbar-link' data-page='courses' href='#courses'>
+                                <img alt="html-course-icon" class="html-course-icon" id="html-course-icon" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiHU3hohCSw9z_h4LYa-_TRv4hn6LXNtLQAB7er3G0ic3gcqzAV8Tp069RP4CDSHU4aYUCfq3B_uWeegLlc-DgkaYLERLgvkoBqLAv1gvGfpr1CBkfMVCt3C4pM1hAEKQ2pt_hYxhmoJEr386YD_zaClGbE1z0OZQO_ZKn-pfsCspQ3HQ/s1600/Html5.png"/>
+                                <span class='cl-topbar-label'>HTML</span>
+                                <span class='cl-topbar-caret'>&#9662;</span>
+                            </a>
+                        </li>
+
+                            <!-- Menu dropdown ativado -->
+                      <!--
+                            <div class='cl-dropdown cl-topbar-dropdown' hidden='hidden'>
+                                <div class='cl-dropdown-menu'>
+                                    <a class='cl-dropdown-item' data-page='courses' href='https://coding-loop.blogspot.com/p/html-course.html'>
+                                        <span class='cl-dropdown-label'>💻 &lt; &#47;HTML &gt;</span>
+                                    </a>
+                                    <a class='cl-dropdown-item' href='#courses'>
+                                        <span class='cl-dropdown-label'>Em progresso 🚧</span>
+                                    </a>
+                                    <a class='cl-dropdown-item' href='#courses'>
+                                        <span class='cl-dropdown-label'>Concluídos 🚧</span>
+                                    </a>
+                                </div>
+                            </div>
+					  </li>
+					-->
+                                                <!-- IDE -->
+                        
+                        <li class='cl-topbar-item'>
+                            <a class='cl-topbar-link' href='ide.html'>
+                                <img alt="css-course-icon" class="css-course-icon" id="css-course-icon" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjdqbtPc55KC93dvtBISIZatsWe5HBb10tTQlSpcFoaSIB7zz1CbVPd_-Olv4TIgUhFazZUavRBfEsveyGybySmRkotC0twEKzU1QO7bjiLtiOvQjHgPxXqZPcnnSf-pPTcIU0epDuDhqoZ1uTj4FCyNyliOdxxWSApLwXsTz4MgUCTkA/s1600/Css3.png"/>
+                                <span class='cl-topbar-label'>CSS</span>
+                                <span class='cl-topbar-caret'>&#9662;</span>
+                            </a>
+                        </li>
+                      
+                        <!--
+                            <div class='cl-dropdown cl-topbar-dropdown' hidden='hidden'>                              
+                              <div class='cl-dropdown-menu'>                             
+                                    <a class='cl-dropdown-item' data-page='playground' href='https://coding-loop.blogspot.com/p/ide.html'>
+                                        <button class='cl-dropdown-label'>
+                                          <span class='cl-topbar-icon'>⌨</span>
+                                          <span class='cl-topbar-label'>IDE</span>
+                                          <span class='cl-topbar-caret'>&#9662;</span>
+                                          <a class='cl-dropdown-item' href='https://coding-loop.blogspot.com/p/ide.html'> </a>
+                                        </button>
+                                    </a> -->
+                                <!--
+                                    <a class='cl-dropdown-item' href='#playground'>
+                                        <button class='cl-dropdown-label'>
+                                          <span class='cl-topbar-icon'>⌨</span>
+                                          <span class='cl-topbar-label'>IDE + IA = 2 </span>
+                                          <span class='cl-topbar-caret'>&#9662;</span>
+                                          <a class='cl-dropdown-item' href='https://coding-loop.blogspot.com/p/ia-ide.html'> </a>
+                                        </button><span class='cl-dropdown-label'>Meus rascunhos</span>
+                                    </a>
+                                    <a class='cl-dropdown-item' href='https://coding-loop.blogspot.com/p/ia-ide.html'>
+                                      
+                                      
+                                        <span class='cl-dropdown-label'>Exemplos</span>
+                                    </a>
+									
+                                </div>
+                            </div>       			
+                        </li>
+					-->
+					
+                        <!-- EXERCÍCIOS -->
+                    
+                        <li class='cl-topbar-item'>
+                            <a class='cl-topbar-link' data-page='exercises' href='#exercises'>
+                                <img alt="js-course-icon" class="js-course-icon" id="js-course-icon" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhlpGod03wzuYc-fV4BZWRxS7pqcZQjpNncN5J9Gj0yh0pOUzIrJAwCnQumcIizsYUT1oHf407xSuQb1mvz8qGL99eTYkAw5moaF5peAjsxyJW-M-Rmg1YZISwGv8vxO02-5-IH2YTxbceQgMGUGad0AFPhCpsHngT8nrOMp6fVI-2qtQ/s1600/JS.png"/>
+                                <span class='cl-topbar-label'>JavaScript</span>
+                                <span class='cl-topbar-caret'>&#9662;</span>
+                            </a>
+     					</li>
+                      
+                        <!--
+                            <div class='cl-dropdown cl-topbar-dropdown' hidden='hidden'>
+                                <div class='cl-dropdown-menu'>
+                                    <a class='cl-dropdown-item' data-page='exercises' href='#exercises'>
+                                        <span class='cl-dropdown-label'>Todos</span>
+                                    </a>
+                                    <a class='cl-dropdown-item' href='#exercises'>
+                                        <span class='cl-dropdown-label'>Pendentes</span>
+                                    </a>
+                                    <a class='cl-dropdown-item' href='#exercises'>
+                                        <span class='cl-dropdown-label'>Resolvidos</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </li> -->
+						
+					 	
+                        <!-- FERRAMENTAS -->
+                       <!--
+                        <li class='cl-topbar-item'>
+                            <button class='cl-topbar-link' data-dropdown-toggle='' type='button'>
+                                <span class='cl-topbar-icon'>🛠</span>
+                                <span class='cl-topbar-label'>Ferramentas</span>
+                                <span class='cl-topbar-caret'>&#9662;</span>
+                            </button>
+                            <div class='cl-dropdown cl-topbar-dropdown' hidden='hidden'>
+                                <div class='cl-dropdown-menu'>
+                                    <a class='cl-dropdown-item' data-page='tools' href='#tools'>
+                                        <span class='cl-dropdown-label'>Todas</span>
+                                    </a>
+                                    <a class='cl-dropdown-item' href='#tools'>
+                                        <span class='cl-dropdown-label'>Favoritas</span>
+                                    </a>
+                                    <a class='cl-dropdown-item' href='#tools'>
+                                        <span class='cl-dropdown-label'>Recentes</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+						-->
+
+                        <!-- CONTA -->
+                        <!--
+                        <li class='cl-topbar-item cl-topbar-item-account'>
+                            <button class='cl-topbar-link' data-dropdown-toggle='' type='button'>
+                                <span class='cl-topbar-icon'>👤</span>
+                                <span class='cl-topbar-label'>Conta</span>
+                                <span class='cl-topbar-caret'>&#9662;</span>
+                            </button>
+                            <div class='cl-dropdown cl-topbar-dropdown' hidden='hidden'>
+                                <div class='cl-dropdown-menu'>
+                                    <button class='cl-dropdown-item' data-action='profile' type='button'>
+                                        <img alt='Avatar' class='cl-dropdown-avatar' id='cl-user-avatar-aside' src=''/>
+                                        <span class='cl-dropdown-label' id='cl-user-name-aside'>Perfil</span>
+                                    </button>
+                                    <button class='cl-dropdown-item' data-action='settings' type='button'>
+                                        <span class='cl-dropdown-icon'>&#9881;</span>
+                                        <span class='cl-dropdown-label'>Configurações</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+						-->
+                    </ul>
+                </nav>
+
+                <div id='cl-container'>
+                  
+                  <!-- ===================================================== -->
+                  <!-- ===================================================== -->
+                  <!-- ===================================================== -->
+                                      <!-- MAIN -->
+                  <!-- ===================================================== -->
+                  <!-- ===================================================== -->
+                  <!-- ===================================================== -->
+
+
+                    <main id='cl-main'>
+
+                  <!-- ===================================================== -->
+                  <!-- CONTEÚDO DAS PÁGINAS -->
+                  <!-- ===================================================== -->               		                  
+
+                    <div id='cl-content'>
+                        <!-- DASHBOARD -->
+                        <section class='cl-page' data-page='dashboard' id='cl-page-dashboard'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>🚧</h1>
+                                        <p>Bem-Vindo ao Coding-Loop, <br>
+                                        Somos Felizes por sua visita e contamos com sua compreensão, pois estamos em desenvolvimento...</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'></div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- COURSES -->
+                        <section class='cl-page' data-page='courses' hidden='hidden' id='cl-page-courses'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Cursos</h1>
+                                        <p>Explore os cursos disponíveis.</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'>
+                                                <p>🚧 Em construção.</p>
+                                            </div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- EXERCISES -->
+                        <section class='cl-page' data-page='exercises' hidden='hidden' id='cl-page-exercises'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Exercícios</h1>
+                                        <p>Pratique com exercícios interativos.</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'>
+                                                <p>🚧 Em construção.</p>
+                                            </div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- TOOLS -->
+                        <section class='cl-page' data-page='tools' hidden='hidden' id='cl-page-tools'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Ferramentas</h1>
+                                        <p>Acesse ferramentas úteis para desenvolvimento.</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'>
+                                                <p>🚧 Em construção.</p>
+                                            </div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- PROFILE -->
+                        <section class='cl-page' data-page='profile' hidden='hidden' id='cl-page-profile'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Perfil</h1>
+                                        <p>Gerencie suas informações de perfil.</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'>
+                                                <p>🚧 Em construção.</p>
+                                            </div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- SETTINGS -->
+                        <section class='cl-page' data-page='settings' hidden='hidden' id='cl-page-settings'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Configurações</h1>
+                                        <p>Personalize suas preferências.</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'>
+                                                <p>🚧 Em construção.</p>
+                                            </div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- COURSE (curso específico) -->
+                        <section class='cl-page' data-page='course' hidden='hidden' id='cl-page-course'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Curso</h1>
+                                        <p>Conteúdo do curso.</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'>
+                                                <p>🚧 Em construção.</p>
+                                            </div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- LESSON (aula dentro de um curso) -->
+                        <section class='cl-page' data-page='lesson' hidden='hidden' id='cl-page-lesson'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Aula</h1>
+                                        <p>Conteúdo da aula.</p>
+                                    </div>
+                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                                </header>
+                                <div class='cl-page-toolbar'></div>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-header'></div>
+                                            <div class='cl-card-body'>
+                                                <p>🚧 Em construção.</p>
+                                            </div>
+                                            <div class='cl-card-footer'></div>
+                                            <div class='cl-card-actions'></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- NOT FOUND (404) -->
+                        <section class='cl-page' data-page='notFound' hidden='hidden' id='cl-page-notFound'>
+                            <div class='cl-page-container'>
+                                <header class='cl-page-header'>
+                                    <div class='cl-page-title'>
+                                        <h1>Página não encontrada</h1>
+                                        <p>O conteúdo que você procura não existe ou foi movido.</p>
+                                    </div>
+                                </header>
+                                <div class='cl-page-body'>
+                                    <div class='cl-page-grid'>
+                                        <div class='cl-card'>
+                                            <div class='cl-card-body'>
+                                                <a class='cl-btn cl-btn-filled cl-primary' data-page='dashboard' href='#dashboard'>
+                                                    <span class='cl-btn-label'>Voltar ao início</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+					
+                      
+                    </main>
+			
+        </div>
+
+                <!-- Rodapé removido do dashboard — permanece apenas na Landing. -->
+
+           <div id='cl-roots'>
+
+                    <!-- OVERLAY -->
+                    <div hidden='hidden' id='cl-overlay'>
+                    </div>
+
+                    <!-- LOADING -->
+                    <div data-state='visible' data-type='fullscreen' id='cl-loading'>
+                        <div class='cl-loading-container'>
+                            <div class='cl-loading-spinner'>
+                            </div>
+                            <p class='cl-loading-label' id='cl-loading-text'>Carregando...</p>
+                        </div>
+                    </div>
+
+                    <!-- ERROR -->
+                    <div hidden='hidden' id='cl-errors'>
+                        <div class='cl-error'>
+                            <div class='cl-error-header'>
+                                <h2 id='cl-error-title'>Erro</h2>
+                            </div>
+                            <div class='cl-error-body'>
+                                <p id='cl-error-message'> </p>
+                            </div>
+                            <div class='cl-error-footer'>
+                                <button class='cl-btn cl-btn-filled cl-primary' id='cl-error-close' type='button'>
+                                    <span class='cl-btn-icon'>&#10006;</span>
+                                    <span class='cl-btn-label'>Fechar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL ROOT — vazio, modais criados via JS -->
+                    <div id='cl-modal-root'>
+                    </div>
+
+                    <!-- TOASTS -->
+                    <div id='cl-toast-root'>
+                    </div>
+
+                    <!-- NOTIFICATIONS -->
+                    <div id='cl-notification-root'>
+                    </div>
+
+                </div> 
+
+
+
+            </div><!-- /#cl-app -->
+
+        </div><!-- /#coding-loop -->
+
+    <script src="assets/js/firebase-init.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/api.js"></script>
+
+    <!-- esta página exige sessão válida (ver CL.auth.guard, chamado por
+         CL.boot.init em app.js) -->
+    <script>window.CL_PROTECTED_PAGE = true;</script>
+
+    <script src="assets/js/router.js"></script>
+    <script src="assets/js/app.js"></script>
+
+</body>
+</html>
