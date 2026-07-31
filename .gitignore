@@ -67,3 +67,17 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Chaves privadas e credenciais do Firebase (CRÍTICO)
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configurações locais de IDE
+.vscode/
+*.swp
+*.swo
