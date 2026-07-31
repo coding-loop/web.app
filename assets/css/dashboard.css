@@ -1,0 +1,296 @@
+/* =====================================================
+   DASHBOARD.CSS
+   Estilos exclusivos do painel do aluno (não usados na
+   Landing nem na IDE). Carrega DEPOIS de global.css.
+   ===================================================== */
+
+
+
+            #cl-app.cl-nav-hidden #cl-nav-shell {
+
+                transform: translateY(-100%);
+
+            }
+
+
+
+            #cl-app.cl-nav-hidden #cl-main {
+
+                margin-top: var(--cl-aside-height);
+
+                min-height: calc(100vh - var(--cl-aside-height));
+
+            }
+
+
+
+              /* 2. Configura a tag <a> que segura as imagens */
+              .cl-tech-badges {
+                display: flex;
+                align-items: center;    /* Alinha o centro das 3 imagens entre si na vertical */
+                justify-content: center; /* Centraliza o grupo de imagens na horizontal */
+                gap: 0.5rem;             /* Espaço entre cada uma das 3 imagens */
+                flex: 1;             /* agora ela ocupa espaço real e o center funciona */
+              }
+
+
+
+              /* 3. Garante proporção correta para as imagens */
+              .cl-tech-badges img {
+                height: auto;
+                max-height: 3.5rem;        /* Ajuste a altura das imagens se necessário */
+                object-fit: contain;
+                align-self: center;  /* garante alinhamento vertical mesmo com alturas diferentes */
+              }
+
+
+
+            .cl-header-logo-img {
+
+                width: 4rem;
+                height: 4rem;
+                border-radius: var(--cl-radius-sm);
+
+            }
+
+
+
+            .cl-header-spacer {
+
+                flex: 1 1 auto !important;
+              	display: block !important;
+
+            }
+
+
+
+            .cl-user-button {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 2.5rem;
+
+                height: 2.5rem;
+
+                border-radius: var(--cl-radius-round);
+
+                overflow: hidden;
+
+                border: var(--cl-border-width) solid var(--cl-border);
+
+                transition: border-color var(--cl-transition);
+
+            }
+
+
+
+            .cl-user-button:hover {
+
+                border-color: var(--cl-primary);
+
+            }
+
+
+
+            .cl-avatar {
+
+                width: 100%;
+
+                height: 100%;
+
+                object-fit: cover;
+
+            }
+
+
+
+            #cl-app.cl-nav-hidden #cl-sidebar {
+
+                top: 0;
+
+            }
+
+
+
+            .cl-topbar-menu {
+
+                display: flex;
+
+                align-items: stretch;
+
+                height: 100%;
+
+                padding-inline: var(--cl-space-4);
+
+                gap: var(--cl-space-2);
+
+                overflow: visible;
+
+            }
+
+
+
+            .cl-topbar-item {
+
+                position: relative;
+
+                display: flex;
+
+                align-items: center;
+
+                flex-shrink: 0;
+
+            }
+
+
+
+            .cl-topbar-item-account {
+
+                margin-left: auto;
+
+            }
+
+
+
+            .cl-topbar-link {
+
+                display: flex;
+
+                align-items: center;
+
+                gap: var(--cl-space-2);
+
+                height: 100%;
+
+                padding-inline: var(--cl-space-3);
+
+                border-radius: var(--cl-radius-sm);
+
+                font-size: var(--cl-font-size-sm);
+
+                font-weight: var(--cl-font-weight-medium);
+
+                color: var(--cl-text);
+
+                white-space: nowrap;
+
+                transition: background var(--cl-transition);
+
+            }
+
+
+
+            .cl-topbar-link:hover {
+
+                background: var(--cl-surface-hover);
+
+            }
+
+
+
+            .cl-topbar-icon {
+
+                font-size: var(--cl-font-size-md);
+
+                line-height: 1;
+
+            }
+
+
+
+            .cl-topbar-caret {
+
+                font-size: .65rem;
+
+                opacity: .6;
+
+            }
+
+
+
+            .cl-topbar-dropdown {
+
+                top: calc(100% + .35rem);
+
+                left: 0;
+
+                right: auto;
+
+                /* Precisa ficar acima de #cl-main (z-base) e de qualquer
+                   outra coisa na página — usa um z-index dedicado, maior
+                   que --cl-z-sticky (a própria nav-shell/aside), para
+                   nunca ficar "atrás" do header ou do conteúdo principal. */
+                z-index: calc(var(--cl-z-nav-toggle) + 100);
+
+            }
+
+
+
+            .cl-topbar-item-account .cl-topbar-dropdown {
+
+                left: auto;
+
+                right: 0;
+
+            }
+
+
+
+            .cl-dropdown-avatar {
+
+                width: 28px;
+
+                height: 28px;
+
+                border-radius: var(--cl-radius-round);
+
+                object-fit: cover;
+
+                flex-shrink: 0;
+
+            }
+
+     
+
+          
+ 			/* ===================================================== */
+            /* ===================================================== */
+            /* ===================================================== */
+          
+                    /*APRESENTAÇÃO DO CURSO FRONT-END*/
+          
+            /* ===================================================== */
+            /* ===================================================== */
+            /* ===================================================== */
+          
+       	  .html-course-icon{
+               width: 30px;
+          }
+
+
+          
+          .css-course-icon{
+               width: 30px;
+          }
+
+
+          
+          .js-course-icon{
+               width: 30px;
+          }
+
+
+  /* 1. Esconde as badges */
+  .cl-tech-badges {
+    display: none !important;
+  }
+
+
+  /* Volta a exibir as badges */
+  .cl-tech-badges {
+    display: flex !important;
+  }

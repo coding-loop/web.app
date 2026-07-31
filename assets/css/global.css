@@ -1,0 +1,2237 @@
+/* =====================================================
+   GLOBAL.CSS
+   Tokens de design (cores/espaçamentos/tipografia), reset,
+   temas (solarized-dark/solarized-light), animações e os
+   componentes de layout compartilhados por TODAS as páginas
+   (header, aside, nav-shell, dropdowns, botões, modal, toast).
+   ===================================================== */
+
+            
+
+            /* ===================================================== */
+            /* RESET */
+            /* ===================================================== */
+
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                font-size: 16px;
+                -webkit-text-size-adjust: 100%;
+                scroll-behavior: smooth;
+            }
+
+            body {
+                min-height: 100vh;
+                line-height: 1.5;
+                text-rendering: optimizeLegibility;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            img,
+            picture,
+            svg,
+            video,
+            canvas {
+                display: block;
+                max-width: 100%;
+            }
+
+            button,
+            input,
+            textarea,
+            select {
+                font: inherit;
+                color: inherit;
+                background: none;
+                border: none;
+                outline: none;
+            }
+
+            button {
+                cursor: pointer;
+            }
+
+            ul,
+            ol {
+                list-style: none;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            table {
+                border-collapse: collapse;
+                border-spacing: 0;
+            }
+
+            /* ===================================================== */
+            /* TOKENS */
+            /* ===================================================== */
+
+            :root {
+
+                /* =========================
+                SPACING
+                ========================== */
+
+                --cl-space-1: .25rem;
+                --cl-space-2: .5rem;
+                --cl-space-3: .75rem;
+                --cl-space-4: 1rem;
+                --cl-space-5: 1.25rem;
+                --cl-space-6: 1.5rem;
+                --cl-space-8: 2rem;
+                --cl-space-10: 2.5rem;
+                --cl-space-12: 3rem;
+
+                /* =========================
+                RADIUS
+                ========================== */
+
+                --cl-radius-xs: 2px;
+                --cl-radius-sm: 4px;
+                --cl-radius-md: 8px;
+                --cl-radius-lg: 12px;
+                --cl-radius-xl: 16px;
+                --cl-radius-round: 9999px;
+
+                /* =========================
+                TYPOGRAPHY
+                ========================== */
+
+                --cl-font-family:
+                    Inter,
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+
+                --cl-font-size-xs: .75rem;
+                --cl-font-size-sm: .875rem;
+                --cl-font-size-md: 1rem;
+                --cl-font-size-lg: 1.125rem;
+                --cl-font-size-xl: 1.5rem;
+                --cl-font-size-2xl: 2rem;
+
+                --cl-font-weight-regular: 400;
+                --cl-font-weight-medium: 500;
+                --cl-font-weight-semibold: 600;
+                --cl-font-weight-bold: 700;
+
+                --cl-line-height: 1.5;
+
+                /* =========================
+                SHADOW
+                ========================== */
+
+                --cl-shadow-sm: 0 1px 3px rgba(0,0,0,.12);
+
+                --cl-shadow-md: 0 4px 10px rgba(0,0,0,.16);
+
+                --cl-shadow-lg: 0 10px 30px rgba(0,0,0,.25);
+
+                --cl-shadow-xl: 0 20px 50px rgba(0,0,0,.35);
+
+                /* =========================
+                BORDERS
+                ========================== */
+
+                --cl-border-width: 1px;
+
+                --cl-border-width-thick: 4px;
+
+                /* =========================
+                TRANSITIONS
+                ========================== */
+
+                --cl-transition-fast: .15s ease;
+
+                --cl-transition:
+                    .25s ease;
+
+                --cl-transition-slow:
+                    .4s ease;
+
+                --cl-nav-transition: .35s cubic-bezier(.4, 0, .2, 1);
+
+                /* =========================
+                Z-INDEX
+                ========================== */
+
+                --cl-z-base: 1;
+                --cl-z-dropdown: 100;
+                --cl-z-sticky: 200;
+                --cl-z-overlay: 900;
+                --cl-z-modal: 1000;
+                --cl-z-toast: 1100;
+                --cl-z-loading: 1200;
+                --cl-z-nav-toggle: 1300;
+
+                /* =========================
+                NAV LAYOUT
+                Header ocupa 10% da altura da tela; aside (agora uma barra
+                horizontal), 5%; juntos formam a "nav shell" que sobe e
+                desaparece como uma unidade só (ver #cl-nav-shell). O main
+                ocupa o restante (85%), ou 100% quando a nav está escondida.
+                ========================== */
+
+                --cl-header-height: 10vh;
+                --cl-aside-height: 5vh;
+                --cl-nav-height: calc(var(--cl-header-height) + var(--cl-aside-height));
+
+            }
+
+            /* ===================================================== */
+            /* THEME */
+            /* ===================================================== */
+
+            [data-theme="solarized-dark"] {
+
+                /* BACKGROUND */
+
+                --cl-bg: #002b36;
+
+                --cl-surface: #073642;
+
+                --cl-surface-2: #0b3b46;
+
+                --cl-surface-hover: #124652;
+
+                /* TEXT */
+
+                --cl-text: #fdf6e3;
+
+                --cl-text-muted: #93a1a1;
+
+                /* BORDER */
+
+                --cl-border: #586e75;
+
+                --cl-border-light: #657b83;
+
+                /* BRAND */
+
+                --cl-primary: #268bd2;
+
+                --cl-success: #859900;
+
+                --cl-warning: #b58900;
+
+                --cl-danger: #dc322f;
+
+                --cl-info: #2aa198;
+
+                --cl-on-primary: #fdf6e3;
+
+                --cl-on-danger: #fdf6e3;
+
+            }
+
+            /* Tema claro — mesma paleta Solarized, índices de cor
+               invertidos (base03 pelo base3, base02 pelo base2, base01
+               pelo base1, base00 pelo base0). Os tons de marca
+               (primary/success/warning/danger/info) são os mesmos nos
+               dois temas, por design. */
+            [data-theme="solarized-light"] {
+
+                /* BACKGROUND */
+
+                --cl-bg: #fdf6e3;
+
+                --cl-surface: #eee8d5;
+
+                --cl-surface-2: #e6ddc4;
+
+                --cl-surface-hover: #ddd4ba;
+
+                /* TEXT */
+
+                --cl-text: #002b36;
+
+                --cl-text-muted: #586e75;
+
+                /* BORDER */
+
+                --cl-border: #93a1a1;
+
+                --cl-border-light: #839496;
+
+                /* BRAND */
+
+                --cl-primary: #268bd2;
+
+                --cl-success: #859900;
+
+                --cl-warning: #b58900;
+
+                --cl-danger: #dc322f;
+
+                --cl-info: #2aa198;
+
+                --cl-on-primary: #fdf6e3;
+
+                --cl-on-danger: #fdf6e3;
+
+            }
+
+            /* ===================================================== */
+            /* ANIMATIONS */
+            /* ===================================================== */
+
+            @keyframes cl-fade-in {
+
+                from {
+                    opacity: 0;
+                }
+
+                to {
+                    opacity: 1;
+                }
+
+            }
+
+            @keyframes cl-fade-out {
+
+                from {
+                    opacity: 1;
+                }
+
+                to {
+                    opacity: 0;
+                }
+
+            }
+
+            @keyframes cl-slide-down {
+
+                from {
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+
+            }
+
+            @keyframes cl-slide-up {
+
+                from {
+                    opacity: 0;
+                    transform: translateY(8px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+
+            }
+
+            @keyframes cl-spin {
+
+                from {
+                    transform: rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg);
+                }
+
+            }
+
+            /* ===================================================== */
+            /* UTILITIES */
+            /* ===================================================== */
+
+            /* =========================
+            DISPLAY
+            ========================= */
+
+            .cl-hidden {
+                display: none !important;
+            }
+
+            .cl-block {
+                display: block;
+            }
+
+            .cl-inline {
+                display: inline;
+            }
+
+            .cl-inline-block {
+                display: inline-block;
+            }
+
+            .cl-flex {
+                display: flex;
+            }
+
+            .cl-inline-flex {
+                display: inline-flex;
+            }
+
+            .cl-grid {
+                display: grid;
+            }
+
+            /* =========================
+            FLEX
+            ========================= */
+
+            .cl-flex-row {
+                flex-direction: row;
+            }
+
+            .cl-flex-column {
+                flex-direction: column;
+            }
+
+            .cl-flex-wrap {
+                flex-wrap: wrap;
+            }
+
+            .cl-items-start {
+                align-items: flex-start;
+            }
+
+            .cl-items-center {
+                align-items: center;
+            }
+
+            .cl-items-end {
+                align-items: flex-end;
+            }
+
+            .cl-justify-start {
+                justify-content: flex-start;
+            }
+
+            .cl-justify-center {
+                justify-content: center;
+            }
+
+            .cl-justify-end {
+                justify-content: flex-end;
+            }
+
+            .cl-justify-between {
+                justify-content: space-between;
+            }
+
+            .cl-justify-around {
+                justify-content: space-around;
+            }
+
+            .cl-justify-evenly {
+                justify-content: space-evenly;
+            }
+
+            .cl-flex-1 {
+                flex: 1;
+            }
+
+            /* =========================
+            GAP
+            ========================= */
+
+            .cl-gap-1 {
+                gap: var(--cl-space-1);
+            }
+
+            .cl-gap-2 {
+                gap: var(--cl-space-2);
+            }
+
+            .cl-gap-3 {
+                gap: var(--cl-space-3);
+            }
+
+            .cl-gap-4 {
+                gap: var(--cl-space-4);
+            }
+
+            .cl-gap-5 {
+                gap: var(--cl-space-5);
+            }
+
+            .cl-gap-6 {
+                gap: var(--cl-space-6);
+            }
+
+            .cl-gap-8 {
+                gap: var(--cl-space-8);
+            }
+
+            /* =========================
+            WIDTH
+            ========================= */
+
+            .cl-w-auto {
+                width: auto;
+            }
+
+            .cl-w-full {
+                width: 100%;
+            }
+
+            .cl-h-full {
+                height: 100%;
+            }
+
+            /* =========================
+            TEXT
+            ========================= */
+
+            .cl-text-left {
+                text-align: left;
+            }
+
+            .cl-text-center {
+                text-align: center;
+            }
+
+            .cl-text-right {
+                text-align: right;
+            }
+
+            .cl-text-nowrap {
+                white-space: nowrap;
+            }
+
+            /* =========================
+            OVERFLOW
+            ========================= */
+
+            .cl-overflow-hidden {
+                overflow: hidden;
+            }
+
+            .cl-overflow-auto {
+                overflow: auto;
+            }
+
+            .cl-overflow-scroll {
+                overflow: scroll;
+            }
+
+            /* =========================
+            CURSOR
+            ========================= */
+
+            .cl-cursor-pointer {
+                cursor: pointer;
+            }
+
+            .cl-cursor-default {
+                cursor: default;
+            }
+
+            /* =========================
+            BORDER RADIUS
+            ========================= */
+
+            .cl-rounded-sm {
+                border-radius: var(--cl-radius-sm);
+            }
+
+            .cl-rounded-md {
+                border-radius: var(--cl-radius-md);
+            }
+
+            .cl-rounded-lg {
+                border-radius: var(--cl-radius-lg);
+            }
+
+            .cl-rounded-xl {
+                border-radius: var(--cl-radius-xl);
+            }
+
+            .cl-rounded-full {
+                border-radius: var(--cl-radius-round);
+            }
+
+            /* ===================================================== */
+            /* STATES */
+            /* ===================================================== */
+
+            /* =========================
+            VISIBILITY
+            ========================= */
+
+            .cl-is-hidden {
+                display: none !important;
+            }
+
+            /* =========================
+            ACTIVE
+            ========================= */
+
+            .cl-is-active {
+
+            }
+
+            /* =========================
+            OPEN
+            ========================= */
+
+            .cl-is-open {
+
+            }
+
+            /* =========================
+            DISABLED
+            ========================= */
+
+            .cl-is-disabled {
+                opacity: .5;
+                pointer-events: none;
+                cursor: not-allowed;
+            }
+
+            /* =========================
+            LOADING
+            ========================= */
+
+            .cl-is-loading {
+                pointer-events: none;
+                user-select: none;
+            }
+
+            /* =========================
+            COLLAPSED
+            ========================= */
+
+            .cl-is-collapsed {
+
+            }
+
+            /* =========================
+            SELECTED
+            ========================= */
+
+            .cl-is-selected {
+
+            }
+
+            /* =========================
+            ERROR
+            ========================= */
+
+            .cl-is-error {
+
+            }
+
+            /* =========================
+            SUCCESS
+            ========================= */
+
+            .cl-is-success {
+
+            }
+
+            /* ===================================================== */
+            /* LAYOUT */
+            /* ===================================================== */
+
+            html {
+                height: 100%;
+            }
+
+            body {
+                min-height: 100vh;
+
+                background: var(--cl-bg);
+                color: var(--cl-text);
+
+                font-family: var(--cl-font-family);
+                font-size: var(--cl-font-size-md);
+                line-height: var(--cl-line-height);
+            }
+
+            #coding-loop {
+                min-height: 100vh;
+            }
+
+            #cl-app {
+
+                position: relative;
+
+                min-height: 100vh;
+
+                background: var(--cl-bg);
+
+            }
+
+            /* =========================
+            NAV SHELL
+            Contém apenas o header agora. Escondê-lo é uma transform só
+            neste shell — o aside (#cl-sidebar) NÃO está mais dentro dele,
+            por isso permanece visível quando o header sobe e some.
+            ========================= */
+
+            #cl-nav-shell {
+
+                position: fixed;
+
+                top: 0;
+                left: 0;
+                right: 0;
+
+                height: var(--cl-header-height);
+
+                display: flex;
+
+                flex-direction: column;
+
+                /* Precisa empilhar ACIMA do #cl-sidebar (aside), que também
+                   usa --cl-z-sticky: como os dois têm position fixa e
+                   criam contexto de empilhamento próprio, em caso de
+                   empate o elemento mais abaixo no DOM (o aside) venceria
+                   e cobriria o dropdown de conta do header. Por isso o
+                   nav-shell usa +1 aqui, garantindo que o header e seus
+                   dropdowns (ex.: #cl-user-dropdown) fiquem sempre na
+                   frente dos dropdowns do aside. */
+                z-index: calc(var(--cl-z-sticky) + 1);
+
+                transition: transform var(--cl-nav-transition);
+
+            }
+
+            #cl-app.cl-nav-hidden #cl-nav-shell {
+
+                transform: translateY(-100%);
+
+            }
+
+            /* =========================
+            NAV TOGGLE
+            Fica colado no canto superior direito (margin-right:0 /
+            margin-top:0), acima do nav shell. Sem fundo/borda/sombra —
+            aparece só a seta, cuja função é abaixar/trazer o header
+            de volta quando ele some (ver CL.boot / CL.ui).
+            ========================= */
+
+            #cl-nav-toggle {
+
+                position: fixed;
+
+                top: 0;
+                right: 0;
+                left: auto;
+
+                margin-top: 0;
+                margin-right: 0;
+
+                width: 2.25rem;
+
+                height: 1.5rem;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                /* Sem "aba": nada de fundo, borda ou sombra — fica
+                   somente a seta, indicando a função de abaixar/subir
+                   o header. */
+                background: transparent;
+                border: none;
+                box-shadow: none;
+
+                color: var(--cl-text-muted);
+
+                opacity: .7;
+
+                z-index: var(--cl-z-nav-toggle);
+
+                transition:
+                    opacity var(--cl-transition),
+                    color var(--cl-transition);
+
+            }
+
+            #cl-nav-toggle:hover {
+
+                opacity: 1;
+
+                color: var(--cl-text);
+
+            }
+
+            /* =========================
+            CONTAINER / MAIN
+            Com header e aside fixos (fora do fluxo), #cl-main é quem
+            realmente ocupa o espaço da tela: 85% (100% - nav-height) por
+            padrão. Quando só o header some, o aside continua ocupando
+            --cl-aside-height, então o main recua só esse tanto.
+            ========================= */
+
+            #cl-container {
+
+                display: block;
+
+            }
+
+            #cl-main {
+
+                position: relative;
+
+                z-index: var(--cl-z-base);
+
+                display: flex;
+
+                flex-direction: column;
+
+                min-width: 0;
+
+                margin-top: var(--cl-nav-height);
+
+                min-height: calc(100vh - var(--cl-nav-height));
+
+                overflow-y: auto;
+
+                transition:
+                    margin-top var(--cl-nav-transition),
+                    min-height var(--cl-nav-transition);
+
+            }
+
+            #cl-app.cl-nav-hidden #cl-main {
+
+                margin-top: var(--cl-aside-height);
+
+                min-height: calc(100vh - var(--cl-aside-height));
+
+            }
+
+            /* =========================
+            CONTENT
+            ========================= */
+
+            #cl-content {
+
+                flex: 1;
+
+                padding: var(--cl-space-6);
+
+            }
+
+            /* =========================
+            ROOTS
+            ========================= */
+
+            #cl-roots {
+
+                position: relative;
+
+                z-index: var(--cl-z-base);
+
+            }
+
+            /* ===================================================== */
+            /* HEADER — 10% da altura da tela */
+            /* ===================================================== */
+
+            #cl-header {
+
+                flex: 0 0 var(--cl-header-height);
+
+                height: var(--cl-header-height);
+
+                display: flex !important;
+                align-items: center;
+              	width: 100%;
+
+                gap: var(--cl-space-4);
+
+                padding-inline: var(--cl-space-6);
+
+                background: var(--cl-surface);
+
+                border-bottom:
+                    var(--cl-border-width)
+                    solid
+                    var(--cl-border);
+
+            }
+
+            
+              /* 1. Faz a div da marca agir como container Flex */
+              .cl-header-brand {
+                display: flex;
+                align-items: center;    /* Centraliza verticalmente o logo e as badges */
+                justify-content: center !important; /* Centraliza horizontalmente o conteúdo se a div tiver largura */
+                gap: 1.5rem;   /* Distância entre a logo e a tag <a> das badges */
+                width: 100% !important;        /* faz o brand ocupar o espaço disponível */
+         
+          }
+
+              /* 2. Configura a tag <a> que segura as imagens */
+              .cl-tech-badges {
+                display: flex;
+                align-items: center;    /* Alinha o centro das 3 imagens entre si na vertical */
+                justify-content: center; /* Centraliza o grupo de imagens na horizontal */
+                gap: 0.5rem;             /* Espaço entre cada uma das 3 imagens */
+                flex: 1;             /* agora ela ocupa espaço real e o center funciona */
+              }
+
+              /* 3. Garante proporção correta para as imagens */
+              .cl-tech-badges img {
+                height: auto;
+                max-height: 3.5rem;        /* Ajuste a altura das imagens se necessário */
+                object-fit: contain;
+                align-self: center;  /* garante alinhamento vertical mesmo com alturas diferentes */
+              }
+
+            .cl-header-logo-img {
+                height: 2.5rem;          /* Ajuste conforme necessário (ex: 2.5rem ou 40px) */
+                width: auto;             /* Mantém a proporção correta automaticamente */
+                object-fit: contain;     /* Evita distorções internas */
+                border-radius: var(--cl-radius-sm);
+            }
+
+           /* Limita o tamanho do logo para que ele não fique gigante */
+            .cl-logo img {
+                max-height: 2.5rem; /* Ajuste a altura máxima desejada (ex: 2.5rem ou 40px) */
+                width: auto;        /* Mantém a proporção correta da imagem */
+                object-fit: contain;
+            }
+            .cl-logo {
+
+                display: flex;
+                align-items: center;
+                gap: var(--cl-space-2);
+                font-size: var(--cl-font-size-xl);
+                font-weight: var(--cl-font-weight-bold);
+                font-family: Cascadia code;
+                color: var(--cl-text);
+              
+              	
+
+            }
+
+            .cl-logo span {
+
+                color: var(--cl-text);
+                font-weight: inherit;
+                position: relative;
+              	top: -10px;
+              	margin-top: 0;
+
+            }
+
+            .cl-header-spacer {
+
+                flex: 1 1 auto !important;
+              	display: block !important;
+
+            }
+
+            /* =========================
+            HEADER AUTH
+            Grupo (toggle de tema + avatar) fica colado na ponta
+            direita do header — margin-right:0 garante que nada o
+            empurre para dentro, mesmo se o padding do header mudar.
+            O botão de tema fica sempre imediatamente ao lado da foto
+            de perfil (ordem no HTML: tema -> avatar).
+            ========================= */
+
+            .cl-header-auth {
+
+                display: flex;
+                align-items: center;
+                gap: var(--cl-space-3);
+                margin-right: 0;
+
+            }
+
+            .cl-auth-state {
+
+                position: relative;
+                display: flex;
+                align-items: center;
+                margin-right: 0;
+
+            }
+
+            .cl-user-button {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 2.5rem;
+
+                height: 2.5rem;
+
+                border-radius: var(--cl-radius-round);
+
+                overflow: hidden;
+
+                border: var(--cl-border-width) solid var(--cl-border);
+
+                transition: border-color var(--cl-transition);
+
+            }
+
+            .cl-user-button:hover {
+
+                border-color: var(--cl-primary);
+
+            }
+
+            .cl-avatar {
+
+                width: 100%;
+
+                height: 100%;
+
+                object-fit: cover;
+
+            }
+
+            /* ===================================================== */
+            /* ASIDE — barra horizontal (5% da altura da tela), fixa   */
+            /* de forma independente do header, logo abaixo dele.      */
+            /* Quando o header some (cl-nav-hidden), sobe para top: 0. */
+            /* ===================================================== */
+
+            #cl-sidebar {
+
+                position: fixed;
+
+                top: var(--cl-header-height);
+                left: 0;
+                right: 0;
+
+                flex: 0 0 var(--cl-aside-height);
+
+                height: var(--cl-aside-height);
+
+                min-height: 40px;
+
+                background: var(--cl-surface-2);
+
+                border-bottom:
+                    var(--cl-border-width)
+                    solid
+                    var(--cl-border);
+
+                /* overflow permanece visível (nunca "auto"/"hidden") para
+                   que os dropdowns de Courses/Playground/Exercícios/
+                   Ferramentas/Conta consigam "descer" por cima do
+                   conteúdo, em vez de serem cortados pela barra. */
+                overflow: visible;
+
+                z-index: var(--cl-z-sticky);
+
+                transition: top var(--cl-nav-transition);
+
+            }
+
+            #cl-app.cl-nav-hidden #cl-sidebar {
+
+                top: 0;
+
+            }
+
+            .cl-topbar-menu {
+
+                display: flex;
+
+                align-items: stretch;
+
+                height: 100%;
+
+                padding-inline: var(--cl-space-4);
+
+                gap: var(--cl-space-2);
+
+                overflow: visible;
+
+            }
+
+            .cl-topbar-item {
+
+                position: relative;
+
+                display: flex;
+
+                align-items: center;
+
+                flex-shrink: 0;
+
+            }
+
+            .cl-topbar-item-account {
+
+                margin-left: auto;
+
+            }
+
+            .cl-topbar-link {
+
+                display: flex;
+
+                align-items: center;
+
+                gap: var(--cl-space-2);
+
+                height: 100%;
+
+                padding-inline: var(--cl-space-3);
+
+                border-radius: var(--cl-radius-sm);
+
+                font-size: var(--cl-font-size-sm);
+
+                font-weight: var(--cl-font-weight-medium);
+
+                color: var(--cl-text);
+
+                white-space: nowrap;
+
+                transition: background var(--cl-transition);
+
+            }
+
+            .cl-topbar-link:hover {
+
+                background: var(--cl-surface-hover);
+
+            }
+
+            .cl-topbar-icon {
+
+                font-size: var(--cl-font-size-md);
+
+                line-height: 1;
+
+            }
+
+            .cl-topbar-caret {
+
+                font-size: .65rem;
+
+                opacity: .6;
+
+            }
+
+            .cl-topbar-dropdown {
+
+                top: calc(100% + .35rem);
+
+                left: 0;
+
+                right: auto;
+
+                /* Precisa ficar acima de #cl-main (z-base) e de qualquer
+                   outra coisa na página — usa um z-index dedicado, maior
+                   que --cl-z-sticky (a própria nav-shell/aside), para
+                   nunca ficar "atrás" do header ou do conteúdo principal. */
+                z-index: calc(var(--cl-z-nav-toggle) + 100);
+
+            }
+
+            .cl-topbar-item-account .cl-topbar-dropdown {
+
+                left: auto;
+
+                right: 0;
+
+            }
+
+            /* =========================
+            DROPDOWN DA CONTA (HEADER)
+            O dropdown do avatar (Perfil/Configurações/Sair) mora dentro
+            de .cl-auth-state, que fica colada na ponta DIREITA do
+            header. Diferente do dropdown genérico (.cl-dropdown, que
+            por padrão ancora à esquerda — ver regra abaixo), este
+            precisa "pendurar" a partir da borda direita do botão do
+            avatar e crescer para a ESQUERDA. Sem isso, o menu nasce a
+            partir do left:0 do container (que já está no limite direito
+            da tela) e estoura para fora do viewport.
+            ========================= */
+
+            .cl-auth-state .cl-dropdown {
+
+                left: auto;
+
+                right: 0;
+
+            }
+
+            .cl-dropdown-avatar {
+
+                width: 28px;
+
+                height: 28px;
+
+                border-radius: var(--cl-radius-round);
+
+                object-fit: cover;
+
+                flex-shrink: 0;
+
+            }
+
+            /* ===================================================== */
+            /* BUTTON */
+            /* Estrutura: cl-btn | Aparência: cl-btn-filled/cl-btn-outline/cl-btn-ghost | Cor: cl-primary/cl-danger... */      
+            /* ===================================================== */
+
+            .cl-btn {
+
+                display: inline-flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                gap: var(--cl-space-2);
+
+                min-height: 40px;
+
+                padding: .65rem 1rem;
+
+                border-radius: var(--cl-radius-md);
+
+                font-size: var(--cl-font-size-sm);
+
+                font-weight: var(--cl-font-weight-medium);
+
+                white-space: nowrap;
+
+                user-select: none;
+
+                transition:
+                    background var(--cl-transition),
+                    color var(--cl-transition),
+                    border-color var(--cl-transition),
+                    transform var(--cl-transition),
+                    opacity var(--cl-transition);
+
+            }
+
+            /* =========================
+            BUTTON ICON
+            ========================= */
+
+            .cl-btn-icon {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                flex-shrink: 0;
+
+            }
+
+            /* =========================
+            BUTTON LABEL
+            ========================= */
+
+            .cl-btn-label {
+
+                display: inline-block;
+
+            }
+
+            /* =====================================================
+            APPEARANCE
+            ===================================================== */
+
+            /* ---------- FILLED ---------- */
+
+            .cl-btn.cl-btn-filled {
+
+                color: #fff;
+
+            }
+
+            /* ---------- OUTLINE ---------- */
+
+            .cl-btn.cl-btn-outline {
+
+                background: transparent;
+
+                border: 1px solid currentColor;
+
+            }
+
+            /* ---------- GHOST ---------- */
+
+            .cl-btn.cl-btn-ghost {
+
+                background: transparent;
+
+            }
+
+            /* =====================================================
+            COLORS
+            ===================================================== */
+
+            .cl-btn.cl-primary {
+
+                background: var(--cl-primary);
+
+            }
+
+            .cl-btn.cl-success {
+
+                background: var(--cl-success);
+
+            }
+
+            .cl-btn.cl-warning {
+
+                background: var(--cl-warning);
+
+            }
+
+            .cl-btn.cl-danger {
+
+                background: var(--cl-danger);
+
+            }
+
+            /* ---------- OUTLINE ---------- */
+
+            .cl-btn.cl-btn-outline.cl-primary {
+
+                color: var(--cl-primary);
+
+                background: transparent;
+
+            }
+
+            .cl-btn.cl-btn-outline.cl-success {
+
+                color: var(--cl-success);
+
+            }
+
+            .cl-btn.cl-btn-outline.cl-warning {
+
+                color: var(--cl-warning);
+
+            }
+
+            .cl-btn.cl-btn-outline.cl-danger {
+
+                color: var(--cl-danger);
+
+            }
+
+            /* ---------- GHOST ---------- */
+
+            .cl-btn.cl-btn-ghost.cl-primary {
+
+                color: var(--cl-primary);
+
+            }
+
+            .cl-btn.cl-btn-ghost.cl-success {
+
+                color: var(--cl-success);
+
+            }
+
+            .cl-btn.cl-btn-ghost.cl-warning {
+
+                color: var(--cl-warning);
+
+            }
+
+            .cl-btn.cl-btn-ghost.cl-danger {
+
+                color: var(--cl-danger);
+
+            }
+
+            /* =====================================================
+            HOVER
+            ===================================================== */
+
+            .cl-btn:hover {
+
+                transform: translateY(-1px);
+
+            }
+
+            .cl-btn:active {
+
+                transform: translateY(0);
+
+            }
+
+            /* =====================================================
+            STATES
+            ===================================================== */
+
+            .cl-btn.cl-is-loading {
+
+                pointer-events: none;
+
+                opacity: .7;
+
+            }
+
+            .cl-btn.cl-is-disabled,
+            .cl-btn:disabled {
+
+                opacity: .5;
+
+                pointer-events: none;
+
+                cursor: not-allowed;
+
+            }
+
+            /* =====================================================
+            FULL WIDTH
+            ===================================================== */
+
+            .cl-btn.cl-w-full {
+
+                width: 100%;
+
+            }
+
+        /* ===================================================== */
+            /* CARD */
+            /* ===================================================== */
+
+            .cl-card {
+
+                display: flex;
+
+                flex-direction: column;
+
+                background: var(--cl-surface);
+
+                border: 1px solid var(--cl-border);
+
+                border-radius: var(--cl-radius-lg);
+
+                box-shadow: var(--cl-shadow-sm);
+
+                overflow: hidden;
+
+                transition:
+                    box-shadow var(--cl-transition),
+                    transform var(--cl-transition);
+
+            }
+
+            /* =========================
+            HOVER
+            ========================= */
+
+            .cl-card:hover {
+
+                transform: translateY(-2px);
+
+                box-shadow: var(--cl-shadow-md);
+
+            }
+
+            /* =========================
+            HEADER
+            ========================= */
+
+            .cl-card-header {
+
+                padding: var(--cl-space-4);
+
+                border-bottom: 1px solid var(--cl-border);
+
+            }
+
+            /* =========================
+            BODY
+            ========================= */
+
+            .cl-card-body {
+
+                flex: 1;
+
+                padding: var(--cl-space-4);
+
+            }
+
+            /* =========================
+            FOOTER
+            ========================= */
+
+            .cl-card-footer {
+
+                padding: var(--cl-space-4);
+
+                border-top: 1px solid var(--cl-border);
+
+            }
+
+            /* =========================
+            ACTIONS
+            ========================= */
+
+            .cl-card-actions {
+
+                display: flex;
+
+                justify-content: flex-end;
+
+                align-items: center;
+
+                gap: var(--cl-space-2);
+
+                padding: var(--cl-space-4);
+
+                border-top: 1px solid var(--cl-border);
+
+            }
+    
+            /* ===================================================== */
+            /* DROPDOWN */
+            /* ===================================================== */
+
+            .cl-dropdown {
+                position: absolute;
+                top: calc(100% + .5rem);
+                right: auto;    /* Default: ancora à esquerda (left) */
+                left: 0;        /* Aumente ou diminua este valor para mover mais para a esquerda */
+                min-width: 240px;
+                background: var(--cl-surface);
+                border: 1px solid var(--cl-border);
+                border-radius: var(--cl-radius-lg);
+                box-shadow: var(--cl-shadow-lg);
+                overflow: hidden;
+                z-index: var(--cl-z-dropdown);
+                animation: cl-slide-down .2s ease;
+            }
+
+            /* =========================
+            MENU
+            ========================= */
+
+            .cl-dropdown-menu {
+
+                display: flex;
+
+                flex-direction: column;
+                right: 0;
+
+                /* padding: var(--cl-space-2); */
+
+            }
+
+            /* =========================
+            ITEM
+            ========================= */
+
+            .cl-dropdown-item {
+
+                display: flex;
+
+                align-items: center;
+
+                gap: var(--cl-space-3);
+
+                width: 100%;
+
+                padding: .75rem 1rem;
+
+                border-radius: var(--cl-radius-md);
+
+                color: var(--cl-text);
+
+                text-align: left;
+
+                transition:
+                    background var(--cl-transition),
+                    color var(--cl-transition);
+
+            }
+
+            /* =========================
+            HOVER
+            ========================= */
+
+            .cl-dropdown-item:hover {
+
+                background: var(--cl-surface-hover);
+
+            }
+
+            /* =========================
+            ICON
+            ========================= */
+
+            .cl-dropdown-icon {
+
+                width: 20px;
+
+                display: flex;
+
+                justify-content: center;
+
+                flex-shrink: 0;
+
+            }
+
+            /* =========================
+            LABEL
+            ========================= */
+
+            .cl-dropdown-label {
+
+                flex: 1;
+
+            }
+
+            /* ===================================================== */
+            /* MODAL */
+            /* ===================================================== */
+
+            #cl-modal-root {
+
+                position: fixed;
+
+                inset: 0;
+
+                z-index: var(--cl-z-modal);
+
+                pointer-events: none;
+
+            }
+
+            /* ---------- */
+
+            .cl-modal-overlay {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 100%;
+
+                height: 100%;
+
+                padding: var(--cl-space-6);
+
+                background: rgb(0 0 0 / .5);
+
+            }
+
+            /* ---------- */
+
+            .cl-modal {
+
+                display: flex;
+
+                flex-direction: column;
+
+                width: min(100%, 40rem);
+
+                max-height: 90vh;
+
+                background: var(--cl-surface);
+
+                border: var(--cl-border-width) solid var(--cl-border);
+
+                border-radius: var(--cl-radius-lg);
+
+                box-shadow: var(--cl-shadow-xl);
+
+                overflow: hidden;
+
+            }
+
+            /* ---------- */
+
+            .cl-modal-header {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: space-between;
+
+                gap: var(--cl-space-4);
+
+                padding: var(--cl-space-5);
+
+                border-bottom:
+                    var(--cl-border-width)
+                    solid
+                    var(--cl-border);
+
+            }
+
+            /* ---------- */
+
+            .cl-modal-title {
+
+                font-size: var(--cl-font-size-lg);
+
+                font-weight: var(--cl-font-weight-semibold);
+
+            }
+
+            /* ---------- */
+
+            .cl-modal-body {
+
+                flex: 1;
+
+                padding: var(--cl-space-5);
+
+                overflow-y: auto;
+
+            }
+
+            /* ---------- */
+
+            .cl-modal-footer {
+
+                display: flex;
+
+                justify-content: flex-end;
+
+                gap: var(--cl-space-3);
+
+                padding: var(--cl-space-5);
+
+                border-top:
+                    var(--cl-border-width)
+                    solid
+                    var(--cl-border);
+
+            }
+
+            /* ---------- */
+
+            .cl-modal-close {
+
+                display: inline-flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 2.25rem;
+
+                height: 2.25rem;
+
+                border: 0;
+
+                border-radius: var(--cl-radius-md);
+
+                background: transparent;
+
+                color: var(--cl-text-muted);
+
+                cursor: pointer;
+
+                transition:
+                    background var(--cl-transition),
+                    color var(--cl-transition);
+
+            }
+
+            .cl-modal-close:hover {
+
+                background: var(--cl-surface-hover);
+
+                color: var(--cl-text);
+
+            }
+            /* ===================================================== */
+            /* TOAST */
+            /* ===================================================== */
+
+            #cl-toast-root {
+
+                position: fixed;
+
+                top: var(--cl-space-6);
+
+                right: var(--cl-space-6);
+
+                display: flex;
+
+                flex-direction: column;
+
+                gap: var(--cl-space-3);
+
+                z-index: var(--cl-z-toast);
+
+                pointer-events: none;
+
+            }
+
+            /* ---------- */
+
+            .cl-toast {
+
+                display: flex;
+
+                align-items: flex-start;
+
+                gap: var(--cl-space-3);
+
+                min-width: 20rem;
+
+                max-width: 24rem;
+
+                padding: var(--cl-space-4);
+
+                border: var(--cl-border-width) solid var(--cl-border);
+
+                border-radius: var(--cl-radius-lg);
+
+                background: var(--cl-surface);
+
+                box-shadow: var(--cl-shadow-lg);
+
+                pointer-events: auto;
+
+            }
+
+            /* ---------- */
+
+            .cl-toast-icon {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 1.5rem;
+
+                height: 1.5rem;
+
+                flex-shrink: 0;
+
+            }
+
+            /* ---------- */
+
+            .cl-toast-content {
+
+                flex: 1;
+
+            }
+
+            /* ---------- */
+
+            .cl-toast-title {
+
+                margin-bottom: var(--cl-space-1);
+
+                font-size: var(--cl-font-size-sm);
+
+                font-weight: var(--cl-font-weight-semibold);
+
+            }
+
+            /* ---------- */
+
+            .cl-toast-message {
+
+                font-size: var(--cl-font-size-sm);
+
+                color: var(--cl-text-muted);
+
+            }
+
+            /* ---------- */
+
+            .cl-toast-close {
+
+                display: inline-flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 2rem;
+
+                height: 2rem;
+
+                border: 0;
+
+                border-radius: var(--cl-radius-md);
+
+                background: transparent;
+
+                color: var(--cl-text-muted);
+
+                cursor: pointer;
+
+                transition:
+                    background var(--cl-transition),
+                    color var(--cl-transition);
+
+            }
+
+            .cl-toast-close:hover {
+
+                background: var(--cl-surface-hover);
+
+                color: var(--cl-text);
+
+            }
+            /* ===================================================== */
+            /* LOADING */
+            /* ===================================================== */
+
+            #cl-loading {
+
+                position: fixed;
+
+                inset: 0;
+
+                display: none;
+
+                align-items: center;
+
+                justify-content: center;
+
+                z-index: var(--cl-z-loading);
+
+                background: var(--cl-bg);
+
+            }
+
+            #cl-loading:not([hidden]) {
+                display: flex;
+            }
+
+            /* ---------- */
+
+            .cl-loading-content {
+
+                display: flex;
+
+                flex-direction: column;
+
+                align-items: center;
+
+                gap: var(--cl-space-4);
+
+            }
+
+            /* ---------- */
+
+            .cl-spinner {
+
+                width: 3rem;
+
+                height: 3rem;
+
+                border:
+                    var(--cl-border-width-thick)
+                    solid
+                    var(--cl-border);
+
+                border-top-color: var(--cl-primary);
+
+                border-radius: 50%;
+
+                animation:
+                    cl-spin
+                    1s
+                    linear
+                    infinite;
+
+            }
+
+            /* ---------- */
+
+            .cl-loading-text {
+
+                font-size: var(--cl-font-size-sm);
+
+                color: var(--cl-text-muted);
+
+            }
+            /* ===================================================== */
+            /* ERROR */
+            /* ===================================================== */
+
+            .cl-error {
+
+                display: flex;
+
+                flex-direction: column;
+
+                align-items: center;
+
+                justify-content: center;
+
+                gap: var(--cl-space-4);
+
+                padding: var(--cl-space-8);
+
+                text-align: center;
+
+            }
+
+            /* ---------- */
+
+            .cl-error-icon {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 4rem;
+
+                height: 4rem;
+
+                border-radius: 50%;
+
+                background: var(--cl-surface-hover);
+
+                color: var(--cl-danger);
+
+                font-size: 2rem;
+
+            }
+
+            /* ---------- */
+
+            .cl-error-title {
+
+                font-size: var(--cl-font-size-xl);
+
+                font-weight: var(--cl-font-weight-bold);
+
+                color: var(--cl-text);
+
+            }
+
+            /* ---------- */
+
+            .cl-error-message {
+
+                max-width: 40rem;
+
+                color: var(--cl-text-muted);
+
+                line-height: var(--cl-line-height);
+
+            }
+
+            /* ---------- */
+
+            .cl-error-actions {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                gap: var(--cl-space-3);
+
+                flex-wrap: wrap;
+
+            }
+            /* ===================================================== */
+            /* PAGES */
+            /* ===================================================== */
+
+            .cl-page {
+
+                display: none;
+
+                width: 100%;
+
+                height: 100%;
+
+            }
+
+            .cl-page.cl-is-active {
+
+                display: block;
+
+            }
+
+            /* ---------- */
+
+            .cl-page-container {
+
+                display: flex;
+
+                flex-direction: column;
+
+                gap: var(--cl-space-6);
+
+                padding: var(--cl-space-6);
+
+            }
+
+            /* ---------- */
+
+            .cl-page-header {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: space-between;
+
+                gap: var(--cl-space-4);
+
+                flex-wrap: wrap;
+
+            }
+
+            /* ---------- */
+
+            .cl-page-title {
+
+                font-size: var(--cl-font-size-2xl);
+
+                font-weight: var(--cl-font-weight-bold);
+
+                color: var(--cl-text);
+
+            }
+
+            /* ---------- */
+
+            .cl-page-actions {
+
+                display: flex;
+
+                align-items: center;
+
+                gap: var(--cl-space-3);
+
+                flex-wrap: wrap;
+
+            }
+
+            /* ---------- */
+
+            .cl-page-toolbar {
+
+                display: flex;
+
+                align-items: center;
+
+                gap: var(--cl-space-3);
+
+                flex-wrap: wrap;
+
+            }
+
+            /* ---------- */
+
+            .cl-page-body {
+
+                display: flex;
+
+                flex-direction: column;
+
+                gap: var(--cl-space-6);
+
+            }
+
+           
+            .cl-page-grid {
+
+                display: grid;
+
+                gap: var(--cl-space-6);
+
+            }     
+
+          
+ 			/* ===================================================== */
+            /* ===================================================== */
+            /* ===================================================== */
+          
+                    /*APRESENTAÇÃO DO CURSO FRONT-END*/
+          
+            /* ===================================================== */
+            /* ===================================================== */
+            /* ===================================================== */
+          
+       	  .html-course-icon{
+               width: 30px;
+          }
+          
+          .css-course-icon{
+               width: 30px;
+          }
+          
+          .js-course-icon{
+               width: 30px;
+          }
+            /* ===================================================== */
+            /* ===================================================== */
+            /* ===================================================== */
+          
+                    /*APRESENTAÇÃO DO CURSO FRONT-END*/
+            
+            /* ===================================================== */
+            /* ===================================================== */
+            /* ===================================================== */
+            
+          
+          /* Esconde as badges apenas em telas de celular/tablets menores */
+          /* 1. Por padrão, esconde a badge em telas menores que 1024px (modo retrato) */
+          /* Esconde por padrão em telas móveis */
+          /* Quando a tela for vertical (retrato) ou menor que 1024px */
+@media (max-width: 1024px) {
+  /* 1. Esconde as badges */
+  .cl-tech-badges {
+    display: none !important;
+  }
+
+  /* 2. Alinha a marca (logo) de volta para a esquerda */
+  .cl-header-brand {
+    justify-content: flex-start !important; /* Em vez de center */
+    width: auto !important;                 /* Deixa occupying apenas o espaço necessário */
+  }
+}
+
+/* Quando o tablet/celular for virado para a HORIZONTAL (landscape) */
+@media (orientation: landscape) and (min-width: 768px) {
+  /* Volta a exibir as badges */
+  .cl-tech-badges {
+    display: flex !important;
+  }
+
+  /* Restaura o alinhamento centralizado do conjunto todo */
+  .cl-header-brand {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+}

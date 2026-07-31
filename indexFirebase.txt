@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Coding-Loop</title>
+
+    <link rel="stylesheet" href="assets/css/index.css">
+  </head>
+  <body>
+
+   
+    <div id='coding-loop'>
+
+    <!-- ===================================================== -->
+    <!-- LANDING PAGE &#8212; página de entrada do site.              -->
+    <!-- Visitante não-autenticado sempre cai aqui. Quem já tem -->
+    <!-- sessão válida é redirecionado direto pro Dashboard no  -->
+    <!-- boot (ver CL.boot.init), sem ver esta tela.            -->
+    <!-- ===================================================== -->
+
+    <section id='cl-landing'>
+
+        <header id='cl-landing-header'>
+
+            <div class='cl-header-brand' id='cl-landing-brand'>
+                <a class='cl-logo' href='#'>
+                    <img src='https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg6EZEO0k3h-2142ikDia1_NDzm_pniss2aR8eIR12PXpk97BEjAT51neoYW2bRguL3u1eFO3SCzhiFOqf7P_j6vklF-23ODK4WPbvt0aegQp8JPZXU12A0QzTc2XJ8wONm3E8utAWze1atLQvvIw8v-sFQtmMcqpEbAvRSVkDllmJA_A/s1600/Logo-Azul.png'/>                            
+                </a>
+                <h2> Coding-Loop</h2>
+            </div>
+
+            <div class='cl-header-spacer'/>
+
+            <div class='cl-landing-actions' id='cl-landing-actions'>
+
+                <!-- TEMA CLARO/ESCURO -->
+                <button aria-label='Alternar tema claro/escuro' class='cl-btn' data-theme-toggle='' type='button'>
+                    <span class='cl-btn-icon'>&#9728;</span>
+                </button>
+
+                <!-- SELETOR DE IDIOMA -->
+                
+                <!-- <div class='cl-header-lang' id='cl-landing-lang'>
+
+                        <button aria-expanded='false' aria-haspopup='true' class='cl-btn' data-lang-toggle='' type='button'>
+                        <span class='cl-btn-icon'>🌐</span>
+                        <span class='cl-btn-label' data-lang-current=''>PT</span>
+                    </button> 
+
+                    <div class='cl-dropdown' hidden='hidden'>
+                        <div class='cl-dropdown-menu'>
+
+                            <button class='cl-dropdown-item' data-lang='pt-BR' type='button'>
+                                <span class='cl-dropdown-label'>Português (BR)</span>
+                            </button>
+
+                            <button class='cl-dropdown-item' data-lang='en-US' type='button'>
+                                <span class='cl-dropdown-label'>English (US)</span>
+                            </button>
+
+                            <button class='cl-dropdown-item' data-lang='es-ES' type='button'>
+                                <span class='cl-dropdown-label'>Español</span>
+                            </button>
+
+                        </div>
+                    </div>
+
+                </div> -->
+
+                <!-- LOGIN COM GOOGLE -->
+                <button class='cl-btn cl-btn-filled cl-primary' id='cl-landing-btn-login' type='button'>
+                    <span class='cl-btn-icon'>🔐</span>
+                    <span class='cl-btn-label'> Log in </span>
+                </button>
+
+            </div>
+
+        </header>
+
+        <!-- ===========================================================
+                Área de conteúdo da landing. Os links reais que você
+                colou foram movidos pra cá (antes estavam soltos, fora
+                de qualquer estilo, e com a URL no lugar errado).
+                Adicione/edite quantos quiser &#8212; é só HTML normal.
+                =========================================================== -->
+        <main id='cl-landing-main'>
+            
+            <a> <img class='img-landingPage' src='https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgB0iHjs9BQhNI74ZjZK-RoqLkWoqA1_GUVuBAT7vtEa7npruDuM8Hv06rDEXaBqGDrXVY17-f7yPHYIWhVL5x-uPvAOioq6fn-tyeD20P53L61ot0RvwJC2EhOII02eedVbYPtqQIcIUD4e4oKyn8rMQ550gIRyBAVtDL6sLNTC55teQ/s1600/landingPagi-CodingLoop.png'/>            
+            </a> 
+
+            <!-- <div class='cl-quick-links'>
+                <a class='cl-btn cl-btn-filled cl-primary' href='#'>
+                    <span class='cl-btn-label'>Dashboard</span>
+                </a>
+                <a class='cl-btn cl-btn-outline cl-primary' href='#'>
+                    <span class='cl-btn-label'>Evolução dos tipos primitivos em C/C++</span>
+                </a>
+                
+                <a class='cl-btn cl-btn-outline cl-primary' href='#'>
+                    <span class='cl-btn-label'>COLE_O_LINK_DA_PAGINA_3_AQUI</span>
+                </a>
+            </div> -->  
+
+        </main>
+
+    </section>
+
+    <!-- LOADING -->
+    <div data-state='visible' data-type='fullscreen' id='cl-loading'>
+        <div class='cl-loading-container'>
+            <div class='cl-loading-spinner'>
+            </div>
+            <p class='cl-loading-label' id='cl-loading-text'> Carregando... </p>
+        </div>
+    </div>
+
+    <!-- ERROR -->
+    <div hidden='hidden' id='cl-errors'>
+        <div class='cl-error'>
+            <div class='cl-error-header'>
+                <h2 id='cl-error-title'>Erro</h2>
+            </div>
+            <div class='cl-error-body'>
+                <p id='cl-error-message'> </p>
+            </div>
+            <div class='cl-error-footer'>
+                <button class='cl-btn cl-btn-filled cl-primary' id='cl-error-close' type='button'>
+                    <span class='cl-btn-icon'>&#10006;</span>
+                    <span class='cl-btn-label'>Fechar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOASTS -->
+    <div id='cl-toast-root'>
+    </div>
+
+    <!-- Script de Inicialização do Firebase (Modular) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-analytics.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCrr-dwZvA6I68dwM_P_Sqh_7dAIgsBuG8",
+        authDomain: "coding-loop.firebaseapp.com",
+        projectId: "coding-loop",
+        storageBucket: "coding-loop.firebasestorage.app",
+        messagingSenderId: "344147171863",
+        appId: "1:344147171863:web:e084815f63deea91361a52",
+        measurementId: "G-G2BV5MSZW8"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    </script>
+
+    <script src="assets/js/index.js"></script>    
+  </body>
+</html>
