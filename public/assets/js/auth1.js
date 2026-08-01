@@ -88,6 +88,10 @@
         "auth/invalid-credential": "Email ou senha incorretos.",
         "auth/too-many-requests": "Muitas tentativas seguidas. Aguarde um pouco e tente de novo.",
         "auth/account-exists-with-different-credential": "Esse email já está cadastrado usando outro método de login (Google, Facebook, etc). Tente entrar por ele.",
+        "auth/invalid-phone-number": "Número de telefone inválido. Use o formato internacional, ex: +5511912345678.",
+        "auth/invalid-verification-code": "Código incorreto. Confira e tente novamente.",
+        "auth/code-expired": "O código expirou. Solicite um novo.",
+        "auth/missing-verification-code": "Digite o código recebido por SMS.",
         "auth/network-request-failed": "Falha de conexão. Verifique sua internet e tente novamente."
     };
 
@@ -273,6 +277,76 @@
             return true;
         } catch (error) {
             CL.auth._handleError("sendPasswordReset", error);
+            return false;
+        }
+    };
+
+    /* ===================================================== */
+    /* AUTH > TELEFONE (SMS)
+       Fluxo em 2 passos:
+         1. sendPhoneCode(phoneNumber, recaptchaContainerId) -> dispara o SMS
+         2. confirmPhoneCode(code) -> confirma o código recebido
+       Exige um elemento no HTML (ex.: <div id="cl-recaptcha-container">)
+       pra hospedar o reCAPTCHA (pode ser invisible, ver initRecaptcha). */
+    /* ===================================================== */
+
+    let recaptchaVerifier = null;
+    let phoneConfirmationResult = null;
+
+    /* Cria (uma vez) o RecaptchaVerifier ligado ao container informado.
+       size "invisible" não mostra nenhum checkbox — só aparece um
+       desafio visual se o Google desconfiar de comportamento de bot. */
+    CL.auth.initRecaptcha = function (containerId) {
+        if (recaptchaVerifier) {
+            return recaptchaVerifier;
+        }
+        recaptchaVerifier = new firebase.auth.RecaptchaVerifier(containerId, {
+            size: "invisible"
+        });
+        return recaptchaVerifier;
+    };
+
+    /* phoneNumber precisa estar em formato internacional E.164,
+       ex.: "+5511912345678" (sem espaços/traços). */
+    CL.auth.sendPhoneCode = async function (phoneNumber, recaptchaContainerId) {
+        try {
+            const verifier = CL.auth.initRecaptcha(recaptchaContainerId);
+            phoneConfirmationResult = await CL.firebase.auth.signInWithPhoneNumber(phoneNumber, verifier);
+            return true;
+        } catch (error) {
+            CL.auth._handleError("sendPhoneCode", error);
+
+            /* reCAPTCHA já "gasto" numa tentativa falha precisa resetar,
+               senão a próxima tentativa falha silenciosamente. */
+            if (recaptchaVerifier) {
+                try {
+                    const widgetId = await recaptchaVerifier.render();
+                    if (window.grecaptcha) {
+                        window.grecaptcha.reset(widgetId);
+                    }
+                } catch (resetError) {
+                    /* silencioso: melhor esforço, não crítico */
+                }
+            }
+
+            return false;
+        }
+    };
+
+    CL.auth.confirmPhoneCode = async function (code) {
+        if (!phoneConfirmationResult) {
+            if (CL.ui && typeof CL.ui.showToast === "function") {
+                CL.ui.showToast("Solicite o código por SMS antes de confirmar.", "warning");
+            }
+            return false;
+        }
+
+        try {
+            await phoneConfirmationResult.confirm(code);
+            phoneConfirmationResult = null;
+            return true;
+        } catch (error) {
+            CL.auth._handleError("confirmPhoneCode", error);
             return false;
         }
     };
