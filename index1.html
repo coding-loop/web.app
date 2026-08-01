@@ -115,6 +115,28 @@
             background: var(--cl-border, #586e75);
         }
 
+        .cl-login-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--cl-border, #586e75);
+        }
+
+        .cl-tab-btn {
+            flex: 1;
+            padding: 8px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--cl-text-muted, #93a1a1);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .cl-tab-btn.cl-is-active {
+            color: var(--cl-primary, #2aa198);
+            border-bottom-color: var(--cl-primary, #2aa198);
+        }
+
         .cl-login-panel[hidden] { display: none; }
 
         .cl-login-panel {
@@ -156,6 +178,7 @@
             text-decoration: underline;
         }
 
+        #cl-recaptcha-container { display: flex; justify-content: center; }
     </style>
 
     <!-- Firebase SDK (compat) -->
@@ -222,9 +245,9 @@
         </section>
 
         <!-- ===================================================== -->
-        <!-- MODAL DE LOGIN — métodos de autenticação:                -->
-        <!-- OAuth (Google/Facebook/GitHub/Microsoft) e email/senha.  -->
-        <!-- Começa oculto (hidden).                                  -->
+        <!-- MODAL DE LOGIN — todos os métodos de autenticação:      -->
+        <!-- OAuth (Google/Facebook/GitHub/Microsoft), email/senha   -->
+        <!-- e telefone (SMS). Começa oculto (hidden).               -->
         <!-- ===================================================== -->
         <div hidden id="cl-login-modal">
             <div class="cl-modal-overlay" data-login-close></div>
@@ -268,7 +291,13 @@
 
                     <div class="cl-login-divider"><span>ou</span></div>
 
-                    <!-- FORMULÁRIO: EMAIL/SENHA -->
+                    <!-- ABAS: EMAIL / TELEFONE -->
+                    <div class="cl-login-tabs" role="tablist">
+                        <button class="cl-tab-btn cl-is-active" data-login-tab="email" role="tab" type="button">Email</button>
+                        <button class="cl-tab-btn" data-login-tab="phone" role="tab" type="button">Telefone</button>
+                    </div>
+
+                    <!-- PAINEL: EMAIL/SENHA -->
                     <form class="cl-login-panel cl-is-active" data-login-panel="email" id="cl-login-form-email">
 
                         <label class="cl-field">
@@ -291,6 +320,42 @@
                         </div>
 
                     </form>
+
+                    <!-- PAINEL: TELEFONE (SMS) -->
+                    <div class="cl-login-panel" data-login-panel="phone" hidden id="cl-login-panel-phone">
+
+                        <div id="cl-phone-step-number">
+                            <label class="cl-field">
+                                <span>Número (com DDI e DDD)</span>
+                                <input autocomplete="tel" id="cl-phone-input" placeholder="+5511912345678" required type="tel">
+                            </label>
+
+                            <button class="cl-btn cl-btn-filled cl-primary" id="cl-phone-send-code" type="button">
+                                <span class="cl-btn-label">Enviar código por SMS</span>
+                            </button>
+                        </div>
+
+                        <div hidden id="cl-phone-step-code">
+                            <label class="cl-field">
+                                <span>Código recebido por SMS</span>
+                                <input autocomplete="one-time-code" id="cl-phone-code-input" inputmode="numeric" required type="text">
+                            </label>
+
+                            <button class="cl-btn cl-btn-filled cl-primary" id="cl-phone-confirm-code" type="button">
+                                <span class="cl-btn-label">Confirmar código</span>
+                            </button>
+
+                            <div class="cl-login-links">
+                                <button id="cl-phone-change-number" type="button">Trocar número</button>
+                            </div>
+                        </div>
+
+                        <!-- host do reCAPTCHA (invisible: não aparece nada aqui
+                             a não ser que o Google suspeite de comportamento
+                             de bot, aí mostra um desafio) -->
+                        <div id="cl-recaptcha-container"></div>
+
+                    </div>
 
                 </div>
 
@@ -446,6 +511,21 @@
                 }
             });
 
+            /* ===== abas Email / Telefone ===== */
+            loginModal.querySelectorAll("[data-login-tab]").forEach(function (tabBtn) {
+                tabBtn.addEventListener("click", function () {
+                    const target = tabBtn.getAttribute("data-login-tab");
+
+                    loginModal.querySelectorAll("[data-login-tab]").forEach(function (b) {
+                        b.classList.toggle("cl-is-active", b === tabBtn);
+                    });
+
+                    loginModal.querySelectorAll("[data-login-panel]").forEach(function (panel) {
+                        panel.hidden = panel.getAttribute("data-login-panel") !== target;
+                    });
+                });
+            });
+
             /* ===== provedores OAuth (Google/Facebook/GitHub/Microsoft) ===== */
             loginModal.querySelectorAll("[data-provider]").forEach(function (btn) {
                 btn.addEventListener("click", async function () {
@@ -497,6 +577,47 @@
                     return;
                 }
                 await CL.auth.sendPasswordReset(email);
+            });
+
+            /* ===== telefone (SMS) ===== */
+            const phoneStepNumber = document.getElementById("cl-phone-step-number");
+            const phoneStepCode = document.getElementById("cl-phone-step-code");
+
+            document.getElementById("cl-phone-send-code").addEventListener("click", async function () {
+                const btn = this;
+                const phoneNumber = document.getElementById("cl-phone-input").value.trim();
+
+                if (!phoneNumber.startsWith("+")) {
+                    CL.ui.showToast("Use o formato internacional, começando com + (ex: +5511912345678).", "warning", 5000);
+                    return;
+                }
+
+                btn.disabled = true;
+                const ok = await CL.auth.sendPhoneCode(phoneNumber, "cl-recaptcha-container");
+                btn.disabled = false;
+
+                if (ok) {
+                    phoneStepNumber.hidden = true;
+                    phoneStepCode.hidden = false;
+                    CL.ui.showToast("Código enviado por SMS.", "success", 4000);
+                }
+            });
+
+            document.getElementById("cl-phone-confirm-code").addEventListener("click", async function () {
+                const btn = this;
+                const code = document.getElementById("cl-phone-code-input").value.trim();
+
+                btn.disabled = true;
+                const ok = await CL.auth.confirmPhoneCode(code);
+                btn.disabled = false;
+
+                goToDashboardIfLoggedIn(ok);
+            });
+
+            document.getElementById("cl-phone-change-number").addEventListener("click", function () {
+                phoneStepCode.hidden = true;
+                phoneStepNumber.hidden = false;
+                document.getElementById("cl-phone-code-input").value = "";
             });
 
             document.querySelector("[data-theme-toggle]").addEventListener("click", CL.ui.toggleTheme);
