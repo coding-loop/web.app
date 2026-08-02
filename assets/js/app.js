@@ -34,10 +34,13 @@ CL.config = Object.freeze({
     navAutoHideDelay: 5000,
 
     /* URL da Landing (página pública, sem login). auth.js redireciona
-       pra cá quando não há sessão válida ou após logout. Troque pelo
-       domínio real assim que o Firebase Hosting/domínio próprio
-       estiver publicado. */
-    landingUrl: "/index.html",
+       pra cá quando não há sessão válida ou após logout.
+       Path RELATIVO (sem "/" no início) de propósito: assim funciona
+       tanto se o site for servido na raiz do GitHub Pages
+       (usuario.github.io) quanto em sub-path (usuario.github.io/repo),
+       já que index.html/dashboard.html/ide.html sempre ficam juntos,
+       na mesma pasta. */
+    landingUrl: "index.html",
 
     /* true nas páginas que exigem sessão (dashboard, IDE). Definido
        ANTES de carregar app.js, num <script> inline de cada página
