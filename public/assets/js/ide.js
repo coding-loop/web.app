@@ -155,7 +155,10 @@
     const indiceListaEl = document.getElementById('indice-lista');
     const indiceVoltarDashboardBtn = document.getElementById('indice-back-to-dashboard');
     const btnVoltarDashboard = document.getElementById('btn-voltar-dashboard');
-    const URL_DASHBOARD = 'https://coding-loop.blogspot.com/p/dashboar_01809940765.html#dashboard';
+    // Antes apontava pro Blogger antigo (URL morta). Agora usa o
+    // mesmo dashboardUrl definido no config mínimo deste HTML (path
+    // relativo, funciona na raiz ou em sub-path do GitHub Pages).
+    const URL_DASHBOARD = (CL.config && CL.config.dashboardUrl) || 'dashboard.html';
 
     // Botão com o ícone do HTML + seta "<" no cabeçalho: sempre volta direto
     // para a dashboard (não abre mais o índice).
