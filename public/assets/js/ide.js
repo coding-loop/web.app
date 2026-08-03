@@ -480,6 +480,15 @@
   // chegado (iniciarTeoria já rodou, então window.getCodigoInicialParaEditor
   // já reflete o código salvo do aluno, se houver).
   function iniciarEditorDeCodigo() {
+      // Fixa o basePath do Ace explicitamente. Sem isso, o Ace tenta
+      // "adivinhar" de onde ele foi carregado (olhando o próprio
+      // <script> tag) toda vez que precisa buscar o worker (ex.: o
+      // worker-javascript.js, que é o mais pesado dos três e o que
+      // mais demora). Fixando aqui, ele vai direto na URL certa.
+      if (typeof ace !== 'undefined' && ace.config && typeof ace.config.set === 'function') {
+        ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.36.2/');
+      }
+
       function iniciar() {
         var htmlEditor, cssEditor, jsEditor, debounceTimeout, itemArrastado = null;
 
