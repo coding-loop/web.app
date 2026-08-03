@@ -29,100 +29,11 @@
   function iniciarTeoria(progressoCarregado, exerciciosCarregado, posicaoCarregada) {
     // ==========================================================
     // MODELO DE DADOS — MÓDULOS E ETAPAS
+    // Agora vive em assets/js/curso-data.js (CL.curso.MODULOS),
+    // compartilhado com a trilha da Dashboard. Precisa carregar
+    // ANTES deste arquivo (ver <script> em ide.html).
     // ==========================================================
-    const MODULOS = [
-      {
-        id: 'modulo-1-introducao-html',
-        nome: 'Introdução ao HTML',
-        etapas: [
-          {
-            titulo: '<p> Bem Vindo ao Curso de HTML </p> <br>',
-            texto: `<p> 1- Começe a mexer no ⌨ para aprender. </p> <br>
-            <p> 2- Front-End Developer é Projeto Piloto de Coding-Loop, e para continuar de onde parou você precisará usar o mesmo aparelho e o mesmo navegador, pois esté é um site estático e não possui </p><br>
-            <p> 3- Cline em 💾 para salvar o código e continuar de onde parou.</p> <br>
-            <p> 4- Se você estiver em um 📱, para acessar todos os botões do IDE você precisará rolar para esquerda 🔙 e 🔜 direita. </p>    `,
-
-            missao: `Mude o conteúdo do texto dentro do elemento <code>&lt;h1&gt;</code> no editor de código para o seu nome e observe o preview atualizar ao lado.`,
-            codigoInicial: {
-  				html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>My First Webpage</title>
-</head>
-<body>
-
-	<h1>Welcome to My Website</h1>
-	<p>This is a simple paragraph of text on my webpage.</p>
-</body>
-</html>`,
-              css: 'body {\n  font-family: sans-serif;\n  background-color: #f9f9f9;\n  padding: 20px;\n  color: #333;\n}',
-              js: 'console.log("Ambiente carregado com sucesso!");'
-            },
-            // Exemplo de verificação automática: dá 100% se o texto do <h1>
-            // foi alterado (a missão pede pra trocar pelo nome do aluno).
-            verificar: function (codigo) {
-              var html = codigo.html || '';
-              var match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-              var textoH1 = match ? match[1].trim() : '';
-              return (textoH1 && textoH1 !== 'Welcome to My Website') ? 100 : 0;
-            }
-          },
-          {
-            titulo: "Etapa 2: Adicionando Cores (CSS)",
-            texto: `<p>Podemos aplicar estilos visuais utilizando a aba CSS do editor.</p>`,
-            missao: `Na aba CSS do editor, altere a cor de fundo (<code>background-color</code>) para um tom de sua preferência, como <code>#e0f7fa</code>.`
-          },
-          {
-            titulo: "Etapa 3: Interatividade (JavaScript)",
-            texto: `<p>O comportamento dinâmico é adicionado usando a aba JavaScript do editor.</p>`,
-            missao: `Teste adicionar um botão ou modificar o script interativo na aba correspondente. Parabéns por concluir a introdução!`
-          }
-        ]
-      },
-      {
-        id: 'modulo-2-estilizando-com-css',
-        nome: 'Estilizando com CSS',
-        etapas: [
-          {
-            titulo: "Etapa 1: Seletores CSS",
-            texto: `<p>[Placeholder] Explicação sobre seletores de elemento, classe (<code>.classe</code>) e id (<code>#id</code>).</p>`,
-            missao: `[Placeholder] Crie uma classe CSS e aplique-a em um elemento no HTML.`
-          },
-          {
-            titulo: "Etapa 2: Cores e Fundos",
-            texto: `<p>[Placeholder] Explicação sobre <code>color</code>, <code>background-color</code> e imagens de fundo.</p>`,
-            missao: `[Placeholder] Altere a cor do texto e do fundo de um elemento à sua escolha.`
-          },
-          {
-            titulo: "Etapa 3: Box Model",
-            texto: `<p>[Placeholder] Explicação sobre <code>margin</code>, <code>padding</code>, <code>border</code> e o modelo de caixas.</p>`,
-            missao: `[Placeholder] Adicione margem e preenchimento a um elemento e observe o efeito no preview.`
-          }
-        ]
-      },
-      {
-        id: 'modulo-3-interatividade-com-javascript',
-        nome: 'Interatividade com JavaScript',
-        etapas: [
-          {
-            titulo: "Etapa 1: Variáveis e Tipos",
-            texto: `<p>[Placeholder] Explicação sobre <code>let</code>, <code>const</code> e os tipos básicos de dados em JavaScript.</p>`,
-            missao: `[Placeholder] Declare uma variável e exiba seu valor com <code>console.log</code>.`
-          },
-          {
-            titulo: "Etapa 2: Eventos",
-            texto: `<p>[Placeholder] Explicação sobre <code>addEventListener</code> e a reação a cliques do usuário.</p>`,
-            missao: `[Placeholder] Adicione um botão no HTML e faça-o exibir um alerta ao ser clicado.`
-          },
-          {
-            titulo: "Etapa 3: Manipulando o DOM",
-            texto: `<p>[Placeholder] Explicação sobre <code>document.querySelector</code> e alteração de conteúdo da página via JavaScript.</p>`,
-            missao: `[Placeholder] Use JavaScript para alterar o texto de um elemento da página.`
-          }
-        ]
-      }
-    ];
+    const MODULOS = CL.curso.MODULOS;
 
     // ==========================================================
     // MOTOR DE RENDERIZAÇÃO E NAVEGAÇÃO
@@ -161,9 +72,10 @@
     const URL_DASHBOARD = (CL.config && CL.config.dashboardUrl) || 'dashboard.html';
 
     // Botão com o ícone do HTML + seta "<" no cabeçalho: sempre volta direto
-    // para a dashboard (não abre mais o índice).
+    // para a dashboard (não abre mais o índice), já na trilha de módulos,
+    // mirando o módulo em que o aluno está agora.
     btnVoltarDashboard.addEventListener('click', function () {
-      window.location.href = URL_DASHBOARD;
+      window.location.href = URL_DASHBOARD + '#course/' + getModuloAtual().id;
     });
 
     // ==========================================================
@@ -233,47 +145,40 @@
       }
     }
 
-    function tituloTextoPlano(html) {
-      return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    }
+    // ---------- Trilha de etapas do módulo atual (novo) ----------
+    // O ☰ agora abre uma trilha (níveis em caminho, estilo jogo),
+    // um nível por Etapa do módulo em que o aluno está agora — não
+    // mais uma lista de texto com todos os módulos. O motor visual
+    // (CL.trilha) e os dados dos nós (CL.curso.buildEtapaNodes) são
+    // compartilhados com a trilha de Módulos da Dashboard.
+    const indiceTituloEl = document.getElementById('indice-titulo-modulo');
 
     function renderIndice() {
-      indiceListaEl.innerHTML = MODULOS.map(function (modulo, mIndex) {
-        const itens = modulo.etapas.map(function (etapa, i) {
-          const numero = i + 1;
-          const ativo = mIndex === currentModuleIndex && numero === currentStep;
-          const progresso = getProgressoEtapa(modulo.id, numero);
+      const modulo = getModuloAtual();
+      if (indiceTituloEl) {
+        indiceTituloEl.textContent = 'Módulo ' + (currentModuleIndex + 1) + ': ' + modulo.nome;
+      }
 
-          const marcadorConcluido = progresso.concluida
-            ? '<span class="indice-item-check" title="Etapa concluída">' +
-                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.5z"/></svg>' +
-              '</span>'
-            : '<span class="indice-item-check indice-item-check--pendente" title="Etapa ainda não concluída"></span>';
+      const nodes = CL.curso.buildEtapaNodes(modulo, progressoEtapasCache, currentStep);
 
-          const marcadorPercentual = (typeof progresso.percentual === 'number')
-            ? '<span class="indice-item-percentual" title="Percentual de acerto do exercício">' + progresso.percentual + '%</span>'
-            : '<span class="indice-item-percentual indice-item-percentual--vazio" title="Ainda sem avaliação">—</span>';
-
-          return (
-            '<div class="indice-item-linha">' +
-              '<button type="button" class="indice-item' + (ativo ? ' is-current' : '') + '" data-modulo="' + mIndex + '" data-step="' + numero + '">' +
-                '<span class="indice-item-numero">' + numero + '</span>' +
-                '<span class="indice-item-texto">' + tituloTextoPlano(etapa.titulo) + '</span>' +
-                marcadorConcluido +
-                marcadorPercentual +
-              '</button>' +
-              '<button type="button" class="indice-item-reset" data-modulo="' + mIndex + '" data-step="' + numero + '" title="Refazer etapa" aria-label="Refazer etapa ' + numero + '">' +
-                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.958 7.958 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4l-2.35 2.35z"/></svg>' +
-              '</button>' +
-            '</div>'
-          );
-        }).join('');
-
-        return (
-          '<div class="indice-modulo-titulo">Módulo ' + (mIndex + 1) + ': ' + modulo.nome + '</div>' +
-          itens
-        );
-      }).join('');
+      CL.trilha.render(indiceListaEl, {
+        nodes: nodes,
+        onSelect: function (nodeId) {
+          const numero = parseInt(nodeId.split(':').pop(), 10);
+          if (!numero) return;
+          currentStep = numero;
+          updateStepsUI();
+          fecharIndice();
+        },
+        onReset: function (nodeId) {
+          const numero = parseInt(nodeId.split(':').pop(), 10);
+          if (!numero) return;
+          const confirmado = window.confirm('Refazer esta etapa? O progresso e o código salvo dela serão apagados.');
+          if (!confirmado) return;
+          resetarProgressoEtapa(modulo.id, numero);
+          renderIndice();
+        }
+      });
     }
 
     function fecharIndice() {
@@ -299,40 +204,10 @@
       }
     });
 
+    // Volta pra Dashboard já na trilha de módulos, mirando o módulo
+    // em que o aluno está agora (mesma trilha, mesmo lugar).
     indiceVoltarDashboardBtn.addEventListener('click', function () {
-      window.location.href = URL_DASHBOARD;
-    });
-
-    indiceListaEl.addEventListener('click', function (e) {
-      const resetBtn = e.target.closest('.indice-item-reset');
-      if (resetBtn) {
-        e.stopPropagation();
-        const moduloReset = parseInt(resetBtn.getAttribute('data-modulo'), 10);
-        const etapaReset = parseInt(resetBtn.getAttribute('data-step'), 10);
-        const moduloIdReset = MODULOS[moduloReset].id;
-        const confirmado = window.confirm('Refazer esta etapa? O progresso e o código salvo dela serão apagados.');
-        if (!confirmado) return;
-        resetarProgressoEtapa(moduloIdReset, etapaReset);
-        renderIndice();
-        return;
-      }
-
-      const item = e.target.closest('.indice-item');
-      if (!item) return;
-
-      const modulo = parseInt(item.getAttribute('data-modulo'), 10);
-      const etapa = parseInt(item.getAttribute('data-step'), 10);
-
-      if (modulo !== currentModuleIndex) {
-        currentModuleIndex = modulo;
-        currentStep = etapa;
-        renderEtapas();
-      } else {
-        currentStep = etapa;
-      }
-
-      updateStepsUI();
-      fecharIndice();
+      window.location.href = URL_DASHBOARD + '#course/' + getModuloAtual().id;
     });
 
     // Permite que outros scripts leiam a etapa atual sem depender da ordem
@@ -471,7 +346,27 @@
       }
     }
 
+    // Chegou aqui a partir de um nível da trilha da Dashboard
+    // (ide.html?modulo=modulo-2-estilizando-com-css)? Abre direto
+    // nesse módulo, começando da etapa 1 (a não ser que o aluno já
+    // tenha progresso salvo justamente nesse módulo).
+    function aplicarModuloDaUrl() {
+      const moduloAlvo = new URLSearchParams(window.location.search).get('modulo');
+      if (!moduloAlvo) return;
+
+      const indiceModulo = MODULOS.findIndex(function (modulo) {
+        return modulo.id === moduloAlvo;
+      });
+      if (indiceModulo === -1) return;
+
+      if (indiceModulo !== currentModuleIndex) {
+        currentModuleIndex = indiceModulo;
+        currentStep = 1;
+      }
+    }
+
     restaurarProgressoSalvo(posicaoCarregada);
+    aplicarModuloDaUrl();
     renderEtapas();
     updateStepsUI();
   } // fim de iniciarTeoria

@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="assets/css/ide.css">
+    <link rel="stylesheet" href="assets/css/trilha.css">
 
     <!-- Preconnect: economiza o tempo de DNS/TLS antes dos downloads
          do Firebase e do Ace, que carregam logo abaixo. -->
@@ -81,7 +82,8 @@
             <span>Voltar para a dashboard</span>
           </button>
         </div>
-        <div id="indice-lista"></div>
+        <div id="indice-titulo-modulo" class="indice-modulo-titulo"></div>
+        <div id="indice-lista" class="trilha-container"></div>
       </nav>
 
       <div class="theory-content" id="theory-content">
@@ -262,6 +264,12 @@
   <script defer src="assets/js/firebase-init.js"></script>
   <script defer src="assets/js/auth.js"></script>
   <script defer src="assets/js/api.js"></script>
+
+  <!-- Dados do curso (módulos/etapas) e motor de renderização da
+       trilha — os mesmos usados na trilha de módulos da Dashboard. -->
+  <script defer src="assets/js/curso-data.js"></script>
+  <script defer src="assets/js/trilha.js"></script>
+
   <script defer src="assets/js/ide.js"></script>
 
 </body>
