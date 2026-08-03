@@ -8,11 +8,15 @@
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
+    <!-- Preconnect: economiza o tempo de DNS/TLS antes do primeiro
+         download do SDK do Firebase, que carrega logo abaixo. -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+
     <!-- Firebase SDK (compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics-compat.js"></script>
 </head>
 <body>
 
@@ -573,16 +577,16 @@
 
         </div><!-- /#coding-loop -->
 
-    <script src="assets/js/firebase-init.js"></script>
-    <script src="assets/js/auth.js"></script>
-    <script src="assets/js/api.js"></script>
+    <script defer src="assets/js/firebase-init.js"></script>
+    <script defer src="assets/js/auth.js"></script>
+    <script defer src="assets/js/api.js"></script>
 
     <!-- esta página exige sessão válida (ver CL.auth.guard, chamado por
          CL.boot.init em app.js) -->
     <script>window.CL_PROTECTED_PAGE = true;</script>
 
-    <script src="assets/js/router.js"></script>
-    <script src="assets/js/app.js"></script>
+    <script defer src="assets/js/router.js"></script>
+    <script defer src="assets/js/app.js"></script>
 
 </body>
 </html>
