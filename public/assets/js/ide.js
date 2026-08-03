@@ -1444,15 +1444,52 @@
     var exerciciosCarregado = {};
     var posicaoCarregada = null;
 
+    // Timeout de segurança: em redes lentas (o long-polling do
+    // Firestore pode demorar dezenas de segundos), não faz sentido
+    // deixar a tela inteira travada esperando. Se passar de 6s, a
+    // IDE libera a tela com o progresso vazio (igual já acontecia
+    // no catch abaixo pra erro de rede) — o carregamento real
+    // continua em segundo plano e, se chegar depois, os dados são
+    // aplicados aos editores/etapas assim que resolverem.
+    function comTimeout(promise, ms) {
+      return Promise.race([
+        promise.then(function (valor) { return { expirou: false, valor: valor }; }),
+        new Promise(function (resolve) {
+          setTimeout(function () { resolve({ expirou: true, valor: null }); }, ms);
+        })
+      ]);
+    }
+
     try {
-      var resultados = await Promise.all([
+      var chamadaFirestore = Promise.all([
         CL.api.listProgress(),
         CL.api.listExercises(),
         CL.api.getProfile()
       ]);
-      progressoCarregado = resultados[0] || {};
-      exerciciosCarregado = resultados[1] || {};
-      posicaoCarregada = (resultados[2] && resultados[2].idePosition) || null;
+
+      var corrida = await comTimeout(chamadaFirestore, 6000);
+
+      if (corrida.expirou) {
+        if (CL.config && CL.config.debug) {
+          console.warn('[ide] Firestore demorou mais de 6s; liberando a tela com progresso vazio nesta sessão.');
+        }
+        if (CL.ui && typeof CL.ui.showToast === 'function') {
+          CL.ui.showToast('Sua conexão está lenta — abrindo com o progresso local. Recarregue mais tarde pra sincronizar o que estava salvo.', 'warning', 8000);
+        }
+        // Não deixamos a UI travada esperando, mas também não tentamos
+        // "reaplicar" o resultado tardio numa tela já montada — a
+        // função que desenha a teoria (iniciarTeoria) registra
+        // listeners e não foi feita pra rodar duas vezes com
+        // segurança. O aluno pode recarregar a página quando a rede
+        // melhorar pra puxar o progresso salvo; enquanto isso, salvar
+        // (CL.api.saveProgress/saveExercise) continua funcionando
+        // normalmente a partir de agora.
+      } else {
+        var resultados = corrida.valor;
+        progressoCarregado = resultados[0] || {};
+        exerciciosCarregado = resultados[1] || {};
+        posicaoCarregada = (resultados[2] && resultados[2].idePosition) || null;
+      }
     } catch (erro) {
       // CL.api._handleError já mostrou um toast avisando o aluno;
       // seguimos com os caches vazios pra não travar a página numa
