@@ -178,8 +178,22 @@
             CL.state.authenticated = !!user;
 
             if (user) {
-                await CL.auth._syncProfile(user);
+                // renderUser() só usa dados que já vêm do próprio Firebase
+                // Auth (nome/email/avatar) — não depende do Firestore, então
+                // não precisa esperar _syncProfile pra mostrar isso na tela.
                 CL.auth.renderUser();
+
+                // _syncProfile faz leitura+escrita no Firestore. Rodar isso
+                // em paralelo (sem "await" aqui) é o que importa: antes,
+                // essa linha travava CL.auth.ready — e por consequência
+                // TODA página protegida (guard()) e o redirecionamento da
+                // Landing — esperando o Firestore responder. "Está logado
+                // ou não" só depende do Firebase Auth (rápido); sincronizar
+                // o perfil pode acontecer em segundo plano sem bloquear
+                // ninguém. _syncProfile já trata os próprios erros
+                // internamente (try/catch), então não precisa de .catch
+                // aqui.
+                CL.auth._syncProfile(user);
             }
 
             if (resolveReady) {
