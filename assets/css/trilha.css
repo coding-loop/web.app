@@ -1,0 +1,210 @@
+/* =====================================================
+   TRILHA.CSS
+   Visual da "trilha do curso" (níveis em caminho, estilo
+   jogo/fases). Usa as variáveis de tema de global.css
+   (--cl-*), por isso funciona igual na Dashboard e no IDE,
+   claro ou escuro. Carregar DEPOIS de global.css.
+   ===================================================== */
+
+.trilha-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.trilha-caminho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0;
+  padding: var(--cl-space-6, 1.5rem) var(--cl-space-4, 1rem);
+}
+
+.trilha-item {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.trilha-connector {
+  width: clamp(24px, 4vw, 56px);
+  height: 4px;
+  border-radius: var(--cl-radius-round, 9999px);
+  background: var(--cl-border, #586e75);
+  margin: 0 var(--cl-space-2, .5rem);
+  align-self: center;
+  opacity: .6;
+}
+
+.trilha-connector.is-filled {
+  background: var(--cl-success, #859900);
+  opacity: 1;
+}
+
+.trilha-node-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cl-space-1, .25rem);
+  width: 96px;
+}
+
+.trilha-node {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--cl-radius-round, 9999px);
+  background: var(--cl-surface, #073642);
+  border: 2px solid var(--cl-border, #586e75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--cl-transition-fast, .15s ease),
+              border-color var(--cl-transition-fast, .15s ease),
+              box-shadow var(--cl-transition-fast, .15s ease);
+  padding: 0;
+}
+
+.trilha-node:hover {
+  transform: translateY(-2px);
+  border-color: var(--cl-primary, #268bd2);
+}
+
+.trilha-node-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.trilha-node-numero {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: var(--cl-radius-round, 9999px);
+  background: var(--cl-surface-2, #0b3b46);
+  border: 2px solid var(--cl-bg, #002b36);
+  color: var(--cl-text, #fdf6e3);
+  font-size: .65rem;
+  font-weight: var(--cl-font-weight-bold, 700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.trilha-node-check {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--cl-radius-round, 9999px);
+  background: var(--cl-success, #859900);
+  border: 2px solid var(--cl-bg, #002b36);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.trilha-node-check svg {
+  width: 12px;
+  height: 12px;
+  fill: var(--cl-on-primary, #fdf6e3);
+}
+
+/* Status */
+
+.trilha-node--completed {
+  border-color: var(--cl-success, #859900);
+  box-shadow: 0 0 0 3px rgba(133, 153, 0, .18);
+}
+
+.trilha-node--current {
+  border-color: var(--cl-primary, #268bd2);
+  box-shadow: 0 0 0 4px rgba(38, 139, 210, .22);
+}
+
+.trilha-node--current .trilha-node-numero {
+  background: var(--cl-primary, #268bd2);
+}
+
+.trilha-node--available {
+  border-color: var(--cl-border-light, #657b83);
+}
+
+.trilha-node--locked {
+  opacity: .5;
+  filter: grayscale(.4);
+}
+
+.trilha-node.is-destacado {
+  animation: trilha-pulso 1.6s ease;
+}
+
+@keyframes trilha-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(38, 139, 210, 0); }
+  25% { box-shadow: 0 0 0 8px rgba(38, 139, 210, .35); }
+}
+
+.trilha-node-percentual {
+  font-size: .65rem;
+  font-weight: var(--cl-font-weight-semibold, 600);
+  color: var(--cl-text-muted, #93a1a1);
+}
+
+.trilha-node-reset {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--cl-radius-round, 9999px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--cl-text-muted, #93a1a1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline: var(--cl-space-1, .25rem);
+  transition: background var(--cl-transition-fast, .15s ease), color var(--cl-transition-fast, .15s ease);
+}
+
+.trilha-node-reset:hover {
+  background: var(--cl-surface-hover, #124652);
+  color: var(--cl-danger, #dc322f);
+}
+
+.trilha-node-reset svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+
+.trilha-node-titulo {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--cl-font-size-xs, .75rem);
+  line-height: 1.25;
+  color: var(--cl-text, #fdf6e3);
+  min-height: 2.2em;
+}
+
+.trilha-node--current .trilha-node-titulo {
+  font-weight: var(--cl-font-weight-semibold, 600);
+  color: var(--cl-primary, #268bd2);
+}
+
+.trilha-node-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cl-space-1, .25rem);
+  min-height: 26px;
+}

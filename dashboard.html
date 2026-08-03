@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/trilha.css">
 
     <!-- Preconnect: economiza o tempo de DNS/TLS antes do primeiro
          download do SDK do Firebase, que carrega logo abaixo. -->
@@ -125,7 +126,7 @@
 
                         <!-- HTML -->
                         <li class='cl-topbar-item'>
-                            <a class='cl-topbar-link' data-page='courses' href='ide.html'>
+                            <a class='cl-topbar-link' data-page='course' href='#course/modulo-1-introducao-html'>
                                 <img alt="html-course-icon" class="html-course-icon" id="html-course-icon" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiHU3hohCSw9z_h4LYa-_TRv4hn6LXNtLQAB7er3G0ic3gcqzAV8Tp069RP4CDSHU4aYUCfq3B_uWeegLlc-DgkaYLERLgvkoBqLAv1gvGfpr1CBkfMVCt3C4pM1hAEKQ2pt_hYxhmoJEr386YD_zaClGbE1z0OZQO_ZKn-pfsCspQ3HQ/s1600/Html5.png"/>
                                 <span class='cl-topbar-label'>HTML</span>
                                 <span class='cl-topbar-caret'>&#9662;</span>
@@ -152,7 +153,7 @@
                                                 <!-- IDE -->
                         
                         <li class='cl-topbar-item'>
-                            <a class='cl-topbar-link' href='#'>
+                            <a class='cl-topbar-link' data-page='course' href='#course/modulo-2-estilizando-com-css'>
                                 <img alt="css-course-icon" class="css-course-icon" id="css-course-icon" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjdqbtPc55KC93dvtBISIZatsWe5HBb10tTQlSpcFoaSIB7zz1CbVPd_-Olv4TIgUhFazZUavRBfEsveyGybySmRkotC0twEKzU1QO7bjiLtiOvQjHgPxXqZPcnnSf-pPTcIU0epDuDhqoZ1uTj4FCyNyliOdxxWSApLwXsTz4MgUCTkA/s1600/Css3.png"/>
                                 <span class='cl-topbar-label'>CSS</span>
                                 <span class='cl-topbar-caret'>&#9662;</span>
@@ -193,7 +194,7 @@
                         <!-- EXERCÍCIOS -->
                     
                         <li class='cl-topbar-item'>
-                            <a class='cl-topbar-link' data-page='exercises' href='#'>
+                            <a class='cl-topbar-link' data-page='course' href='#course/modulo-3-interatividade-com-javascript'>
                                 <img alt="js-course-icon" class="js-course-icon" id="js-course-icon" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhlpGod03wzuYc-fV4BZWRxS7pqcZQjpNncN5J9Gj0yh0pOUzIrJAwCnQumcIizsYUT1oHf407xSuQb1mvz8qGL99eTYkAw5moaF5peAjsxyJW-M-Rmg1YZISwGv8vxO02-5-IH2YTxbceQgMGUGad0AFPhCpsHngT8nrOMp6fVI-2qtQ/s1600/JS.png"/>
                                 <span class='cl-topbar-label'>JavaScript</span>
                                 <span class='cl-topbar-caret'>&#9662;</span>
@@ -439,26 +440,21 @@
                             </div>
                         </section>
 
-                        <!-- COURSE (curso específico) -->
+                        <!-- COURSE (trilha do curso: HTML -> CSS -> JavaScript) -->
                         <section class='cl-page' data-page='course' hidden='hidden' id='cl-page-course'>
                             <div class='cl-page-container'>
                                 <header class='cl-page-header'>
                                     <div class='cl-page-title'>
-                                        <h1>Curso</h1>
-                                        <p>Conteúdo do curso.</p>
+                                        <h1>Trilha do curso</h1>
+                                        <p>Cada nível é um módulo. Complete um pra destravar o próximo.</p>
                                     </div>
                                     <div class='cl-page-actions cl-page-actions-right'></div>
                                 </header>
                                 <div class='cl-page-toolbar'></div>
                                 <div class='cl-page-body'>
-                                    <div class='cl-page-grid'>
-                                        <div class='cl-card'>
-                                            <div class='cl-card-header'></div>
-                                            <div class='cl-card-body'>
-                                                <p>🚧 Em construção.</p>
-                                            </div>
-                                            <div class='cl-card-footer'></div>
-                                            <div class='cl-card-actions'></div>
+                                    <div class='cl-card'>
+                                        <div class='cl-card-body'>
+                                            <div id='trilha-modulos-container' class='trilha-container'></div>
                                         </div>
                                     </div>
                                 </div>
@@ -580,11 +576,20 @@
     <script defer src="assets/js/auth.js"></script>
     <script defer src="assets/js/api.js"></script>
 
+    <!-- Dados do curso (módulos/etapas) e motor de renderização da
+         trilha — compartilhados com o IDE (ver ide.html). -->
+    <script defer src="assets/js/curso-data.js"></script>
+    <script defer src="assets/js/trilha.js"></script>
+
     <!-- esta página exige sessão válida (ver CL.auth.guard, chamado por
          CL.boot.init em app.js) -->
     <script>window.CL_PROTECTED_PAGE = true;</script>
 
     <script defer src="assets/js/router.js"></script>
+
+    <!-- Liga a trilha de módulos à página "course" registrada acima. -->
+    <script defer src="assets/js/pagina-curso.js"></script>
+
     <script defer src="assets/js/app.js"></script>
 
 </body>

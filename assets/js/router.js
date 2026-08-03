@@ -61,10 +61,23 @@
 
                     };
 
-                    /* ROUTER > RESOLVE */
+                    /* ROUTER > RESOLVE
+                    Aceita hash simples (#courses) OU hash com parâmetro
+                    (#course/modulo-1-introducao-html) — usado pela trilha
+                    do curso pra já chegar mirando um módulo específico.
+                    O parâmetro (se houver) fica em CL.state.routeParam,
+                    disponível pra página ler no seu init/afterEnter. */
                     CL.router.resolve = function () {
 
-                        let route = window.location.hash.slice(1);
+                        let hash = window.location.hash.slice(1);
+                        let route = hash;
+                        let param = null;
+
+                        const barra = hash.indexOf("/");
+                        if (barra !== -1) {
+                            route = hash.slice(0, barra);
+                            param = decodeURIComponent(hash.slice(barra + 1));
+                        }
 
                         if (!route) {
                             route = CL.config.routeDefault;
@@ -72,10 +85,12 @@
                             /* hash não vazio, mas rota desconhecida -> página 404,
                             não o dashboard silenciosamente. */
                             route = "notFound";
+                            param = null;
                         }
 
                         CL.state.previousRoute = CL.state.currentRoute;
                         CL.state.currentRoute = route;
+                        CL.state.routeParam = param;
 
                         return CL.router.getRoute(route);
 
