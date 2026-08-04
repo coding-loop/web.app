@@ -38,6 +38,21 @@
     return CL.curso.ORDEM_CURSOS[0];
   }
 
+  // Mesmo padrão de segurança do ide.js (bootIde/comTimeout): em redes
+  // lentas, o Firestore pode demorar dezenas de segundos. Não faz
+  // sentido deixar a trilha inteira travada esperando — depois de 6s,
+  // ela é desenhada com o progresso vazio (tudo "disponível"/"não
+  // concluído" nesta sessão) e, se a leitura real chegar depois, a
+  // trilha é redesenhada sozinha com os dados certos.
+  function comTimeout(promise, ms) {
+    return Promise.race([
+      promise.then(function (valor) { return { expirou: false, valor: valor }; }),
+      new Promise(function (resolve) {
+        setTimeout(function () { resolve({ expirou: true, valor: null }); }, ms);
+      })
+    ]);
+  }
+
   function montarTrilha() {
     var container = document.getElementById('trilha-modulos-container');
     if (!container || !CL.curso || !CL.trilha) {
@@ -53,11 +68,7 @@
         '. Complete um pra destravar o próximo — essa trilha é independente das outras.';
     }
 
-    var progressoPromise = (CL.api && typeof CL.api.listProgress === 'function')
-      ? CL.api.listProgress().catch(function () { return {}; })
-      : Promise.resolve({});
-
-    progressoPromise.then(function (progresso) {
+    function desenhar(progresso) {
       progresso = progresso || {};
 
       // "Módulo atual" dessa trilha = 1º módulo ainda não concluído
@@ -92,6 +103,35 @@
       });
 
       CL.trilha.destacar(container, moduloAtual.id);
+    }
+
+    var progressoPromise = (CL.api && typeof CL.api.listProgress === 'function')
+      ? CL.api.listProgress().catch(function () { return {}; })
+      : Promise.resolve({});
+
+    comTimeout(progressoPromise, 6000).then(function (corrida) {
+      if (!corrida.expirou) {
+        desenhar(corrida.valor);
+        return;
+      }
+
+      // Passou de 6s: libera a trilha agora (progresso vazio nesta
+      // sessão) em vez de deixar o aluno olhando pra tela em branco.
+      if (CL.config && CL.config.debug) {
+        console.warn('[pagina-curso] Firestore demorou mais de 6s; desenhando a trilha com progresso vazio por enquanto.');
+      }
+      if (CL.ui && typeof CL.ui.showToast === 'function') {
+        CL.ui.showToast('Sua conexão está lenta — mostrando a trilha sem o progresso salvo por enquanto.', 'warning', 6000);
+      }
+      desenhar({});
+
+      // A leitura de verdade continua em segundo plano; quando (e se)
+      // chegar, redesenha a trilha já com o progresso real. Diferente
+      // do editor do IDE, redesenhar a trilha não tem risco nenhum de
+      // perder nada que o aluno digitou.
+      progressoPromise.then(function (progressoAtrasado) {
+        desenhar(progressoAtrasado);
+      });
     });
   }
 

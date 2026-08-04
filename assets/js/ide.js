@@ -1486,7 +1486,7 @@
         CL.api.getProfile()
       ]);
 
-      var corrida = await comTimeout(chamadaFirestore, 1000);
+      var corrida = await comTimeout(chamadaFirestore, 6000);
 
       if (corrida.expirou) {
         if (CL.config && CL.config.debug) {
