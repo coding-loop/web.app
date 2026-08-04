@@ -29,11 +29,28 @@
   function iniciarTeoria(progressoCarregado, exerciciosCarregado, posicaoCarregada) {
     // ==========================================================
     // MODELO DE DADOS — MÓDULOS E ETAPAS
-    // Agora vive em assets/js/curso-data.js (CL.curso.MODULOS),
-    // compartilhado com a trilha da Dashboard. Precisa carregar
-    // ANTES deste arquivo (ver <script> em ide.html).
+    // Agora vive em assets/js/curso-data.js, compartilhado com a
+    // Dashboard. Existem 3 trilhas INDEPENDENTES (html/css/js),
+    // cada uma com seus próprios 10 módulos. Este IDE opera SEMPRE
+    // dentro de UMA trilha por vez — descobrimos qual logo abaixo,
+    // a partir de ?modulo= na URL (veio de um nível da trilha da
+    // Dashboard) ou da última posição salva do aluno.
     // ==========================================================
-    const MODULOS = CL.curso.MODULOS;
+    function determinarCursoInicial() {
+      var moduloUrl = new URLSearchParams(window.location.search).get('modulo');
+      if (moduloUrl) {
+        var achado = CL.curso.encontrarModulo(moduloUrl);
+        if (achado) return achado.cursoId;
+      }
+      if (posicaoCarregada && posicaoCarregada.moduloId) {
+        var achadoSalvo = CL.curso.encontrarModulo(posicaoCarregada.moduloId);
+        if (achadoSalvo) return achadoSalvo.cursoId;
+      }
+      return 'html'; // trilha padrão, se nada mais indicar qual usar
+    }
+
+    const cursoAtualId = determinarCursoInicial();
+    const MODULOS = CL.curso.CURSOS[cursoAtualId].modulos;
 
     // ==========================================================
     // MOTOR DE RENDERIZAÇÃO E NAVEGAÇÃO
@@ -75,7 +92,7 @@
     // para a dashboard (não abre mais o índice), já na trilha de módulos,
     // mirando o módulo em que o aluno está agora.
     btnVoltarDashboard.addEventListener('click', function () {
-      window.location.href = URL_DASHBOARD + '#course/' + getModuloAtual().id;
+      window.location.href = URL_DASHBOARD + '#course/' + cursoAtualId;
     });
 
     // ==========================================================
@@ -152,12 +169,42 @@
     // (CL.trilha) e os dados dos nós (CL.curso.buildEtapaNodes) são
     // compartilhados com a trilha de Módulos da Dashboard.
     const indiceTituloEl = document.getElementById('indice-titulo-modulo');
+    const indiceModuloAnteriorBtn = document.getElementById('indice-modulo-anterior');
+    const indiceModuloProximoBtn = document.getElementById('indice-modulo-proximo');
+
+    // Pula direto pro módulo de índice `indice` (dentro da MESMA trilha:
+    // html/css/js nunca se misturam), sempre começando na etapa 1 dele.
+    function irParaModulo(indice) {
+      if (indice < 0 || indice >= MODULOS.length) return;
+      currentModuleIndex = indice;
+      currentStep = 1;
+      renderEtapas();
+      updateStepsUI();
+      renderIndice();
+    }
 
     function renderIndice() {
       const modulo = getModuloAtual();
       if (indiceTituloEl) {
-        indiceTituloEl.textContent = 'Módulo ' + (currentModuleIndex + 1) + ': ' + modulo.nome;
+        indiceTituloEl.textContent = 'Módulo ' + (currentModuleIndex + 1) + ' de ' + MODULOS.length + ': ' + modulo.nome;
       }
+
+      // "Módulo anterior": some/desativa só no 1º módulo da trilha —
+      // ali "não tem para onde voltar, é o início de tudo" daquela trilha.
+      const temModuloAnterior = currentModuleIndex > 0;
+      indiceModuloAnteriorBtn.disabled = !temModuloAnterior;
+      indiceModuloAnteriorBtn.hidden = !temModuloAnterior;
+
+      // "Próximo módulo": só destrava quando TODAS as etapas do módulo
+      // atual estiverem concluídas (e só existe se houver um próximo
+      // módulo NESSA MESMA trilha — não pula pra outra linguagem).
+      const temProximoModulo = currentModuleIndex < MODULOS.length - 1;
+      const moduloAtualConcluido = CL.curso.moduloConcluido(modulo, progressoEtapasCache);
+      indiceModuloProximoBtn.hidden = !temProximoModulo;
+      indiceModuloProximoBtn.disabled = !temProximoModulo || !moduloAtualConcluido;
+      indiceModuloProximoBtn.title = !temProximoModulo
+        ? 'Este é o último módulo da trilha'
+        : (moduloAtualConcluido ? 'Ir para o próximo módulo' : 'Conclua todas as etapas deste módulo para destravar o próximo');
 
       const nodes = CL.curso.buildEtapaNodes(modulo, progressoEtapasCache, currentStep);
 
@@ -180,6 +227,15 @@
         }
       });
     }
+
+    indiceModuloAnteriorBtn.addEventListener('click', function () {
+      irParaModulo(currentModuleIndex - 1);
+    });
+
+    indiceModuloProximoBtn.addEventListener('click', function () {
+      if (indiceModuloProximoBtn.disabled) return;
+      irParaModulo(currentModuleIndex + 1);
+    });
 
     function fecharIndice() {
       indicePanelEl.hidden = true;
@@ -207,7 +263,7 @@
     // Volta pra Dashboard já na trilha de módulos, mirando o módulo
     // em que o aluno está agora (mesma trilha, mesmo lugar).
     indiceVoltarDashboardBtn.addEventListener('click', function () {
-      window.location.href = URL_DASHBOARD + '#course/' + getModuloAtual().id;
+      window.location.href = URL_DASHBOARD + '#course/' + cursoAtualId;
     });
 
     // Permite que outros scripts leiam a etapa atual sem depender da ordem
@@ -265,7 +321,7 @@
         renderEtapas();
         updateStepsUI();
       } else {
-        alert('Parabéns! Você concluiu todos os módulos do curso.');
+        alert('Parabéns! Você concluiu toda a trilha de ' + CL.curso.CURSOS[cursoAtualId].nome + '.');
       }
     });
 
