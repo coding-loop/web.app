@@ -92,7 +92,7 @@
     // para a dashboard (não abre mais o índice), já na trilha de módulos,
     // mirando o módulo em que o aluno está agora.
     btnVoltarDashboard.addEventListener('click', function () {
-      window.location.href = URL_DASHBOARD + '#course/' + cursoAtualId;
+      irParaTrilhaDeModulos();
     });
 
     // ==========================================================
@@ -263,7 +263,7 @@
     // Volta pra Dashboard já na trilha de módulos, mirando o módulo
     // em que o aluno está agora (mesma trilha, mesmo lugar).
     indiceVoltarDashboardBtn.addEventListener('click', function () {
-      window.location.href = URL_DASHBOARD + '#course/' + cursoAtualId;
+      irParaTrilhaDeModulos();
     });
 
     // Permite que outros scripts leiam a etapa atual sem depender da ordem
@@ -274,12 +274,42 @@
 
     function renderEtapas() {
       moduleTitleEl.textContent = getModuloAtual().nome;
+      const totalEtapas = getTotalEtapas();
+
       theoryContentEl.innerHTML = getEtapasDoModulo().map(function (etapa, i) {
+        const numero = i + 1;
+        const ehPrimeira = numero === 1;
+        const ehUltima = numero === totalEtapas;
+
+        // Botão de voltar (canto superior esquerdo do card): na 1ª etapa
+        // do módulo leva pra trilha de módulos na Dashboard; nas demais,
+        // volta pra etapa anterior.
+        const tituloVoltar = ehPrimeira ? 'Voltar para a trilha de módulos' : 'Etapa anterior';
+        const btnVoltar =
+          '<button type="button" class="step-nav-btn step-nav-btn--back" data-step-action="back" title="' + tituloVoltar + '" aria-label="' + tituloVoltar + '">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>' +
+          '</button>';
+
+        // Botão de avançar (depois do fim do conteúdo, canto inferior
+        // direito): na última etapa leva pra trilha de módulos (pra
+        // aluno escolher o próximo módulo, se já destravado); nas
+        // demais, avança pra próxima etapa.
+        const tituloAvancar = ehUltima ? 'Concluir e ir para a trilha de módulos' : 'Próxima etapa';
+        const btnAvancar =
+          '<div class="step-nav-footer">' +
+            '<button type="button" class="step-nav-btn step-nav-btn--next" data-step-action="next" title="' + tituloAvancar + '" aria-label="' + tituloAvancar + '">' +
+              '<span>' + (ehUltima ? 'Concluir módulo' : 'Próxima etapa') + '</span>' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>' +
+            '</button>' +
+          '</div>';
+
         return (
-          '<section class="step-card' + (i === 0 ? ' active' : '') + '" data-step="' + (i + 1) + '">' +
+          '<section class="step-card' + (i === 0 ? ' active' : '') + '" data-step="' + numero + '">' +
+            btnVoltar +
             '<h3>' + etapa.titulo + '</h3>' +
             etapa.texto +
             '<div class="task-box"><strong>Missão:</strong> ' + etapa.missao + '</div>' +
+            btnAvancar +
           '</section>'
         );
       }).join('');
@@ -290,8 +320,17 @@
         card.classList.toggle('active', parseInt(card.dataset.step, 10) === currentStep);
       });
 
-      prevBtn.disabled = currentStep === 1 && currentModuleIndex === 0;
-      progressBar.style.width = (currentStep / getTotalEtapas()) * 100 + '%';
+      const totalEtapas = getTotalEtapas();
+      const naPrimeiraEtapa = currentStep === 1;
+      const naUltimaEtapa = currentStep === totalEtapas;
+
+      // O header nunca fica "sem ação": na 1ª/última etapa ele leva pra
+      // trilha de módulos em vez de ficar desabilitado.
+      prevBtn.disabled = false;
+      prevBtn.title = naPrimeiraEtapa ? 'Voltar para a trilha de módulos' : 'Etapa anterior';
+      nextBtn.title = naUltimaEtapa ? 'Concluir e ir para a trilha de módulos' : 'Próxima etapa';
+
+      progressBar.style.width = (currentStep / totalEtapas) * 100 + '%';
 
       // Se o índice estiver aberto, mantém o item ativo em sincronia com
       // avanços/retrocessos feitos pelos botões prev/next.
@@ -304,7 +343,18 @@
       salvarProgresso();
     }
 
-    nextBtn.addEventListener('click', () => {
+    // Volta pra Dashboard já na trilha de módulos da trilha atual
+    // (html/css/js) — usada tanto na 1ª etapa (botão voltar) quanto na
+    // última (botão avançar, depois de concluir).
+    function irParaTrilhaDeModulos() {
+      window.location.href = URL_DASHBOARD + '#course/' + cursoAtualId;
+    }
+
+    // Avança na etapa atual: marca ela como concluída e, se não for a
+    // última do módulo, vai pra próxima; se for a última, volta pra
+    // trilha de módulos (onde o próximo módulo, agora destravado, pode
+    // ser escolhido).
+    function avancarNaEtapa() {
       const etapaConcluidaAgora = window.getEtapaAtual();
       const moduloIdAtual = getModuloAtual().id;
       const percentualCalculado = calcularPercentualEtapa(etapaConcluidaAgora);
@@ -315,25 +365,43 @@
       if (currentStep < getTotalEtapas()) {
         currentStep++;
         updateStepsUI();
-      } else if (currentModuleIndex < MODULOS.length - 1) {
-        currentModuleIndex++;
-        currentStep = 1;
-        renderEtapas();
-        updateStepsUI();
-      } else {
+        return;
+      }
+
+      // Última etapa do módulo. Se também for o último módulo da
+      // trilha, um aviso extra de "trilha concluída" antes de voltar.
+      if (currentModuleIndex === MODULOS.length - 1) {
         alert('Parabéns! Você concluiu toda a trilha de ' + CL.curso.CURSOS[cursoAtualId].nome + '.');
       }
-    });
+      irParaTrilhaDeModulos();
+    }
 
-    prevBtn.addEventListener('click', () => {
+    // Volta na etapa atual: se não for a 1ª do módulo, volta pra etapa
+    // anterior; se for a 1ª, volta pra trilha de módulos.
+    function voltarNaEtapa() {
       if (currentStep > 1) {
         currentStep--;
         updateStepsUI();
-      } else if (currentModuleIndex > 0) {
-        currentModuleIndex--;
-        currentStep = MODULOS[currentModuleIndex].etapas.length;
-        renderEtapas();
-        updateStepsUI();
+        return;
+      }
+      irParaTrilhaDeModulos();
+    }
+
+    nextBtn.addEventListener('click', avancarNaEtapa);
+    prevBtn.addEventListener('click', voltarNaEtapa);
+
+    // Botões dentro de cada etapa (topo-esquerda "voltar" / rodapé-
+    // direita "avançar", ver renderEtapas). Delegado no container, já
+    // que os cards são recriados a cada troca de módulo.
+    theoryContentEl.addEventListener('click', function (e) {
+      const btnVoltarEtapa = e.target.closest('[data-step-action="back"]');
+      if (btnVoltarEtapa) {
+        voltarNaEtapa();
+        return;
+      }
+      const btnAvancarEtapa = e.target.closest('[data-step-action="next"]');
+      if (btnAvancarEtapa) {
+        avancarNaEtapa();
       }
     });
 
