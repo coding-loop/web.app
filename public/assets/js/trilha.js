@@ -116,7 +116,7 @@
     if (!alvo) return;
     alvo.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     alvo.classList.add('is-destacado');
-    setTimeout(function () { alvo.classList.remove('is-destacado'); }, 1600);
+    setTimeout(function () { alvo.classList.remove('is-destacado'); }, 1);
   };
 
 })();
