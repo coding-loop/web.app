@@ -11,6 +11,31 @@
   overflow-x: auto;
 }
 
+.indice-modulo-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cl-space-2, .5rem);
+  padding: 0 var(--cl-space-4, 1rem) var(--cl-space-2, .5rem);
+}
+
+.indice-modulo-nav-btn {
+  flex: 1 1 auto;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.indice-modulo-nav-btn--proximo svg {
+  margin-left: var(--cl-space-1, .25rem);
+}
+
+.indice-modulo-nav-btn:disabled,
+.indice-modulo-nav-btn[disabled] {
+  opacity: .4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .trilha-caminho {
   display: flex;
   flex-wrap: wrap;
