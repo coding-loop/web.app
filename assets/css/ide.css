@@ -424,6 +424,8 @@
 
     .step-card {
       display: none;
+      position: relative;
+      padding-top: 44px;
     }
 
     .step-card.active {
@@ -449,6 +451,75 @@
       font-size: 0.9rem;
       border-radius: 0 4px 4px 0;
       color: #333;
+    }
+
+    /* Botão "voltar" no canto superior esquerdo de cada etapa. Na 1ª
+       etapa do módulo leva pra trilha de módulos (Dashboard); nas
+       demais, volta pra etapa anterior — ver renderEtapas()/
+       voltarNaEtapa() em ide.js. */
+    .step-nav-btn--back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #d0d7de;
+      background: #f6f8fa;
+      color: #444;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+
+    .step-nav-btn--back:hover {
+      background: #eaeef2;
+      border-color: #0366d6;
+      color: #0366d6;
+    }
+
+    .step-nav-btn--back svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Botão "avançar", depois do fim do conteúdo (missão), alinhado à
+       direita. Na última etapa do módulo leva pra trilha de módulos
+       (Dashboard), destravando a possibilidade de entrar no próximo
+       módulo; nas demais, avança pra próxima etapa. */
+    .step-nav-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .step-nav-btn--next {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #0366d6;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    .step-nav-btn--next:hover {
+      background: #024fa8;
+      transform: translateY(-1px);
+    }
+
+    .step-nav-btn--next svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
     }
 
     /* Painel Direito: onde o IDE é encaixado */
