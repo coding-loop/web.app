@@ -692,12 +692,6 @@ CL.state = {
 
                         CL.storage.set("theme", theme);
 
-                        const icon = CL.dom.$("#cl-theme-icon");
-
-                        if (icon) {
-                            CL.dom.html(icon, theme === "solarized-dark" ? "🌙" : "☀");
-                        }
-
                         return true;
                       
 

@@ -52,6 +52,40 @@
     const cursoAtualId = determinarCursoInicial();
     const MODULOS = CL.curso.CURSOS[cursoAtualId].modulos;
 
+    // A IDE compartilha a preferência Solarized da plataforma. Como ela não
+    // carrega app.js, a alternância é inicializada aqui de forma enxuta.
+    const themeToggleBtn = document.getElementById('toggle-theme');
+    function aplicarTema(theme) {
+      theme = theme === 'solarized-light' ? 'solarized-light' : 'solarized-dark';
+      document.documentElement.setAttribute('data-theme', theme);
+      CL.state.theme = theme;
+      if (CL.storage && typeof CL.storage.set === 'function') CL.storage.set('theme', theme);
+      window.dispatchEvent(new CustomEvent('theme:mudou', { detail: theme }));
+    }
+    const temaSalvo = CL.storage && typeof CL.storage.get === 'function'
+      ? CL.storage.get('theme', CL.config.defaultTheme)
+      : CL.config.defaultTheme;
+    aplicarTema(temaSalvo);
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', function () {
+        aplicarTema(CL.state.theme === 'solarized-dark' ? 'solarized-light' : 'solarized-dark');
+      });
+    }
+
+    // O botão de retorno identifica visualmente a trilha aberta na IDE.
+    // A página inicia com HTML no markup para evitar ícone vazio antes do
+    // carregamento; aqui aplicamos CSS ou JavaScript quando for o caso.
+    const courseDashboardIcon = document.getElementById('course-dashboard-icon');
+    const courseIcons = {
+      html: 'assets/images/icons/html.svg',
+      css: 'assets/images/icons/css.svg',
+      js: 'assets/images/icons/javascript.svg'
+    };
+    if (courseDashboardIcon) {
+      courseDashboardIcon.src = courseIcons[cursoAtualId] || courseIcons.html;
+      courseDashboardIcon.alt = CL.curso.CURSOS[cursoAtualId].nome || 'HTML';
+    }
+
     // ==========================================================
     // MOTOR DE RENDERIZAÇÃO E NAVEGAÇÃO
     // ==========================================================
@@ -73,15 +107,13 @@
 
     const theoryContentEl = document.getElementById('theory-content');
     const moduleTitleEl = document.getElementById('module-title');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    const btnSaveProgress = document.getElementById('btn-save-progress');
     const progressBar = document.getElementById('progress-bar');
 
     // ---------- Índice do curso (novo) ----------
     const toggleIndiceBtn = document.getElementById('toggle-indice');
     const indicePanelEl = document.getElementById('indice-etapas');
     const indiceListaEl = document.getElementById('indice-lista');
-    const indiceVoltarDashboardBtn = document.getElementById('indice-back-to-dashboard');
     const btnVoltarDashboard = document.getElementById('btn-voltar-dashboard');
     // Antes apontava pro Blogger antigo (URL morta). Agora usa o
     // mesmo dashboardUrl definido no config mínimo deste HTML (path
@@ -169,42 +201,12 @@
     // (CL.trilha) e os dados dos nós (CL.curso.buildEtapaNodes) são
     // compartilhados com a trilha de Módulos da Dashboard.
     const indiceTituloEl = document.getElementById('indice-titulo-modulo');
-    const indiceModuloAnteriorBtn = document.getElementById('indice-modulo-anterior');
-    const indiceModuloProximoBtn = document.getElementById('indice-modulo-proximo');
-
-    // Pula direto pro módulo de índice `indice` (dentro da MESMA trilha:
-    // html/css/js nunca se misturam), sempre começando na etapa 1 dele.
-    function irParaModulo(indice) {
-      if (indice < 0 || indice >= MODULOS.length) return;
-      currentModuleIndex = indice;
-      currentStep = 1;
-      renderEtapas();
-      updateStepsUI();
-      renderIndice();
-    }
 
     function renderIndice() {
       const modulo = getModuloAtual();
       if (indiceTituloEl) {
         indiceTituloEl.textContent = 'Módulo ' + (currentModuleIndex + 1) + ' de ' + MODULOS.length + ': ' + modulo.nome;
       }
-
-      // "Módulo anterior": some/desativa só no 1º módulo da trilha —
-      // ali "não tem para onde voltar, é o início de tudo" daquela trilha.
-      const temModuloAnterior = currentModuleIndex > 0;
-      indiceModuloAnteriorBtn.disabled = !temModuloAnterior;
-      indiceModuloAnteriorBtn.hidden = !temModuloAnterior;
-
-      // "Próximo módulo": só destrava quando TODAS as etapas do módulo
-      // atual estiverem concluídas (e só existe se houver um próximo
-      // módulo NESSA MESMA trilha — não pula pra outra linguagem).
-      const temProximoModulo = currentModuleIndex < MODULOS.length - 1;
-      const moduloAtualConcluido = CL.curso.moduloConcluido(modulo, progressoEtapasCache);
-      indiceModuloProximoBtn.hidden = !temProximoModulo;
-      indiceModuloProximoBtn.disabled = !temProximoModulo || !moduloAtualConcluido;
-      indiceModuloProximoBtn.title = !temProximoModulo
-        ? 'Este é o último módulo da trilha'
-        : (moduloAtualConcluido ? 'Ir para o próximo módulo' : 'Conclua todas as etapas deste módulo para destravar o próximo');
 
       const nodes = CL.curso.buildEtapaNodes(modulo, progressoEtapasCache, currentStep);
 
@@ -228,15 +230,6 @@
       });
     }
 
-    indiceModuloAnteriorBtn.addEventListener('click', function () {
-      irParaModulo(currentModuleIndex - 1);
-    });
-
-    indiceModuloProximoBtn.addEventListener('click', function () {
-      if (indiceModuloProximoBtn.disabled) return;
-      irParaModulo(currentModuleIndex + 1);
-    });
-
     function fecharIndice() {
       indicePanelEl.hidden = true;
       theoryContentEl.hidden = false;
@@ -258,12 +251,6 @@
       } else {
         fecharIndice();
       }
-    });
-
-    // Volta pra Dashboard já na trilha de módulos, mirando o módulo
-    // em que o aluno está agora (mesma trilha, mesmo lugar).
-    indiceVoltarDashboardBtn.addEventListener('click', function () {
-      irParaTrilhaDeModulos();
     });
 
     // Permite que outros scripts leiam a etapa atual sem depender da ordem
@@ -321,14 +308,6 @@
       });
 
       const totalEtapas = getTotalEtapas();
-      const naPrimeiraEtapa = currentStep === 1;
-      const naUltimaEtapa = currentStep === totalEtapas;
-
-      // O header nunca fica "sem ação": na 1ª/última etapa ele leva pra
-      // trilha de módulos em vez de ficar desabilitado.
-      prevBtn.disabled = false;
-      prevBtn.title = naPrimeiraEtapa ? 'Voltar para a trilha de módulos' : 'Etapa anterior';
-      nextBtn.title = naUltimaEtapa ? 'Concluir e ir para a trilha de módulos' : 'Próxima etapa';
 
       progressBar.style.width = (currentStep / totalEtapas) * 100 + '%';
 
@@ -340,7 +319,7 @@
 
       window.dispatchEvent(new CustomEvent('etapa:mudou', { detail: window.getEtapaAtual() }));
 
-      salvarProgresso();
+      window.dispatchEvent(new CustomEvent('ide:estado-alterado'));
     }
 
     // Volta pra Dashboard já na trilha de módulos da trilha atual
@@ -387,9 +366,6 @@
       irParaTrilhaDeModulos();
     }
 
-    nextBtn.addEventListener('click', avancarNaEtapa);
-    prevBtn.addEventListener('click', voltarNaEtapa);
-
     // Botões dentro de cada etapa (topo-esquerda "voltar" / rodapé-
     // direita "avançar", ver renderEtapas). Delegado no container, já
     // que os cards são recriados a cada troca de módulo.
@@ -420,13 +396,22 @@
     // Preenchido no boot (bootIde) a partir de CL.api.listExercises().
     let exerciciosCache = exerciciosCarregado || {};
 
-    // Grava só a posição atual (módulo + etapa) no perfil. "Fire and
-    // forget": CL.auth.updateUser já trata falhas internamente e não
-    // precisa travar a navegação do aluno por causa disso.
+    // Grava só a posição atual (módulo + etapa) no perfil. É chamada
+    // exclusivamente pelo salvamento manual, junto do código da etapa.
     function salvarProgresso() {
-      if (!CL.auth || typeof CL.auth.updateUser !== 'function') return;
-      CL.auth.updateUser({
+      if (!CL.auth || typeof CL.auth.updateUser !== 'function') return Promise.resolve(false);
+      return CL.auth.updateUser({
         idePosition: { moduloId: getModuloAtual().id, etapa: currentStep }
+      });
+    }
+
+    window.salvarPosicaoDaIde = salvarProgresso;
+
+    if (btnSaveProgress) {
+      btnSaveProgress.addEventListener('click', function () {
+        if (typeof window.salvarEstadoGeralDaIde === 'function') {
+          window.salvarEstadoGeralDaIde();
+        }
       });
     }
 
@@ -522,13 +507,10 @@
         var btnRun = document.getElementById('btn-run');
         var btnImportFile = document.getElementById('btn-import-file');
         var btnExportFile = document.getElementById('btn-export-file');
-        var btnSaveFile = document.getElementById('btn-save-file');
-        var saveBtnDot = document.getElementById('save-btn-dot');
+        var saveProgressDot = document.getElementById('save-progress-dot');
         var saveToastEl = document.getElementById('save-toast');
         var inputImportFile = document.getElementById('input-import-file');
         var btnIdeCollapse = document.getElementById('btn-ide-collapse');
-        var iconCollapse = document.getElementById('icon-collapse');
-        var iconExpand = document.getElementById('icon-expand');
         var btnMaximizeToggle = document.getElementById('btn-maximize-toggle');
         var iconMaximize = document.getElementById('icon-maximize');
         var iconMinimize = document.getElementById('icon-minimize');
@@ -554,7 +536,9 @@
 
         function criarEditor(id, modo, valorInicial) {
           var editor = ace.edit(id);
-          editor.setTheme('ace/theme/solarized_dark');
+          editor.setTheme(document.documentElement.getAttribute('data-theme') === 'solarized-light'
+            ? 'ace/theme/solarized_light'
+            : 'ace/theme/solarized_dark');
           editor.setOption('useWorker', true);
           editor.session.setMode(modo);
           editor.setShowPrintMargin(false);
@@ -570,11 +554,19 @@
         cssEditor = criarEditor('css-editor', 'ace/mode/css', codigoInicial.css || '');
         jsEditor = criarEditor('js-editor', 'ace/mode/javascript', codigoInicial.js || '');
 
+        window.addEventListener('theme:mudou', function (event) {
+          var themeAce = event.detail === 'solarized-light' ? 'ace/theme/solarized_light' : 'ace/theme/solarized_dark';
+          [htmlEditor, cssEditor, jsEditor].forEach(function (editor) { editor.setTheme(themeAce); });
+        });
+
+        var carregandoCodigoDaEtapa = false;
         function carregarCodigoDaEtapa() {
           var codigo = (window.getCodigoInicialParaEditor && window.getCodigoInicialParaEditor()) || {};
+          carregandoCodigoDaEtapa = true;
           if (codigo.html !== undefined) htmlEditor.setValue(codigo.html, -1);
           if (codigo.css !== undefined) cssEditor.setValue(codigo.css, -1);
           if (codigo.js !== undefined) jsEditor.setValue(codigo.js, -1);
+          carregandoCodigoDaEtapa = false;
         }
 
         // Usado pelo índice para calcular o percentual de acerto de cada
@@ -603,37 +595,39 @@
         }
 
         function marcarComoNaoSalvo() {
-          if (saveBtnDot) saveBtnDot.classList.add('is-visible');
+          if (saveProgressDot) saveProgressDot.classList.add('is-visible');
         }
 
         function marcarComoSalvo() {
-          if (saveBtnDot) saveBtnDot.classList.remove('is-visible');
+          if (saveProgressDot) saveProgressDot.classList.remove('is-visible');
         }
 
         function salvarCodigoAgora() {
-          if (!window.salvarCodigoDoAluno) return;
+          if (!window.salvarCodigoDoAluno) return Promise.resolve(false);
           var resultado = window.salvarCodigoDoAluno({
             html: htmlEditor.getValue(),
             css: cssEditor.getValue(),
             js: jsEditor.getValue()
           });
-          // salvarCodigoDoAluno agora grava no Firestore (CL.api.saveExercise)
-          // e retorna uma Promise. Só marca "salvo" quando a gravação
-          // realmente terminar; se falhar, o dot continua indicando "não
-          // salvo" e o próprio CL.api já mostra um toast de erro.
-          if (resultado && typeof resultado.then === 'function') {
-            resultado.then(marcarComoSalvo).catch(function () {});
-          } else {
-            marcarComoSalvo();
-          }
+          return Promise.resolve(resultado);
         }
 
-        var salvarCodigoTimeout = null;
-        function agendarSalvamentoCodigo() {
-          marcarComoNaoSalvo();
-          clearTimeout(salvarCodigoTimeout);
-          salvarCodigoTimeout = setTimeout(salvarCodigoAgora, 500);
+        function salvarEstadoGeral() {
+          var salvarPosicao = window.salvarPosicaoDaIde || function () { return Promise.resolve(false); };
+          return Promise.all([salvarCodigoAgora(), salvarPosicao()]).then(function (resultados) {
+            if (!resultados[0] || !resultados[1]) throw new Error('Não foi possível confirmar o salvamento.');
+            marcarComoSalvo();
+            mostrarToast('Progresso salvo!');
+            return true;
+          }).catch(function () {
+            marcarComoNaoSalvo();
+            mostrarToast('Não foi possível salvar o progresso.');
+            return false;
+          });
         }
+
+        window.salvarEstadoGeralDaIde = salvarEstadoGeral;
+        window.addEventListener('ide:estado-alterado', marcarComoNaoSalvo);
 
         function redimensionarEditores() {
           [htmlEditor, cssEditor, jsEditor].forEach(function (editor) {
@@ -1120,8 +1114,6 @@
         function atualizarJanela() {
           mainWindowContainer.classList.toggle('is-collapsed', !IDE_ABERTO);
           contentWrapper.classList.toggle('hide-entire-window', !IDE_ABERTO);
-          alternarIcones(iconCollapse, iconExpand, !IDE_ABERTO);
-
           btnIdeCollapse.classList.toggle('is-active', !IDE_ABERTO);
           btnIdeCollapse.setAttribute('aria-pressed', String(!IDE_ABERTO));
 
@@ -1236,7 +1228,9 @@
 
         [htmlEditor, cssEditor, jsEditor].forEach(function (editor) {
           editor.on('change', agendarAtualizacaoPreview);
-          editor.on('change', agendarSalvamentoCodigo);
+          editor.on('change', function () {
+            if (!carregandoCodigoDaEtapa) marcarComoNaoSalvo();
+          });
         });
 
         btnIdeCollapse.addEventListener('click', function () {
@@ -1273,12 +1267,6 @@
               agendarAtualizacaoPreview();
             }
           });
-        });
-
-        btnSaveFile.addEventListener('click', function () {
-          clearTimeout(salvarCodigoTimeout);
-          salvarCodigoAgora();
-          mostrarToast('Progresso salvo!');
         });
 
         function separarCodigoImportado(conteudo) {
@@ -1325,8 +1313,6 @@
             abrirJanela();
             atualizarLayoutAbas();
             agendarAtualizacaoPreview();
-            clearTimeout(salvarCodigoTimeout);
-            salvarCodigoAgora();
             mostrarToast('Arquivo importado e separado em HTML/CSS/JS.');
           };
           reader.readAsText(file);
@@ -1558,6 +1544,17 @@
       var vertical = false;
       var frameAgendado = null;
 
+      function posicionarResizer() {
+        vertical = getComputedStyle(root).flexDirection === 'column';
+        if (vertical) {
+          resizer.style.left = '';
+          resizer.style.top = theoryPane.getBoundingClientRect().height + 'px';
+        } else {
+          resizer.style.top = '';
+          resizer.style.left = theoryPane.getBoundingClientRect().width + 'px';
+        }
+      }
+
       function aplicarTamanho(px) {
         theoryPane.style.flexGrow = '0';
         theoryPane.style.flexShrink = '0';
@@ -1567,15 +1564,16 @@
         theoryPane.style.width = vertical ? '' : px + 'px';
         theoryPane.style.height = vertical ? px + 'px' : '';
 
+        posicionarResizer();
         window.dispatchEvent(new Event('ide:resize'));
       }
 
       function calcularPosicao(clientX, clientY) {
         var rect = root.getBoundingClientRect();
-        var resizerTamanho = vertical ? resizer.offsetHeight : resizer.offsetWidth;
         var total = vertical ? rect.height : rect.width;
         var pos = vertical ? (clientY - rect.top) : (clientX - rect.left);
-        var maxTheory = total - MIN_IDE - resizerTamanho;
+        // O resizer é sobreposto à borda e não ocupa espaço no layout.
+        var maxTheory = total - MIN_IDE;
         return Math.max(MIN_THEORY, Math.min(pos, maxTheory));
       }
 
@@ -1615,6 +1613,9 @@
       });
 
       document.addEventListener('mouseup', finalizarArraste);
+
+      window.addEventListener('resize', posicionarResizer);
+      posicionarResizer();
 
       resizer.addEventListener('touchstart', function (e) {
         var t = e.touches[0];

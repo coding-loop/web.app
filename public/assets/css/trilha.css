@@ -76,11 +76,11 @@
 }
 
 #cl-page-course .trilha-titulo-fixo img {
-
   /* Menor, mantendo a proporção original */
-width: 75.5%;
-height: auto;
-margin: 0 auto;
+  display: block;
+  width: 75.5%;
+  height: auto;
+  margin: 0 auto;
 }
 
 .trilha-container[data-curso="css"] {

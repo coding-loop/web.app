@@ -273,7 +273,14 @@
     if (!pagina) return;
 
     var titulo = pagina.querySelector('.trilha-titulo-fixo');
-    if (!options || options.cursoId !== 'html') {
+    var imagensTitulo = {
+      html: 'assets/images/trilha-titulo-bg-html.png',
+      css: 'assets/images/trilha-titulo-bg-css.png',
+      js: 'assets/images/trilha-titulo-bg-js.png'
+    };
+    var imagemTitulo = options && imagensTitulo[options.cursoId];
+
+    if (!imagemTitulo) {
       if (titulo) titulo.remove();
       return;
     }
@@ -282,9 +289,10 @@
       titulo = document.createElement('div');
       titulo.className = 'trilha-titulo-fixo';
       titulo.setAttribute('aria-hidden', 'true');
-      titulo.innerHTML = '<img src="assets/images/trilha-bg-html-titulo.png" alt="">';
       pagina.appendChild(titulo);
     }
+
+    titulo.innerHTML = '<img src="' + imagemTitulo + '" alt="">';
   }
 
   /* Redesenha o caminho de TODOS os containers já renderizados

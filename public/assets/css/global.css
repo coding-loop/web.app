@@ -1231,7 +1231,10 @@
             BUTTON ICON
             ========================= */
 
-            .cl-btn-icon {
+           [data-theme-toggle] .cl-btn-icon {
+            width: 18px;
+            height: 18px;
+            } .cl-btn-icon {
 
                 display: flex;
 

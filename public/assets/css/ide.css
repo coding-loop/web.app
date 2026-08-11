@@ -61,7 +61,7 @@
       justify-content: flex-start;
       gap: 0;
       height: 100%;
-      padding: 2px;
+      padding: 0 8px;
       background: transparent;
       cursor: pointer;
       border-radius: 4px;
@@ -94,13 +94,13 @@
     }
 
     .back-to-dashboard-btn img {
-      width: 28px;
+      width: 18px;
       height: auto;
       object-fit: contain;
       display: block;
       flex-shrink: 0;
-      margin: -4px;
-      padding: 0;
+      margin: -2px;
+      padding: 0 4;
     }
 
     /* Botão 2: ícone de menu (☰) -> abre/fecha o índice do curso */
@@ -146,6 +146,31 @@
       border-color: #3385FF;
     }
 
+    .toggle-theme-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .toggle-theme-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-width: 20px;
+      padding: 0 4px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--cl-text);
+      cursor: pointer;
+    }
+
+    .toggle-theme-btn:hover,
+    .toggle-theme-btn:focus {
+      border-color: var(--cl-primary);
+      color: var(--cl-primary);
+      outline: none;
+    }
+
     .module-nav-bar {
       display: flex;
       align-items: center;
@@ -169,7 +194,8 @@
       text-overflow: ellipsis;
     }
 
-    .header-nav-btn {
+    .header-nav-btn,
+    .header-save-btn {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -186,14 +212,17 @@
       margin: auto 0;
     }
 
-    .header-nav-btn svg {
-      width: 14px;
-      height: 14px;
+    .header-nav-btn svg,
+    .header-save-btn svg {
+      width: 18px;
+      height: 18px;
       fill: currentColor;
       display: block;
     }
 
-    .header-nav-btn:hover:not(:disabled) {
+    .header-nav-btn:hover:not(:disabled),
+    .header-save-btn:hover,
+    .header-save-btn:focus {
       background: transparent;
       color: #3385FF;
       border-color: #3385FF;
@@ -202,6 +231,15 @@
     .header-nav-btn:disabled {
       opacity: 0.3;
       cursor: not-allowed;
+    }
+
+    .header-save-btn {
+      position: relative;
+    }
+
+    .header-save-btn .save-btn-dot {
+      top: 5px;
+      right: 5px;
     }
 
     /* Barra de progresso fina */
@@ -466,7 +504,7 @@
       justify-content: center;
       width: 32px;
       height: 32px;
-      border-radius: 50%;
+      border-radius: 50%; 
       border: 1px solid #d0d7de;
       background: #f6f8fa;
       color: #444;
@@ -551,9 +589,12 @@
     }
 
     .pane-resizer {
-      flex: 0 0 6px;
-      width: 6px;
-      position: relative;
+      /* Controle flutuante na divisória, sem ocupar largura de nenhum painel. */
+      position: absolute;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      transform: translateX(-50%);
       background: #0f141c;
       cursor: col-resize;
       z-index: 20;
@@ -565,8 +606,8 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 3px;
-      height: 36px;
+      width: 5px;
+      height: 24px;
       transform: translate(-50%, -50%);
       border-radius: 2px;
       background: rgba(255, 255, 255, 0.2);
@@ -580,7 +621,7 @@
 
     .pane-resizer:hover::before,
     .pane-resizer.is-dragging::before {
-      background: #4ab5f7;
+      background: #161b22;
     }
 
     /* ==========================================================
@@ -957,10 +998,6 @@
       display: none;
     }
 
-    #btn-save-file {
-      position: relative;
-    }
-
     .save-btn-dot {
       position: absolute;
       top: 7px;
@@ -1220,8 +1257,11 @@
       }
 
       .pane-resizer {
+        top: auto;
+        left: 0;
         width: 100%;
-        height: 6px;
+        height: 12px;
+        transform: translateY(-50%);
         cursor: row-resize;
       }
 
@@ -1236,9 +1276,278 @@
       font-size: 11px !important;
       gap: 4px !important;
     }
+
+    /* ==========================================================
+       TEMA SOLARIZED — a IDE usa os mesmos tokens da plataforma.
+       Mantido ao final para substituir as cores legadas pontuais.
+       ========================================================== */
+    body,
+    .theory-pane,
+    .theory-content,
+    .indice-panel {
+      background: var(--cl-bg);
+      color: var(--cl-text);
+    }
+
+    .theory-pane { border-color: var(--cl-border); }
+    .theory-header,
+    .browser-tabs,
+    .pane-resizer { background: var(--cl-surface); }
+    .module-nav-bar h2,
+    .step-card h3 { color: var(--cl-primary); }
+    .progress-bar { background: var(--cl-surface-2); }
+    .progress-fill { background: var(--cl-primary); }
+    .step-card p,
+    .task-box { color: var(--cl-text); }
+    .task-box { background: var(--cl-surface-2); border-left-color: var(--cl-warning); }
+    .step-nav-btn--back { background: var(--cl-surface); border-color: var(--cl-border); color: var(--cl-text); }
+    .step-nav-btn--back:hover { background: var(--cl-surface-hover); border-color: var(--cl-primary); color: var(--cl-primary); }
+    .step-nav-btn--next { background: var(--cl-primary); color: var(--cl-on-primary); }
+    .step-nav-btn--next:hover { background: var(--cl-info); }
+
+    .ide-container-pane,
+    .browser-window,
+    .window-content,
+    .editors-area,
+    .tab-pane { background: var(--cl-surface); }
+    .browser-window,
+    .browser-tabs,
+    .tab-btn,
+    .toolbar-btn,
+    .maximize-btn,
+    .collapse-btn { border-color: var(--cl-border); }
+    .tab-btn,
+    .toolbar-btn,
+    .maximize-btn,
+    .collapse-btn { color: var(--cl-text-muted); }
+    .tab-btn:hover,
+    .tab-btn:focus-within,
+    .toolbar-btn:hover,
+    .toolbar-btn:focus,
+    .maximize-btn:hover,
+    .maximize-btn:focus,
+    .collapse-btn:hover,
+    .collapse-btn:focus,
+    .tab-btn.active,
+    .collapse-btn.is-active { background: var(--cl-surface-hover); color: var(--cl-primary); border-color: var(--cl-primary); }
+    .editors-area.split-2,
+    .editors-area.split-3 { background: var(--cl-border); }
+    .preview-area { background: var(--cl-bg); border-color: var(--cl-border); }
+    .scroll-fade-left { background: linear-gradient(to right, var(--cl-surface), transparent); }
+    .scroll-fade-right { background: linear-gradient(to left, var(--cl-surface), transparent); }
+
+    /* Contraste forte para os controles e a divisão entre aprendizagem e IDE. */
+    [data-theme="solarized-dark"] { --ide-control-contrast: #fdf6e3; }
+    [data-theme="solarized-light"] { --ide-control-contrast: #002b36; }
+
+    .theory-pane { border-right-color: var(--ide-control-contrast); }
+    .pane-resizer { background: var(--ide-control-contrast); }
+    .pane-resizer:hover,
+    .pane-resizer.is-dragging { background: var(--ide-control-contrast); }
+    .pane-resizer::before { background: var(--cl-primary); }
+
+    .back-to-dashboard-btn,
+    .toggle-indice-btn,
+    .toggle-theme-btn,
+    .header-save-btn,
+    .tab-btn,
+    .toolbar-btn,
+    .maximize-btn,
+    .collapse-btn,
+    .preview-btn { color: var(--ide-control-contrast); }
+
+    .back-to-dashboard-btn .seta-retorno,
+    .toggle-indice-btn svg,
+    .header-save-btn svg,
+    .tab-btn svg,
+    .toolbar-btn svg,
+    .maximize-btn svg,
+    .collapse-btn svg,
+    .preview-btn svg { fill: var(--ide-control-contrast); }
     .live-toggle-btn svg {
       width: 12px !important;
       height: 12px !important;
       max-width: 12px !important;
       max-height: 12px !important;
+    }
+
+    /* Controles auxiliares seguem o mesmo fundo limpo dos demais botões. */
+    .preview-btn,
+    .preview-btn:hover,
+    .preview-btn:focus,
+    .preview-btn-layout.is-active,
+    .preview-btn-max.is-active {
+      background: transparent;
+    }
+
+    /* Ação destrutiva: lixeira e realce de perigo em vermelho. */
+    .tab-action-btn {
+      color: var(--cl-danger);
+      background: transparent;
+    }
+
+    .tab-action-btn:hover,
+    .tab-action-btn:focus {
+      color: var(--cl-danger);
+      background: transparent;
+      border-color: var(--cl-danger);
+    }
+
+    /* Controles da IDE sem contorno, como os botões do cabeçalho da plataforma. */
+    .tab-btn,
+    .toolbar-btn,
+    .maximize-btn,
+    .collapse-btn,
+    .tab-action-btn,
+    .preview-btn,
+    .tab-btn:hover,
+    .tab-btn:focus-within,
+    .toolbar-btn:hover,
+    .toolbar-btn:focus,
+    .maximize-btn:hover,
+    .maximize-btn:focus,
+    .collapse-btn:hover,
+    .collapse-btn:focus,
+    .tab-action-btn:hover,
+    .tab-action-btn:focus,
+    .preview-btn:hover,
+    .preview-btn:focus,
+    .tab-btn.active,
+    .collapse-btn.is-active,
+    .preview-btn-layout.is-active,
+    .preview-btn-max.is-active {
+      border-color: transparent;
+    }
+
+    /* O preview tem fundo branco: seus controles precisam permanecer escuros
+       nos dois temas para não perder contraste. */
+    .preview-btn,
+    .preview-btn:hover,
+    .preview-btn:focus,
+    .preview-btn-layout.is-active,
+    .preview-btn-max.is-active { color: #002b36; }
+
+    .preview-btn svg { fill: #002b36; }
+
+    /* Limpar editor é destrutivo: destaque vermelho inequívoco no hover. */
+    .tab-action-btn:hover,
+    .tab-action-btn:focus {
+      color: var(--cl-danger);
+      background: rgba(220, 50, 47, 0.18);
+      box-shadow: 0 0 0 1px var(--cl-danger);
+    }
+
+    /* Hover uniforme: a área clicável ganha uma camada mais clara sem borda. */
+    [data-theme="solarized-dark"] { --ide-button-hover: rgba(253, 246, 227, 0.14); }
+    [data-theme="solarized-light"] { --ide-button-hover: rgba(255, 255, 255, 0.72); }
+
+    .back-to-dashboard-btn:hover,
+    .back-to-dashboard-btn:focus,
+    .toggle-indice-btn:hover,
+    .toggle-indice-btn:focus,
+    .toggle-theme-btn:hover,
+    .toggle-theme-btn:focus,
+    .header-save-btn:hover,
+    .header-save-btn:focus,
+    .indice-back-btn:hover,
+    .indice-back-btn:focus,
+    .step-nav-btn:not(.tab-action-btn):hover,
+    .step-nav-btn:not(.tab-action-btn):focus,
+    .tab-btn:hover,
+    .tab-btn:focus-within,
+    .toolbar-btn:hover,
+    .toolbar-btn:focus,
+    .maximize-btn:hover,
+    .maximize-btn:focus,
+    .collapse-btn:hover,
+    .collapse-btn:focus,
+    .preview-btn:hover,
+    .preview-btn:focus,
+    .preview-btn-layout.is-active,
+    .preview-btn-max.is-active {
+      background: var(--ide-button-hover);
+    }
+
+    /* O preview é branco: seus controles usam o bege Solarized claro. */
+    .preview-btn:hover,
+    .preview-btn:focus,
+    .preview-btn-layout.is-active,
+    .preview-btn-max.is-active {
+      background: #eee8d5;
+    }
+
+    /* Plataforma de aprendizagem: controles com cantos retos como a IDE. */
+    .theory-pane button {
+      border-radius: 0;
+    }
+
+    /* Sem contornos nos controles da plataforma; os nós da trilha mantêm
+       suas bordas de estado (disponível, atual e concluído). */
+    .theory-pane button:not(.trilha-node),
+    .theory-pane button:not(.trilha-node):hover,
+    .theory-pane button:not(.trilha-node):focus {
+      border-color: transparent;
+    }
+
+    /* Cor única dos controles: escura no Solarized claro e clara no escuro.
+       Preview fica de fora porque usa contraste próprio sobre fundo branco. */
+    .learning-platform-root button:not(.preview-btn) {
+      color: var(--ide-control-contrast);
+    }
+
+    .learning-platform-root button:not(.preview-btn) svg {
+      fill: var(--ide-control-contrast);
+      stroke: var(--ide-control-contrast);
+    }
+
+    .learning-platform-root button:not(.preview-btn):hover,
+    .learning-platform-root button:not(.preview-btn):focus,
+    .learning-platform-root button:not(.preview-btn):focus-visible {
+      color: #4ab5f7;
+    }
+
+    .learning-platform-root button:not(.preview-btn):hover svg,
+    .learning-platform-root button:not(.preview-btn):focus svg,
+    .learning-platform-root button:not(.preview-btn):focus-visible svg {
+      fill: #4ab5f7;
+      stroke: #4ab5f7;
+    }
+
+    /* Barra de rolagem Solarized: contraste invertido em cada tema. */
+    [data-theme="solarized-light"] {
+      --ide-scroll-thumb: #002b36;
+      --ide-scroll-track: #fdf6e3;
+    }
+
+    [data-theme="solarized-dark"] {
+      --ide-scroll-thumb: #fdf6e3;
+      --ide-scroll-track: #002b36;
+    }
+
+    .theory-content,
+    .indice-panel {
+      scrollbar-width: thin;
+      scrollbar-color: var(--ide-scroll-thumb) var(--ide-scroll-track);
+    }
+
+    .theory-content::-webkit-scrollbar,
+    .indice-panel::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .theory-content::-webkit-scrollbar-track,
+    .indice-panel::-webkit-scrollbar-track {
+      background: var(--ide-scroll-track);
+    }
+
+    .theory-content::-webkit-scrollbar-thumb,
+    .indice-panel::-webkit-scrollbar-thumb {
+      background: var(--ide-scroll-thumb);
+      border: 2px solid var(--ide-scroll-track);
+      border-radius: 0;
+    }
+
+    .theory-content::-webkit-scrollbar-thumb:hover,
+    .indice-panel::-webkit-scrollbar-thumb:hover {
+      background: #4ab5f7;
     }
