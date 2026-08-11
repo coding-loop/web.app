@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* users/{uid} -> perfil do aluno.
+       Só o próprio usuário autenticado (uid do Firebase Auth igual
+       ao id do documento) pode ler ou escrever seus dados. Ninguém
+       lê o perfil de outra pessoa. */
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      /* users/{uid}/progress/{progressId} -> progresso de aulas/cursos */
+      match /progress/{progressId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      /* users/{uid}/exercises/{exerciseId} -> código salvo na IDE */
+      match /exercises/{exerciseId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    /* Qualquer outra coleção/documento não previsto acima fica
+       bloqueado por padrão (nega tudo). */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

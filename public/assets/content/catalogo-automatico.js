@@ -1,0 +1,20 @@
+/* Arquivo gerado por scripts/gerar-manifest-conteudo.ps1. Não edite manualmente. */
+window.CL_CONTEUDO_MANIFEST_AUTOMATICO = [
+  'assets/content/css/curso.js',
+  'assets/content/css/modulo-01/00-modulo-01.js',
+  'assets/content/css/modulo-01/etapa-01.js',
+  'assets/content/html/modulo-01/etapa-01.js',
+  'assets/content/html/modulo-01/etapa-02.js',
+  'assets/content/html/modulo-01/etapa-03.js',
+  'assets/content/html/modulo-01/etapa-04.js',
+  'assets/content/html/modulo-01/etapa-05.js',
+  'assets/content/html/modulo-01/etapa-06.js',
+  'assets/content/html/modulos-planejamento.js',
+  'assets/content/html/posicoes-trilha.js',
+  'assets/content/js/curso.js',
+  'assets/content/js/modulo-01/00-modulo.js',
+  'assets/content/js/modulo-01/etapa-01.js',
+  'assets/content/templates/curso.js',
+  'assets/content/templates/etapa.js',
+  'assets/content/templates/modulo.js',
+];

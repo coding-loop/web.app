@@ -1,0 +1,19 @@
+html/
+  curso.js
+
+  modulo-01/
+    00-modulo.js
+    etapa-01.js
+    etapa-02.js
+
+  modulo-02/
+    00-modulo.js
+    etapa-01.js
+    etapa-02.js
+
+  modulo-03/
+    00-modulo.js
+    etapa-01.js
+
+
+não se aplica ao curso html porque ele já é um curso legado, mas para novos cursos sim.
