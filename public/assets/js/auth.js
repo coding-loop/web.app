@@ -128,35 +128,34 @@
         if (!fbUser) {
             return null;
         }
+        const providerId = fbUser.providerData && fbUser.providerData[0] && fbUser.providerData[0].providerId;
+        const providerMap = {
+            "password": "email",
+            "google.com": "google",
+            "github.com": "github",
+            "facebook.com": "facebook",
+            "microsoft.com": "microsoft"
+        };
         return {
             id: fbUser.uid,
             name: fbUser.displayName || "",
             email: fbUser.email || "",
             avatar: fbUser.photoURL || "",
-            provider: "google"
+            provider: providerMap[providerId] || "email"
         };
     };
 
-    /* Cria/atualiza o documento users/{uid} no Firestore sempre que o
-       usuário loga. createdAt só é gravado na primeira vez. */
+    /* Mantém o perfil no rascunho local. A escrita no Firestore acontece
+       em lote imediatamente antes do logout. */
     CL.auth._syncProfile = async function (user) {
         try {
-            const ref = CL.firebase.db.collection("users").doc(user.id);
-            const snap = await ref.get();
-
             const payload = {
                 name: user.name,
                 email: user.email,
                 avatar: user.avatar,
-                provider: user.provider,
-                lastLoginAt: CL.firebase.FieldValue.serverTimestamp()
+                provider: user.provider
             };
-
-            if (!snap.exists) {
-                payload.createdAt = CL.firebase.FieldValue.serverTimestamp();
-            }
-
-            await ref.set(payload, { merge: true });
+            await CL.api.saveProfile(payload);
         } catch (error) {
             if (CL.config.debug) {
                 console.error("[CL.auth] falha ao sincronizar perfil:", error);
@@ -294,6 +293,9 @@
     /* AUTH > LOGOUT */
     CL.auth.logout = async function () {
         try {
+            if (CL.api && typeof CL.api.syncLocalData === "function") {
+                await CL.api.syncLocalData();
+            }
             await CL.firebase.auth.signOut();
         } catch (error) {
             if (CL.config.debug) {
@@ -304,8 +306,8 @@
         }
     };
 
-    /* AUTH > UPDATE USER — usado pela tela de Perfil/Configurações
-       pra editar nome, etc. Grava no Firestore e atualiza o state. */
+    /* AUTH > UPDATE USER — atualiza o rascunho local; o Firebase é
+       sincronizado em lote antes do logout. */
     CL.auth.updateUser = async function (data) {
         data = data || {};
 
@@ -313,10 +315,14 @@
             return false;
         }
 
-        CL.state.user = Object.assign({}, CL.state.user, data);
-
         try {
-            await CL.firebase.db.collection("users").doc(CL.state.user.id).set(data, { merge: true });
+            await CL.api.saveProfile(data);
+            const firebaseData = {};
+            if (typeof data.name === "string") firebaseData.displayName = data.name;
+            if (typeof data.avatar === "string") firebaseData.photoURL = data.avatar;
+            if (Object.keys(firebaseData).length && CL.firebase.auth.currentUser) {
+                await CL.firebase.auth.currentUser.updateProfile(firebaseData);
+            }
         } catch (error) {
             if (CL.config.debug) {
                 console.error("[CL.auth] falha ao atualizar usuário:", error);
@@ -324,6 +330,7 @@
             return false;
         }
 
+        CL.state.user = Object.assign({}, CL.state.user, data);
         CL.auth.renderUser();
         return true;
     };

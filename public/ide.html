@@ -41,10 +41,13 @@
         <!-- 1. Retorno fixo à dashboard -->
         <div class="dashboard-fixed-section">
           <!-- Botão A: ícone do HTML + seta "<" colada na borda esquerda -> volta para a dashboard -->
-          <button aria-label="Voltar para a dashboard" class="back-to-dashboard-btn" id="btn-voltar-dashboard" title="Voltar para a dashboard" type="button">
+          <button aria-label="Voltar ao painel de trilha" class="back-to-dashboard-btn" id="btn-voltar-dashboard" title="Voltar ao painel de trilha" type="button">
             <svg class="seta-retorno" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
             
             <img id="course-dashboard-icon" src="assets/images/icons/html.svg" alt="HTML"/>
+          </button>
+          <button aria-label="Abrir índice do curso" class="toggle-indice-btn" id="toggle-indice" title="Índice do curso" type="button" aria-expanded="false" aria-controls="indice-etapas">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/></svg>
           </button>
 
         </div>
@@ -53,15 +56,14 @@
         <div class="module-nav-bar">
           <h2 id="module-title">Módulo 1: Introdução ao HTML</h2>
 
-          <!-- Modo/índice, salvar e tema ficam agrupados no lado direito. -->
-          <button aria-label="Abrir índice do curso" class="toggle-indice-btn" id="toggle-indice" title="Índice do curso" type="button" aria-expanded="false" aria-controls="indice-etapas">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/></svg>
+          <button aria-label="Exportar progresso" class="header-save-btn" id="btn-export-progress" title="Exportar progresso" type="button">
+            <img alt="" aria-hidden="true" data-icon-dark="assets/images/export-progress-light.svg" data-icon-light="assets/images/export-progress-dark.svg" src="assets/images/export-progress-light.svg">
           </button>
 
-          <button aria-label="Salvar progresso" class="header-save-btn" id="btn-save-progress" title="Salvar progresso" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg>
-            <span class="save-btn-dot" id="save-progress-dot" aria-hidden="true"></span>
+          <button aria-label="Importar progresso" class="header-save-btn" id="btn-import-progress" title="Importar progresso" type="button">
+            <img alt="" aria-hidden="true" data-icon-dark="assets/images/import-progress-light.svg" data-icon-light="assets/images/import-progress-dark.svg" src="assets/images/import-progress-light.svg">
           </button>
+          <input accept="application/json,.json" hidden id="input-import-progress" type="file">
 
           <button aria-label="Alternar tema claro e escuro" class="toggle-theme-btn" id="toggle-theme" title="Alternar tema" type="button">
             <svg id="theme-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(180 12 12)"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></g></svg>
@@ -106,13 +108,26 @@
 
             <div class="browser-tabs-scroll-wrapper" id="tabs-scroll-wrapper">
               <div class="browser-tabs-right" id="tabs-draggable-container">
-                <button aria-label="Importar arquivo HTML, CSS ou JavaScript" class="toolbar-btn" id="btn-import-file" title="Importar arquivo" type="button">
+                <button aria-label="Importar código-fonte" class="toolbar-btn" id="btn-import-file" title="Importar código-fonte" type="button">
                   <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
                 </button>
 
-                <button aria-label="Exportar código editado" class="toolbar-btn" id="btn-export-file" title="Exportar código" type="button">
+                <button aria-label="Exportar código-fonte" class="toolbar-btn" id="btn-export-file" title="Exportar código-fonte" type="button">
                   <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM10 16h4V9h4l-6-6-6 6h4v7z"/></svg>
                 </button>
+                <dialog aria-labelledby="export-code-title" class="export-code-dialog" id="export-code-dialog">
+                  <form method="dialog">
+                    <div class="export-code-dialog-header">
+                      <h2 id="export-code-title">Exportar código</h2>
+                      <button aria-label="Cancelar exportação" class="export-code-dialog-cancel" value="cancel" type="submit">Cancelar</button>
+                    </div>
+                    <p>Escolha o formato do download.</p>
+                    <div class="export-code-dialog-actions">
+                      <button class="cl-btn" value="single" type="submit">CSS e JS incorporados</button>
+                      <button class="cl-btn" value="separate" type="submit">CSS e JS externos</button>
+                    </div>
+                  </form>
+                </dialog>
 
                 <input accept=".html,.htm,.css,.js" class="file-input-hidden" id="input-import-file" type="file"/>
 

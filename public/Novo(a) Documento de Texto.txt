@@ -1,8 +1,0 @@
-Arrastar posições  via F12
-
-CL.trilha.editor.ativarArraste('html')
-
-
-
-Exporta Posições via F12
-CL.trilha.editor.exportarJSON('html')

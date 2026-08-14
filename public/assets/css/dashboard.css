@@ -4,7 +4,58 @@
    Landing nem na IDE). Carrega DEPOIS de global.css.
    ===================================================== */
 
+.cl-dashboard {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    color: var(--cl-text);
+}
 
+.cl-dashboard-hero { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:clamp(1.5rem,4vw,3rem); border:1px solid var(--cl-border); background:linear-gradient(135deg,var(--cl-surface),var(--cl-surface-2)); }
+.cl-dashboard-eyebrow { margin:0 0 .4rem; color:var(--cl-primary); font-size:.72rem; font-weight:700; letter-spacing:.12em; }
+.cl-dashboard-hero h1,.cl-dashboard-section h2,.cl-dashboard-panel h2 { margin:0; color:var(--cl-text); }
+.cl-dashboard-hero p:not(.cl-dashboard-eyebrow),.cl-dashboard-section-heading p { margin:.45rem 0 0; color:var(--cl-text-muted); }
+.cl-dashboard-continue { display:inline-flex; align-items:center; gap:.75rem; padding:.8rem 1rem; background:var(--cl-primary); color:var(--cl-on-primary); text-decoration:none; font-weight:700; white-space:nowrap; }
+.cl-dashboard-continue:hover { background:var(--cl-info); }
+.cl-dashboard-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin:1rem 0; }
+.cl-dashboard-stat,.cl-dashboard-panel,.cl-dashboard-course { border:1px solid var(--cl-border); background:var(--cl-surface); }
+.cl-dashboard-stat { padding:1.1rem; display:flex; flex-direction:column; gap:.25rem; color:var(--cl-text-muted); font-size:.86rem; }
+.cl-dashboard-stat-value { color:var(--cl-text); font-size:1.75rem; font-weight:800; }
+.cl-dashboard-section { margin-top:1.5rem; }
+.cl-dashboard-section-heading { margin-bottom:.8rem; }
+.cl-dashboard-section-heading h2,.cl-dashboard-panel h2 { font-size:1.05rem; }
+.cl-dashboard-courses { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.cl-dashboard-course { padding:1rem; text-decoration:none; color:inherit; transition:transform .15s ease,border-color .15s ease; }
+.cl-dashboard-course:hover { transform:translateY(-2px); border-color:var(--cl-primary); }
+.cl-dashboard-course-top { display:flex; justify-content:space-between; gap:.75rem; font-weight:700; }
+.cl-dashboard-course small { color:var(--cl-text-muted); }
+.cl-dashboard-progress { height:7px; margin:.9rem 0 .5rem; background:var(--cl-surface-2); overflow:hidden; }
+.cl-dashboard-progress span { display:block; height:100%; background:var(--course-color,var(--cl-primary)); }
+.cl-dashboard-course-html { --course-color:#e44d26; }.cl-dashboard-course-css { --course-color:#264de4; }.cl-dashboard-course-js { --course-color:#f7df1e; }
+.cl-dashboard-bottom-grid { display:grid; grid-template-columns:1.4fr 1fr; gap:1rem; }
+.cl-dashboard-panel { padding:1.1rem; min-height:150px; }
+.cl-dashboard-muted { color:var(--cl-text-muted); font-size:.9rem; line-height:1.5; }
+.cl-dashboard-activity-bars { height:54px; display:flex; align-items:end; gap:.6rem; margin-top:1rem; }
+.cl-dashboard-activity-bars i { flex:1; max-width:20px; height:18%; background:var(--cl-border); }.cl-dashboard-activity-bars i:nth-child(2){height:42%;}.cl-dashboard-activity-bars i:nth-child(4){height:67%;background:var(--cl-primary);}.cl-dashboard-activity-bars i:nth-child(6){height:34%;}
+@media (max-width:720px) { .cl-dashboard-hero{align-items:flex-start;flex-direction:column}.cl-dashboard-stats,.cl-dashboard-courses,.cl-dashboard-bottom-grid{grid-template-columns:1fr}.cl-dashboard-continue{width:100%;justify-content:space-between;} }
+
+
+
+            /* A dashboard controla a rolagem nos painéis internos (por
+               exemplo, a trilha). O documento não deve ganhar uma barra
+               própria além da altura da janela. */
+            html,
+            body {
+                height: 100%;
+                overflow: hidden;
+            }
+
+            #coding-loop,
+            #cl-app {
+                height: 100dvh;
+                min-height: 0;
+                overflow: hidden;
+            }
 
             #cl-app.cl-nav-hidden #cl-nav-shell {
 
@@ -18,7 +69,9 @@
 
                 margin-top: var(--cl-aside-height);
 
-                min-height: calc(100vh - var(--cl-aside-height));
+                height: calc(100dvh - var(--cl-aside-height));
+
+                min-height: 0;
 
             }
 
@@ -304,3 +357,31 @@
   .cl-tech-badges {
     display: flex !important;
   }
+
+  .cl-profile-layout { display: grid; grid-template-columns: 148px minmax(0, 760px); align-items: start; gap: var(--cl-space-6); }
+  .cl-profile-photo-panel { position: relative; display: flex; align-items: flex-start; justify-content: flex-start; width: 138px; height: 138px; border-radius: 50%; overflow: hidden; }
+  .cl-profile-photo { width: 132px; height: 132px; border: 3px solid var(--cl-primary); border-radius: 50%; background: var(--cl-surface-alt); object-fit: cover; }
+  .cl-profile-photo-upload { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: #fff; background: rgba(0, 43, 54, .62); font-size: var(--cl-font-size-sm); font-weight: var(--cl-font-weight-semibold); opacity: 0; transition: opacity var(--cl-transition); }
+  .cl-profile-photo-panel:hover .cl-profile-photo-upload, .cl-profile-photo-upload:focus-within { opacity: 1; }
+  .cl-profile-photo-upload span:first-child { font-size: 1.5rem; }
+  .cl-profile-form-header { margin-bottom: var(--cl-space-5); }
+  .cl-profile-form-header h2 { margin: 0; }
+  .cl-profile-form-body { display: grid; gap: var(--cl-space-4); }
+  .cl-profile-field { display: grid; gap: var(--cl-space-2); color: var(--cl-text); font-weight: var(--cl-font-weight-semibold); }
+  .cl-profile-field input, .cl-profile-field textarea { width: 100%; box-sizing: border-box; padding: var(--cl-space-3); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-md); background: var(--cl-surface); color: var(--cl-text); font: inherit; }
+  .cl-profile-field input:focus, .cl-profile-field textarea:focus { outline: 2px solid var(--cl-primary); outline-offset: 1px; }
+  .cl-profile-field span { color: var(--cl-text-muted); font-size: var(--cl-font-size-sm); font-weight: var(--cl-font-weight-normal); }
+  .cl-profile-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--cl-space-3); margin-top: var(--cl-space-5); padding-top: var(--cl-space-5); border-top: 1px solid var(--cl-border); }
+  #cl-profile-status { color: var(--cl-text-muted); font-size: var(--cl-font-size-sm); }
+  @media (max-width: 720px) { .cl-profile-layout { grid-template-columns: 1fr; gap: var(--cl-space-4); } .cl-profile-actions { align-items: stretch; flex-direction: column; } .cl-profile-photo-upload { opacity: 1; } }
+
+  .cl-settings-list { display: grid; gap: var(--cl-space-6); max-width: 760px; }
+  .cl-settings-section { border-top: 1px solid var(--cl-border); padding-top: var(--cl-space-5); }
+  .cl-settings-section h2 { margin: 0 0 var(--cl-space-2); font-size: var(--cl-font-size-lg); }
+  .cl-settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--cl-space-4); padding: var(--cl-space-4) 0; border-bottom: 1px solid var(--cl-border); }
+  .cl-settings-row h3 { margin: 0 0 var(--cl-space-1); font-size: var(--cl-font-size-base); }
+  .cl-settings-row p, .cl-settings-note { margin: 0; color: var(--cl-text-muted); font-size: var(--cl-font-size-sm); }
+  .cl-settings-note { padding-top: var(--cl-space-3); }
+  .cl-settings-select-row { cursor: pointer; }
+  .cl-settings-select-row select { min-width: 130px; padding: var(--cl-space-2); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-md); background: var(--cl-surface); color: var(--cl-text); font: inherit; }
+  @media (max-width: 520px) { .cl-settings-row { align-items: flex-start; flex-direction: column; } .cl-settings-select-row select { width: 100%; } }

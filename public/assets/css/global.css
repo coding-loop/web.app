@@ -798,13 +798,15 @@
 
                 margin-top: var(--cl-nav-height);
 
-                min-height: calc(100vh - var(--cl-nav-height));
+                height: calc(100dvh - var(--cl-nav-height));
 
-                overflow-y: auto;
+                min-height: 0;
+
+                overflow-y: hidden;
 
                 transition:
                     margin-top var(--cl-nav-transition),
-                    min-height var(--cl-nav-transition);
+                    height var(--cl-nav-transition);
 
             }
 
@@ -812,7 +814,9 @@
 
                 margin-top: var(--cl-aside-height);
 
-                min-height: calc(100vh - var(--cl-aside-height));
+                height: calc(100dvh - var(--cl-aside-height));
+
+                min-height: 0;
 
             }
 
@@ -1375,6 +1379,34 @@
             .cl-btn:hover {
 
                 transform: translateY(-1px);
+
+            }
+
+            /* Alternador Solarized: mantém o ícone estável, sem realce azul. */
+            [data-theme-toggle],
+            [data-theme-toggle]:hover,
+            [data-theme-toggle]:focus,
+            [data-theme-toggle]:active {
+
+                background: transparent;
+
+                border-color: transparent;
+
+                color: inherit;
+
+                transform: none;
+
+            }
+
+            [data-theme="solarized-dark"] [data-theme-toggle] .cl-btn-icon {
+
+                stroke: #fdf6e3;
+
+            }
+
+            [data-theme="solarized-light"] [data-theme-toggle] .cl-btn-icon {
+
+                stroke: #002b36;
 
             }
 
@@ -2250,4 +2282,48 @@
     justify-content: center !important;
     width: 100% !important;
   }
+}
+
+/* =====================================================
+   BARRAS DE ROLAGEM — padrão slim da plataforma
+   O trilho vira uma linha fina central; o "botão" (thumb) é um pouco
+   mais largo, arredondado e usa a cor principal da interface.
+   ===================================================== */
+[data-theme="solarized-dark"] {
+  --cl-scroll-track: rgba(253, 246, 227, .32);
+  --cl-scroll-thumb: #268bd2;
+}
+
+[data-theme="solarized-light"] {
+  --cl-scroll-track: rgba(0, 43, 54, .32);
+  --cl-scroll-thumb: #268bd2;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cl-scroll-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: linear-gradient(to right,
+    transparent calc(50% - 1px),
+    var(--cl-scroll-track) calc(50% - 1px),
+    var(--cl-scroll-track) calc(50% + 1px),
+    transparent calc(50% + 1px));
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--cl-scroll-thumb);
+  border: 1px solid var(--cl-bg);
+  border-radius: 999px;
+  min-height: 24px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--cl-info);
 }

@@ -7,7 +7,7 @@
      ultrapassava essa área e criava uma rolagem horizontal que recortava
      os módulos posicionados no lado esquerdo. */
   width:  100%;
-  height: 100vh;
+  height: calc(100dvh - var(--cl-nav-height));
   position: relative;
   /* A trilha possui várias páginas em altura, mas nunca deve se mover
      lateralmente sob a navegação ou recortar os módulos da borda. */
@@ -26,6 +26,28 @@
   
 }
 
+/* A página de curso tem uma única região rolável: a própria trilha.
+   Sem estes limites, body, #cl-main e .trilha-container recebem altura
+   excedente e o navegador mostra três barras verticais. */
+html:has(#cl-app[data-page="course"]),
+body:has(#cl-app[data-page="course"]) {
+  overflow: hidden;
+}
+
+#cl-app[data-page="course"] #cl-main {
+  height: calc(100dvh - var(--cl-nav-height));
+  min-height: 0;
+  overflow: hidden;
+}
+
+#cl-app[data-page="course"] #cl-page-course.cl-is-active {
+  height: 100%;
+  overflow: hidden;
+}
+
+#cl-app.cl-nav-hidden[data-page="course"] #cl-main,
+#cl-app.cl-nav-hidden[data-page="course"] .trilha-container {
+  height: calc(100dvh - var(--cl-aside-height));
 }
 
 #cl-page-course .cl-page-container {
@@ -250,7 +272,8 @@
   position: relative;
   width: 100%;
   min-width: 0;
-  height: 100vh;
+  height: 100%;
+  min-height: calc(100dvh - var(--cl-nav-height));
   box-sizing: border-box;
   /* Os ajustes manuais podem deslocar um nó alguns pixels. A área de
      rolagem do container continua limitando a tela, sem cortar o nó aqui. */

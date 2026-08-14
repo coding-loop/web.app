@@ -52,6 +52,12 @@
     const cursoAtualId = determinarCursoInicial();
     const MODULOS = CL.curso.CURSOS[cursoAtualId].modulos;
 
+    // A borda da caixa "Missão" usa a cor de identidade do curso atual.
+    const plataforma = document.querySelector('.learning-platform-root');
+    if (plataforma) {
+      plataforma.setAttribute('data-curso', cursoAtualId);
+    }
+
     // A IDE compartilha a preferência Solarized da plataforma. Como ela não
     // carrega app.js, a alternância é inicializada aqui de forma enxuta.
     const themeToggleBtn = document.getElementById('toggle-theme');
@@ -60,6 +66,9 @@
       document.documentElement.setAttribute('data-theme', theme);
       CL.state.theme = theme;
       if (CL.storage && typeof CL.storage.set === 'function') CL.storage.set('theme', theme);
+      document.querySelectorAll('[data-icon-dark][data-icon-light]').forEach(function (icon) {
+        icon.src = theme === 'solarized-light' ? icon.dataset.iconLight : icon.dataset.iconDark;
+      });
       window.dispatchEvent(new CustomEvent('theme:mudou', { detail: theme }));
     }
     const temaSalvo = CL.storage && typeof CL.storage.get === 'function'
@@ -105,9 +114,19 @@
       return getEtapasDoModulo().length;
     }
 
+    /* Salva o editor atual antes de substituir a etapa exibida. A função é
+       instalada pelo editor depois do boot; antes disso não há nada a gravar. */
+    function prepararTrocaDeEtapa() {
+      if (typeof window.salvarRascunhoAtualDaIde === 'function') {
+        window.salvarRascunhoAtualDaIde();
+      }
+    }
+
     const theoryContentEl = document.getElementById('theory-content');
     const moduleTitleEl = document.getElementById('module-title');
-    const btnSaveProgress = document.getElementById('btn-save-progress');
+    const btnExportProgress = document.getElementById('btn-export-progress');
+    const btnImportProgress = document.getElementById('btn-import-progress');
+    const inputImportProgress = document.getElementById('input-import-progress');
     const progressBar = document.getElementById('progress-bar');
 
     // ---------- Índice do curso (novo) ----------
@@ -164,6 +183,9 @@
     // ao codigoInicial.
     function resetarProgressoEtapa(moduloId, step) {
       const chave = chaveEtapa(moduloId, step);
+      if (moduloId === getModuloAtual().id && step === currentStep && typeof window.cancelarSalvamentoAutomaticoDaIde === 'function') {
+        window.cancelarSalvamentoAutomaticoDaIde();
+      }
       delete progressoEtapasCache[chave];
       delete exerciciosCache[chave];
 
@@ -215,6 +237,7 @@
         onSelect: function (nodeId) {
           const numero = parseInt(nodeId.split(':').pop(), 10);
           if (!numero) return;
+          prepararTrocaDeEtapa();
           currentStep = numero;
           updateStepsUI();
           fecharIndice();
@@ -311,6 +334,10 @@
 
       progressBar.style.width = (currentStep / totalEtapas) * 100 + '%';
 
+      // A etapa visitada vira imediatamente a nova posição de retomada.
+      // Isso escreve apenas o índice leve, nunca o código dos editores.
+      salvarProgresso();
+
       // Se o índice estiver aberto, mantém o item ativo em sincronia com
       // avanços/retrocessos feitos pelos botões prev/next.
       if (!indicePanelEl.hidden) {
@@ -342,6 +369,7 @@
       setProgressoEtapa(moduloIdAtual, currentStep, dadosProgresso);
 
       if (currentStep < getTotalEtapas()) {
+        prepararTrocaDeEtapa();
         currentStep++;
         updateStepsUI();
         return;
@@ -359,6 +387,7 @@
     // anterior; se for a 1ª, volta pra trilha de módulos.
     function voltarNaEtapa() {
       if (currentStep > 1) {
+        prepararTrocaDeEtapa();
         currentStep--;
         updateStepsUI();
         return;
@@ -382,18 +411,12 @@
     });
 
     // ==========================================================
-    // SALVAMENTO DE PROGRESSO (Firestore)
-    // Duas coisas diferentes ficavam juntas na chave antiga do
-    // localStorage; agora cada uma vai pro lugar que faz sentido
-    // no modelo de dados do Firestore (ver api.js):
-    //   - "onde o aluno está" (módulo/etapa atual) -> perfil do
-    //     usuário (users/{uid}.idePosition), via CL.auth.updateUser.
-    //   - código digitado em cada etapa -> um documento por etapa
-    //     em users/{uid}/exercises/{moduloId:step} (CL.api.saveExercise/
-    //     getExercise), carregado inteiro no boot para exerciciosCache.
+    // SALVAMENTO LOCAL POR ETAPA
+    // O índice pequeno guarda posição e progresso. Cada código fica em
+    // uma chave própria no localStorage e é lido somente ao abrir a etapa.
     // ==========================================================
 
-    // Preenchido no boot (bootIde) a partir de CL.api.listExercises().
+    // Preenchido no boot apenas com o índice das etapas que têm código.
     let exerciciosCache = exerciciosCarregado || {};
 
     // Grava só a posição atual (módulo + etapa) no perfil. É chamada
@@ -407,11 +430,43 @@
 
     window.salvarPosicaoDaIde = salvarProgresso;
 
-    if (btnSaveProgress) {
-      btnSaveProgress.addEventListener('click', function () {
-        if (typeof window.salvarEstadoGeralDaIde === 'function') {
-          window.salvarEstadoGeralDaIde();
+    if (btnExportProgress) {
+      btnExportProgress.addEventListener('click', function () {
+        const exportar = function () {
+          if (!CL.api || typeof CL.api.exportStudyData !== 'function') return;
+          const blob = new Blob([JSON.stringify(CL.api.exportStudyData(), null, 2)], { type: 'application/json' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'coding-loop-progresso.json';
+          link.click();
+          URL.revokeObjectURL(link.href);
+        };
+        if (typeof window.salvarRascunhoAtualDaIde === 'function') {
+          window.salvarRascunhoAtualDaIde().then(exportar);
+        } else {
+          exportar();
         }
+      });
+    }
+
+    if (btnImportProgress && inputImportProgress) {
+      btnImportProgress.addEventListener('click', function () { inputImportProgress.click(); });
+      inputImportProgress.addEventListener('change', function () {
+        const file = inputImportProgress.files && inputImportProgress.files[0];
+        inputImportProgress.value = '';
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function () {
+          try {
+            const data = JSON.parse(reader.result);
+            if (!window.confirm('Importar este progresso substituirá os dados salvos neste navegador. Continuar?')) return;
+            CL.api.importStudyData(data);
+            window.location.reload();
+          } catch (error) {
+            window.alert('Não foi possível importar este arquivo de progresso.');
+          }
+        };
+        reader.readAsText(file);
       });
     }
 
@@ -431,6 +486,14 @@
 
       if (salvo && (salvo.html || salvo.css || salvo.js)) {
         return salvo;
+      }
+
+      const salvoLocal = CL.api && typeof CL.api.getExerciseLocal === 'function'
+        ? CL.api.getExerciseLocal(chave)
+        : null;
+      if (salvoLocal && (salvoLocal.html || salvoLocal.css || salvoLocal.js)) {
+        exerciciosCache[chave] = salvoLocal;
+        return salvoLocal;
       }
 
       const etapa = window.getEtapaAtual();
@@ -507,6 +570,7 @@
         var btnRun = document.getElementById('btn-run');
         var btnImportFile = document.getElementById('btn-import-file');
         var btnExportFile = document.getElementById('btn-export-file');
+        var exportCodeDialog = document.getElementById('export-code-dialog');
         var saveProgressDot = document.getElementById('save-progress-dot');
         var saveToastEl = document.getElementById('save-toast');
         var inputImportFile = document.getElementById('input-import-file');
@@ -611,6 +675,37 @@
           });
           return Promise.resolve(resultado);
         }
+
+        // Autosave local: agrupa várias teclas em uma única gravação e não
+        // mostra toast para não interromper o estudo.
+        var autosaveTimeout = null;
+        function cancelarSalvamentoAutomatico() {
+          clearTimeout(autosaveTimeout);
+          autosaveTimeout = null;
+        }
+
+        function salvarRascunhoAtual() {
+          cancelarSalvamentoAutomatico();
+          return salvarCodigoAgora().then(function (salvou) {
+            if (salvou) marcarComoSalvo();
+            return salvou;
+          }).catch(function () {
+            marcarComoNaoSalvo();
+            return false;
+          });
+        }
+
+        function agendarSalvamentoAutomatico() {
+          cancelarSalvamentoAutomatico();
+          autosaveTimeout = setTimeout(salvarRascunhoAtual, 700);
+        }
+
+        window.salvarRascunhoAtualDaIde = salvarRascunhoAtual;
+        window.cancelarSalvamentoAutomaticoDaIde = cancelarSalvamentoAutomatico;
+        window.addEventListener('pagehide', salvarRascunhoAtual);
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'hidden') salvarRascunhoAtual();
+        });
 
         function salvarEstadoGeral() {
           var salvarPosicao = window.salvarPosicaoDaIde || function () { return Promise.resolve(false); };
@@ -1229,7 +1324,10 @@
         [htmlEditor, cssEditor, jsEditor].forEach(function (editor) {
           editor.on('change', agendarAtualizacaoPreview);
           editor.on('change', function () {
-            if (!carregandoCodigoDaEtapa) marcarComoNaoSalvo();
+            if (!carregandoCodigoDaEtapa) {
+              marcarComoNaoSalvo();
+              agendarSalvamentoAutomatico();
+            }
           });
         });
 
@@ -1319,18 +1417,48 @@
           inputImportFile.value = '';
         });
 
-        btnExportFile.addEventListener('click', function () {
-          var blob = new Blob([montarCodigoPreview()], { type: 'text/html;charset=utf-8' });
+        function baixarArquivo(conteudo, nome, tipo) {
+          var blob = new Blob([conteudo], { type: tipo || 'text/plain;charset=utf-8' });
           var url = URL.createObjectURL(blob);
           var link = document.createElement('a');
           link.href = url;
-          link.download = 'codigo-editado.html';
+          link.download = nome;
           document.body.appendChild(link);
           link.click();
           link.remove();
           setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-          mostrarToast('Código exportado!');
+        }
+
+        function exportarCodigoUnico() {
+          baixarArquivo(montarCodigoPreview(), 'codigo-editado.html', 'text/html;charset=utf-8');
+          mostrarToast('Documento único exportado!');
+        }
+
+        function exportarCodigosSeparados() {
+          var html = htmlEditor.getValue();
+          var css = cssEditor.getValue();
+          var js = jsEditor.getValue();
+          var indexHtml = '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <link rel="stylesheet" href="style.css">\n  <title>Código editado</title>\n</head>\n<body>\n' + html + '\n  <script src="script.js"><\\/script>\n</body>\n</html>\n';
+          baixarArquivo(indexHtml, 'index.html', 'text/html;charset=utf-8');
+          baixarArquivo(css, 'style.css', 'text/css;charset=utf-8');
+          baixarArquivo(js, 'script.js', 'text/javascript;charset=utf-8');
+          mostrarToast('Arquivos separados exportados!');
+        }
+
+        btnExportFile.addEventListener('click', function () {
+          if (exportCodeDialog && typeof exportCodeDialog.showModal === 'function') {
+            exportCodeDialog.showModal();
+          } else {
+            exportarCodigoUnico();
+          }
         });
+
+        if (exportCodeDialog) {
+          exportCodeDialog.addEventListener('close', function () {
+            if (exportCodeDialog.returnValue === 'single') exportarCodigoUnico();
+            if (exportCodeDialog.returnValue === 'separate') exportarCodigosSeparados();
+          });
+        }
 
         chkTogglePreview.addEventListener('change', function () {
           if (chkTogglePreview.checked) mostrarPreview();

@@ -51,7 +51,7 @@
                     <header id='cl-header'>
 
                         <div class='cl-header-brand' id='cl-header-brand'>
-                            <a class='cl-logo' data-page='dashboard' href='#dashboard'>
+                            <a aria-label='Painel do aluno' class='cl-logo' data-page='dashboard' href='#dashboard' title='Painel do aluno'>
                                 <!-- TROQUE o src abaixo pela URL real do logo (ex: hospedado
                                      nas imagens do Blogger). Mantido pequeno (2rem) para caber
                                      nos 10vh do header em qualquer tela. -->
@@ -81,7 +81,7 @@
 
                             <div class='cl-auth-state' id='cl-auth-user'>
                                 <button aria-expanded='false' aria-haspopup='true' class='cl-user-button' data-dropdown-toggle='' id='cl-user-button' type='button'>
-                                    <img alt='Avatar' class='cl-avatar' id='cl-user-avatar' src=''/>
+                                    <img alt='Avatar do usuário' class='cl-avatar' id='cl-user-avatar' src=''/>
                                 </button>
 
                            
@@ -91,12 +91,12 @@
 
                                         <button class='cl-dropdown-item' data-action='profile' type='button'>
                                             <span class='cl-dropdown-icon'>👤</span>
-                                            <span class='cl-dropdown-label'>Perfil 🚧</span>
+                                            <span class='cl-dropdown-label'>Perfil</span>
                                         </button>
 
                                         <button class='cl-dropdown-item' data-action='settings' type='button'>
                                             <span class='cl-dropdown-icon'>⚙️</span>
-                                            <span class='cl-dropdown-label'>Configurações 🚧</span>
+                                            <span class='cl-dropdown-label'>Configurações</span>
                                         </button>
 
                                         <button class='cl-dropdown-item' data-action='logout' type='button'>
@@ -284,31 +284,28 @@
                   <!-- CONTEÚDO DAS PÁGINAS -->
                   <!-- ===================================================== -->               		                  
 
-                  <!--  <div id='cl-content'>
                         <!-- DASHBOARD -->
-                  <!--  <section class='cl-page' data-page='dashboard' id='cl-page-dashboard'>
-                            <div class='cl-page-container'>
-                                <header class='cl-page-header'>
-                                    <div class='cl-page-title'>
-                                        <h1>🚧</h1>
-                                        <p>Bem-Vindo ao Coding-Loop</p>
-                                    </div>
-                                    <div class='cl-page-actions cl-page-actions-right'></div>
+                        <section class='cl-page' data-page='dashboard' hidden='hidden' id='cl-page-dashboard'>
+                            <div class='cl-page-container cl-dashboard'>
+                                <header class='cl-dashboard-hero'>
+                                    <div><p class='cl-dashboard-eyebrow'>SEU ESPAÇO DE ESTUDO</p><h1 id='dashboard-boas-vindas'>Olá!</h1><p id='dashboard-resumo'>Pronto para continuar sua jornada?</p></div>
+                                    <a class='cl-dashboard-continue' id='dashboard-continuar' href='ide.html'><span>Continuar estudando</span><span aria-hidden='true'>→</span></a>
                                 </header>
-                                <div class='cl-page-toolbar'></div>
-                                <div class='cl-page-body'>
-                                    <div class='cl-page-grid'>
-                                        <div class='cl-card'>
-                                            <div class='cl-card-header'></div>
-                                            <div class='cl-card-body'></div>
-                                            <div class='cl-card-footer'></div>
-                                            <div class='cl-card-actions'></div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <section aria-label='Resumo do progresso' class='cl-dashboard-stats'>
+                                    <article class='cl-dashboard-stat'><span class='cl-dashboard-stat-value' id='dashboard-etapas-concluidas'>0</span><span>Etapas concluídas</span></article>
+                                    <article class='cl-dashboard-stat'><span class='cl-dashboard-stat-value' id='dashboard-modulos-concluidos'>0</span><span>Módulos concluídos</span></article>
+                                    <article class='cl-dashboard-stat'><span class='cl-dashboard-stat-value' id='dashboard-codigos-salvos'>0</span><span>Códigos salvos</span></article>
+                                </section>
+                                <section class='cl-dashboard-section'>
+                                    <div class='cl-dashboard-section-heading'><div><h2>Progresso por curso</h2><p>Continue de onde parou em cada trilha.</p></div></div>
+                                    <div class='cl-dashboard-courses' id='dashboard-cursos'></div>
+                                </section>
+                                <section class='cl-dashboard-section cl-dashboard-bottom-grid'>
+                                    <article class='cl-dashboard-panel'><h2>Atividade recente</h2><p class='cl-dashboard-muted'>O acompanhamento por dias será exibido aqui quando o histórico de estudo for ativado.</p><div aria-hidden='true' class='cl-dashboard-activity-bars'><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+                                    <article class='cl-dashboard-panel'><h2>Próxima missão</h2><p id='dashboard-proxima-missao' class='cl-dashboard-muted'>Abra uma trilha para começar sua primeira etapa.</p></article>
+                                </section>
                             </div>
                         </section>
-                    --> 
                         <!-- COURSES -->
                  <!--   <section class='cl-page' data-page='courses' hidden='hidden' id='cl-page-courses'>
                             <div class='cl-page-container'>
@@ -388,57 +385,80 @@
                         </section>
                     -->
                         <!-- PROFILE -->
-                 <!--  <section class='cl-page' data-page='profile' hidden='hidden' id='cl-page-profile'>
+                    <section class='cl-page' data-page='profile' hidden='hidden' id='cl-page-profile'>
                             <div class='cl-page-container'>
-                                <header class='cl-page-header'>
-                                    <div class='cl-page-title'>
-                                        <h1>Perfil</h1>
-                                        <p>Gerencie suas informações de perfil.</p>
-                                    </div>
-                                    <div class='cl-page-actions cl-page-actions-right'></div>
-                                </header>
                                 <div class='cl-page-toolbar'></div>
                                 <div class='cl-page-body'>
-                                    <div class='cl-page-grid'>
-                                        <div class='cl-card'>
-                                            <div class='cl-card-header'></div>
-                                            <div class='cl-card-body'>
-                                                <p>🚧 Em construção.</p>
+                                    <main class='cl-profile-layout'>
+                                        <aside class='cl-profile-photo-panel' aria-label='Foto de perfil'>
+                                            <img class='cl-profile-photo' id='cl-profile-photo' alt='Foto de perfil'>
+                                            <label class='cl-profile-photo-upload' for='cl-profile-photo-file'>
+                                                <span aria-hidden='true'>📷</span>
+                                                <span>Enviar foto</span>
+                                            </label>
+                                            <input id='cl-profile-photo-file' type='file' accept='image/png,image/jpeg,image/webp' hidden>
+                                        </aside>
+                                        <form class='cl-profile-form' id='cl-profile-form'>
+                                            <header class='cl-profile-form-header'><h2>Informações pessoais</h2></header>
+                                            <div class='cl-profile-form-body'>
+                                                <label class='cl-profile-field'>Nome de exibição
+                                                    <input id='cl-profile-name' name='name' type='text' maxlength='80' autocomplete='name' required>
+                                                </label>
+                                                <label class='cl-profile-field'>E-mail
+                                                    <input id='cl-profile-email' type='email' readonly>
+                                                    <span>O e-mail é gerenciado pelo seu provedor de acesso.</span>
+                                                </label>
+                                                <label class='cl-profile-field'>Sobre você
+                                                    <textarea id='cl-profile-bio' name='bio' rows='4' maxlength='280' placeholder='Conte um pouco sobre seus objetivos de estudo.'></textarea>
+                                                </label>
                                             </div>
-                                            <div class='cl-card-footer'></div>
-                                            <div class='cl-card-actions'></div>
-                                        </div>
-                                    </div>
+                                            <div class='cl-profile-actions'>
+                                                <span id='cl-profile-status' aria-live='polite'></span>
+                                                <button class='cl-btn cl-btn-filled cl-primary' type='submit'>Salvar alterações</button>
+                                            </div>
+                                        </form>
+                                    </main>
                                 </div>
                             </div>
                         </section>
-                    -->
                         <!-- SETTINGS -->
-                  <!-- <section class='cl-page' data-page='settings' hidden='hidden' id='cl-page-settings'>
+                    <section class='cl-page' data-page='settings' hidden='hidden' id='cl-page-settings'>
                             <div class='cl-page-container'>
                                 <header class='cl-page-header'>
                                     <div class='cl-page-title'>
                                         <h1>Configurações</h1>
-                                        <p>Personalize suas preferências.</p>
+                                        <p>Preferências e acesso à sua conta.</p>
                                     </div>
                                     <div class='cl-page-actions cl-page-actions-right'></div>
                                 </header>
                                 <div class='cl-page-toolbar'></div>
                                 <div class='cl-page-body'>
-                                    <div class='cl-page-grid'>
-                                        <div class='cl-card'>
-                                            <div class='cl-card-header'></div>
-                                            <div class='cl-card-body'>
-                                                <p>🚧 Em construção.</p>
+                                    <main class='cl-settings-list'>
+                                        <section class='cl-settings-section' aria-labelledby='cl-settings-account-title'>
+                                            <h2 id='cl-settings-account-title'>Conta e acesso</h2>
+                                            <div class='cl-settings-row'>
+                                                <div><h3>E-mail</h3><p id='cl-settings-email'></p></div>
                                             </div>
-                                            <div class='cl-card-footer'></div>
-                                            <div class='cl-card-actions'></div>
-                                        </div>
-                                    </div>
+                                            <div class='cl-settings-row'>
+                                                <div><h3>Método de acesso</h3><p id='cl-settings-provider'></p></div>
+                                                <button class='cl-btn cl-btn-outline cl-primary' id='cl-settings-password-reset' type='button' hidden>Alterar senha</button>
+                                            </div>
+                                            <p class='cl-settings-note' id='cl-settings-password-note'></p>
+                                        </section>
+                                        <section class='cl-settings-section' aria-labelledby='cl-settings-preferences-title'>
+                                            <h2 id='cl-settings-preferences-title'>Preferências</h2>
+                                            <label class='cl-settings-row cl-settings-select-row' for='cl-settings-theme'>
+                                                <span><h3>Tema</h3><p>Escolha a aparência da plataforma.</p></span>
+                                                <select id='cl-settings-theme'>
+                                                    <option value='solarized-dark'>Escuro</option>
+                                                    <option value='solarized-light'>Claro</option>
+                                                </select>
+                                            </label>
+                                        </section>
+                                    </main>
                                 </div>
                             </div>
                         </section>
-                    -->
                    <!-- COURSE (trilha do curso: HTML -> CSS -> JavaScript) -->
                          <section class='cl-page' data-page='course' hidden='hidden' id='cl-page-course'>
                     <!--    <div class='cl-page-container'> -->
@@ -592,6 +612,8 @@
 
     <!-- Liga a trilha de módulos à página "course" registrada acima. -->
     <script defer src="assets/js/pagina-curso.js"></script>
+    <script defer src="assets/js/pagina-dashboard.js"></script>
+    <script defer src="assets/js/pagina-configuracoes.js"></script>
 
     <script defer src="assets/js/app.js"></script>
 

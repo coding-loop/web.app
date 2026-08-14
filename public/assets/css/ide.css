@@ -18,9 +18,16 @@
     .learning-platform-root {
       position: relative;
       display: flex;
+      overflow-y: auto;
       height: 100vh;
       width: 100vw;
+      /* A cor do curso é definida por data-curso em ide.js. */
+      --course-accent: #e44d26;
     }
+
+    .learning-platform-root[data-curso="html"] { --course-accent: #e44d26; }
+    .learning-platform-root[data-curso="css"] { --course-accent: #264de4; }
+    .learning-platform-root[data-curso="js"] { --course-accent: #f7df1e; }
 
     /* Painel Esquerdo: Teoria e Etapas */
     .theory-pane {
@@ -171,6 +178,58 @@
       outline: none;
     }
 
+    .export-code-dialog {
+      max-width: 360px;
+      padding: 20px;
+      border: 1px solid var(--cl-border);
+      border-radius: 10px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, .35);
+    }
+
+    .export-code-dialog::backdrop { background: rgba(0, 43, 54, .55); }
+    .export-code-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .export-code-dialog h2 { margin: 0 0 8px; font-size: 1rem; }
+    .export-code-dialog p { margin: 0 0 16px; color: var(--cl-text-muted); }
+    .export-code-dialog-cancel {
+      margin: 0 0 8px;
+      padding: 4px 0;
+      border: 0;
+      background: transparent;
+      color: var(--cl-text-muted);
+      font: inherit;
+      cursor: pointer;
+    }
+    .export-code-dialog-cancel:hover,
+    .export-code-dialog-cancel:focus-visible { color: var(--cl-primary); text-decoration: underline; outline: none; }
+    .export-code-dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .export-code-dialog-actions .cl-btn {
+      padding: 9px 12px;
+      border: 1px solid var(--ide-control-contrast);
+      border-radius: 6px;
+      background: var(--ide-control-contrast);
+      color: var(--cl-bg);
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 0 rgba(0, 43, 54, .24);
+      transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+    }
+    .export-code-dialog-actions .cl-btn:hover,
+    .export-code-dialog-actions .cl-btn:focus-visible {
+      opacity: .84;
+      box-shadow: 0 4px 10px rgba(0, 43, 54, .3);
+      outline: none;
+      transform: translateY(-1px);
+    }
+    .export-code-dialog-actions .cl-btn:focus-visible { box-shadow: 0 0 0 3px var(--cl-primary), 0 4px 10px rgba(0, 43, 54, .3); }
+    [data-theme="solarized-dark"] .export-code-dialog-actions .cl-btn { color: #002b36; }
+    [data-theme="solarized-light"] .export-code-dialog-actions .cl-btn { color: #fff; }
+    .export-code-dialog-actions .cl-btn:active {
+      box-shadow: none;
+      transform: translateY(1px);
+    }
+
     .module-nav-bar {
       display: flex;
       align-items: center;
@@ -213,9 +272,10 @@
     }
 
     .header-nav-btn svg,
-    .header-save-btn svg {
-      width: 18px;
-      height: 18px;
+    .header-save-btn svg,
+    .header-save-btn img {
+      width: 14px;
+      height: 14;
       fill: currentColor;
       display: block;
     }
@@ -1299,7 +1359,7 @@
     .progress-fill { background: var(--cl-primary); }
     .step-card p,
     .task-box { color: var(--cl-text); }
-    .task-box { background: var(--cl-surface-2); border-left-color: var(--cl-warning); }
+    .task-box { background: var(--cl-surface-2); border-left-color: var(--course-accent); }
     .step-nav-btn--back { background: var(--cl-surface); border-color: var(--cl-border); color: var(--cl-text); }
     .step-nav-btn--back:hover { background: var(--cl-surface-hover); border-color: var(--cl-primary); color: var(--cl-primary); }
     .step-nav-btn--next { background: var(--cl-primary); color: var(--cl-on-primary); }
@@ -1489,6 +1549,31 @@
       border-color: transparent;
     }
 
+    /* Abas do editor: no hover, cada linguagem usa a cor da sua marca. */
+    .code-tab[data-target="html-pane"]:hover,
+    .code-tab[data-target="html-pane"]:focus-within,
+    .code-tab[data-target="html-pane"].active {
+      color: #e34f26;
+      background: rgba(227, 79, 38, 0.16);
+      box-shadow: inset 0 -2px 0 #e34f26;
+    }
+
+    .code-tab[data-target="css-pane"]:hover,
+    .code-tab[data-target="css-pane"]:focus-within,
+    .code-tab[data-target="css-pane"].active {
+      color: #264de4;
+      background: rgba(38, 77, 228, 0.16);
+      box-shadow: inset 0 -2px 0 #264de4;
+    }
+
+    .code-tab[data-target="js-pane"]:hover,
+    .code-tab[data-target="js-pane"]:focus-within,
+    .code-tab[data-target="js-pane"].active {
+      color: #f7df1e;
+      background: rgba(247, 223, 30, 0.16);
+      box-shadow: inset 0 -2px 0 #f7df1e;
+    }
+
     /* Cor única dos controles: escura no Solarized claro e clara no escuro.
        Preview fica de fora porque usa contraste próprio sobre fundo branco. */
     .learning-platform-root button:not(.preview-btn) {
@@ -1513,41 +1598,35 @@
       stroke: #4ab5f7;
     }
 
-    /* Barra de rolagem Solarized: contraste invertido em cada tema. */
-    [data-theme="solarized-light"] {
-      --ide-scroll-thumb: #002b36;
-      --ide-scroll-track: #fdf6e3;
-    }
-
-    [data-theme="solarized-dark"] {
-      --ide-scroll-thumb: #fdf6e3;
-      --ide-scroll-track: #002b36;
-    }
-
     .theory-content,
     .indice-panel {
       scrollbar-width: thin;
-      scrollbar-color: var(--ide-scroll-thumb) var(--ide-scroll-track);
+      scrollbar-color: var(--cl-scroll-thumb) transparent;
     }
 
     .theory-content::-webkit-scrollbar,
     .indice-panel::-webkit-scrollbar {
-      width: 10px;
+      width: 8px;
     }
 
     .theory-content::-webkit-scrollbar-track,
     .indice-panel::-webkit-scrollbar-track {
-      background: var(--ide-scroll-track);
+      background: linear-gradient(to right,
+        transparent calc(50% - 1px),
+        var(--cl-scroll-track) calc(50% - 1px),
+        var(--cl-scroll-track) calc(50% + 1px),
+        transparent calc(50% + 1px));
     }
 
     .theory-content::-webkit-scrollbar-thumb,
     .indice-panel::-webkit-scrollbar-thumb {
-      background: var(--ide-scroll-thumb);
-      border: 2px solid var(--ide-scroll-track);
-      border-radius: 0;
+      background: var(--cl-scroll-thumb);
+      border: 1px solid var(--cl-bg);
+      border-radius: 999px;
+      min-height: 24px;
     }
 
     .theory-content::-webkit-scrollbar-thumb:hover,
     .indice-panel::-webkit-scrollbar-thumb:hover {
-      background: #4ab5f7;
+      background: var(--cl-info);
     }
