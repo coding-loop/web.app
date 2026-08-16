@@ -22,6 +22,10 @@
 .cl-dashboard-stat { padding:1.1rem; display:flex; flex-direction:column; gap:.25rem; color:var(--cl-text-muted); font-size:.86rem; }
 .cl-dashboard-stat-value { color:var(--cl-text); font-size:1.75rem; font-weight:800; }
 .cl-dashboard-section { margin-top:1.5rem; }
+.cl-dashboard-announcement-list { display:grid; gap:.75rem; }
+.cl-dashboard-announcement { border:1px solid var(--cl-border); border-left:4px solid var(--cl-primary); padding:1rem 1.1rem; background:var(--cl-surface); }
+.cl-dashboard-announcement--urgent { border-left-color:#dc2626; }.cl-dashboard-announcement--success { border-left-color:#16a34a; }
+.cl-dashboard-announcement-head { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; }.cl-dashboard-announcement h3 { margin:0; font-size:1rem; }.cl-dashboard-announcement time { color:var(--cl-text-muted); font-size:.78rem; white-space:nowrap; }.cl-dashboard-announcement p { margin:.5rem 0 0; color:var(--cl-text-muted); line-height:1.5; white-space:pre-wrap; }
 .cl-dashboard-section-heading { margin-bottom:.8rem; }
 .cl-dashboard-section-heading h2,.cl-dashboard-panel h2 { font-size:1.05rem; }
 .cl-dashboard-courses { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
@@ -73,6 +77,19 @@
 
                 min-height: 0;
 
+            }
+
+            /* Dashboard e configurações são filhos diretos do main, não de
+               #cl-content. Como #cl-main bloqueia overflow, estas páginas
+               precisam ser os próprios painéis roláveis para que nenhum
+               formulário, card ou botão fique abaixo da área visível. */
+            #cl-main > #cl-page-dashboard.cl-is-active,
+            #cl-main > #cl-page-settings.cl-is-active {
+                min-height: 0;
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                scrollbar-gutter: stable;
             }
 
 
@@ -145,6 +162,21 @@
 
                 border-color: var(--cl-primary);
 
+            }
+
+            .cl-dropdown-icon svg {
+                width: 20px;
+                height: 20px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 1.8;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .cl-auth-state .cl-dropdown {
+                max-height: min(360px, calc(100dvh - var(--cl-header-height) - 20px));
+                overflow-y: auto;
             }
 
 
@@ -384,4 +416,17 @@
   .cl-settings-note { padding-top: var(--cl-space-3); }
   .cl-settings-select-row { cursor: pointer; }
   .cl-settings-select-row select { min-width: 130px; padding: var(--cl-space-2); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-md); background: var(--cl-surface); color: var(--cl-text); font: inherit; }
+  .cl-settings-danger-zone { border-color: var(--cl-danger); }
+  .cl-settings-danger-zone > p { max-width: 620px; margin: 0 0 var(--cl-space-4); color: var(--cl-text-muted); }
+  .cl-btn-danger { border-color: var(--cl-danger); background: var(--cl-danger); color: #fff; }
+  .cl-btn-danger:hover, .cl-btn-danger:focus-visible { filter: brightness(.9); }
+  .cl-delete-account-dialog { width: min(560px, calc(100vw - 32px)); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-lg); background: var(--cl-surface); color: var(--cl-text); box-shadow: var(--cl-shadow-lg); }
+  .cl-delete-account-dialog::backdrop { background: rgba(0, 43, 54, .65); }
+  .cl-delete-account-dialog form { display: grid; gap: var(--cl-space-4); }
+  .cl-delete-account-dialog h2, .cl-delete-account-dialog p { margin: 0; }
+  .cl-delete-account-dialog p { color: var(--cl-text-muted); }
+  .cl-delete-account-confirmation { display: grid; gap: var(--cl-space-2); font-weight: var(--cl-font-weight-semibold); }
+  .cl-delete-account-confirmation input { padding: var(--cl-space-3); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-md); background: var(--cl-surface); color: var(--cl-text); font: inherit; }
+  .cl-delete-account-status { min-height: 1.25em; }
+  .cl-delete-account-actions { display: flex; justify-content: flex-end; gap: var(--cl-space-3); }
   @media (max-width: 520px) { .cl-settings-row { align-items: flex-start; flex-direction: column; } .cl-settings-select-row select { width: 100%; } }

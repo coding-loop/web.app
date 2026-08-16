@@ -6,6 +6,10 @@ Plataforma de cursos práticos de programação. O site é estático (HTML, CSS 
 
 Abra a pasta `public` com Live Server/Live Preview em `http://localhost`. Não abra os arquivos por duplo clique (`file://`), pois o Firebase Auth exige HTTP(S).
 
+## Painel de avisos para administradores
+
+Abra `admin.html` depois do deploy para publicar, editar ou remover avisos que aparecerão no dashboard dos alunos. Por segurança, o acesso depende da *custom claim* `admin: true` no Firebase Authentication; não basta conhecer a URL. A claim deve ser atribuída uma vez pelo proprietário usando o Firebase Admin SDK/Cloud Functions e o aluno precisa sair e entrar novamente para renovar o token. Publique também as regras com `firebase deploy --only firestore:rules`.
+
 ## Onde fica o conteúdo
 
 Todo conteúdo novo deve ficar em `public/assets/content/`. Antes de montar o dashboard ou a IDE, a aplicação escolhe um dos dois catálogos abaixo.

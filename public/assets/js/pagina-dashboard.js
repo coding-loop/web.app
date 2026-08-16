@@ -15,9 +15,30 @@
     return CL.curso.chaveEtapa ? CL.curso.chaveEtapa(moduloId, step) : moduloId + ':' + step;
   }
 
+  function formatDate(value) {
+    var date = value && typeof value.toDate === 'function' ? value.toDate() : new Date(value);
+    return isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(date);
+  }
+
+  async function renderAnnouncements() {
+    var container = document.getElementById('dashboard-avisos');
+    if (!container) return;
+    var announcements = CL.api && CL.api.listAnnouncements ? await CL.api.listAnnouncements() : [];
+    if (!announcements.length) {
+      container.innerHTML = '<p class="cl-dashboard-muted">Nenhum aviso novo no momento.</p>';
+      return;
+    }
+    container.innerHTML = announcements.map(function (notice) {
+      var level = ['urgent', 'success'].indexOf(notice.level) !== -1 ? notice.level : 'info';
+      return '<article class="cl-dashboard-announcement cl-dashboard-announcement--' + level + '"><div class="cl-dashboard-announcement-head"><h3>' + escapeHtml(notice.title) + '</h3><time>' + escapeHtml(formatDate(notice.publishedAt)) + '</time></div><p>' + escapeHtml(notice.message) + '</p></article>';
+    }).join('');
+  }
+
   async function renderDashboard() {
     const root = document.getElementById('cl-page-dashboard');
     if (!root || !CL.curso || !CL.curso.CURSOS) return;
+
+    renderAnnouncements();
 
     const progress = CL.api && CL.api.listProgress ? await CL.api.listProgress() : {};
     const exercises = CL.api && CL.api.listExercises ? await CL.api.listExercises() : {};

@@ -23,6 +23,8 @@
       width: 100vw;
       /* A cor do curso é definida por data-curso em ide.js. */
       --course-accent: #e44d26;
+      --ide-splitter-size: 2px;
+      --ide-splitter-handle: color-mix(in srgb, var(--ide-control-contrast) 28%, transparent);
     }
 
     .learning-platform-root[data-curso="html"] { --course-accent: #e44d26; }
@@ -179,55 +181,133 @@
     }
 
     .export-code-dialog {
-      max-width: 360px;
-      padding: 20px;
+      width: min(336px, calc(100vw - 32px));
+      max-width: 336px;
+      padding: 0;
       border: 1px solid var(--cl-border);
-      border-radius: 10px;
+      border-radius: 12px;
       background: var(--cl-surface);
       color: var(--cl-text);
       box-shadow: 0 16px 48px rgba(0, 0, 0, .35);
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .export-code-dialog::backdrop { background: rgba(0, 43, 54, .55); }
-    .export-code-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .export-code-dialog h2 { margin: 0 0 8px; font-size: 1rem; }
-    .export-code-dialog p { margin: 0 0 16px; color: var(--cl-text-muted); }
-    .export-code-dialog-cancel {
-      margin: 0 0 8px;
-      padding: 4px 0;
-      border: 0;
-      background: transparent;
-      color: var(--cl-text-muted);
+    .export-code-dialog form { padding: 10px; }
+    .export-code-dialog .export-code-dialog-header {
+      align-items: flex-start;
+      margin: -10px -10px 6px;
+      padding: 4px 10px;
+    }
+    .export-code-dialog h2 { margin: 0 0 2px; font-size: .9rem; line-height: 1.1; }
+    .export-code-dialog .backup-dialog-title p { margin: 0; color: var(--cl-text-muted); font-size: .7rem; line-height: 1.1; }
+    .export-code-dialog .export-code-title-icon {
+      width: 30px;
+      height: 30px;
+    }
+    #export-code-dialog .export-code-title-icon svg {
+      width: 21px;
+      height: 21px;
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .export-code-dialog-actions { display: grid; gap: 6px; }
+    .export-code-dialog-actions .cl-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 12px;
+      padding: 3px 10px;
+      border: .5px solid var(--cl-border);
+      border-radius: 8px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      text-align: left;
       font: inherit;
       cursor: pointer;
+      box-shadow: none;
+      transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
     }
-    .export-code-dialog-cancel:hover,
-    .export-code-dialog-cancel:focus-visible { color: var(--cl-primary); text-decoration: underline; outline: none; }
-    .export-code-dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-    .export-code-dialog-actions .cl-btn {
-      padding: 9px 12px;
-      border: 1px solid var(--ide-control-contrast);
-      border-radius: 6px;
-      background: var(--ide-control-contrast);
-      color: var(--cl-bg);
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 0 rgba(0, 43, 54, .24);
-      transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
-    }
+
     .export-code-dialog-actions .cl-btn:hover,
     .export-code-dialog-actions .cl-btn:focus-visible {
-      opacity: .84;
-      box-shadow: 0 4px 10px rgba(0, 43, 54, .3);
+      border-color: var(--cl-primary);
+      background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface));
+      color: var(--cl-primary);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cl-primary) 45%, transparent);
       outline: none;
       transform: translateY(-1px);
     }
-    .export-code-dialog-actions .cl-btn:focus-visible { box-shadow: 0 0 0 3px var(--cl-primary), 0 4px 10px rgba(0, 43, 54, .3); }
-    [data-theme="solarized-dark"] .export-code-dialog-actions .cl-btn { color: #002b36; }
-    [data-theme="solarized-light"] .export-code-dialog-actions .cl-btn { color: #fff; }
-    .export-code-dialog-actions .cl-btn:active {
-      box-shadow: none;
-      transform: translateY(1px);
+
+    .export-code-option-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      order: 2;
+      margin-left: auto;
+      flex: 0 0 38px;
+      width: 38px;
+      height: 30px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--cl-primary);
+    }
+
+    #export-code-dialog .export-code-option:first-child .export-code-option-icon {
+      margin-right: 14px;
+    }
+
+    #export-code-dialog .export-code-option-icon svg {
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    #export-code-dialog .export-code-option-icon--multiple {
+      flex-basis: 66px;
+      width: 66px;
+      gap: 2px;
+    }
+
+    #export-code-dialog .export-code-option-icon--multiple svg {
+      width: 20px;
+      height: 26px;
+      flex: 0 0 20px;
+    }
+
+    #export-code-dialog .export-code-option-icon--multiple svg + svg {
+      margin-left: 0;
+    }
+
+    #export-code-dialog .export-code-dialog-cancel svg {
+      fill: none;
+      stroke: currentColor;
+    }
+
+    .export-code-option-copy {
+      display: grid;
+      order: 1;
+      min-width: 0;
+      gap: 3px;
+    }
+
+    .export-code-option-copy strong {
+      color: var(--cl-text);
+      font-size: .84rem;
+      line-height: 1.2;
+    }
+
+    .export-code-option-copy small {
+      color: var(--cl-text-muted);
+      font-size: .75rem;
+      line-height: 1.3;
     }
 
     .module-nav-bar {
@@ -272,11 +352,16 @@
     }
 
     .header-nav-btn svg,
-    .header-save-btn svg,
-    .header-save-btn img {
+    .header-save-btn svg {
       width: 14px;
-      height: 14;
+      height: 14px;
       fill: currentColor;
+      display: block;
+    }
+
+    .header-save-btn img {
+      width: 50px;
+      height: 50px;
       display: block;
     }
 
@@ -295,6 +380,671 @@
 
     .header-save-btn {
       position: relative;
+    }
+
+    .backup-header-actions { display: flex; align-items: center; gap: 4px; }
+    .backup-menu { position: relative; width: 28px; height: 28px; }
+    .backup-menu .header-save-btn { width: 28px; height: 28px; overflow: visible; }
+    .backup-menu .header-save-btn img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: none; }
+
+    /* Configuração idêntica nos dois temas: o ícone permanece contido
+       no botão e nunca invade a barra do cabeçalho. */
+    .backup-menu .header-save-btn {
+      overflow: hidden;
+    }
+
+    .backup-menu .header-save-btn img {
+      width: 54px;
+      height: 54px;
+      max-width: 54px;
+      max-height: 54px;
+      object-fit: contain;
+    }
+    .backup-now-header { width: 28px; height: 28px; padding: 0; overflow: hidden; }
+    .backup-now-header img { display: block; width: 18px; height: 18px; max-width: 18px; max-height: 18px; margin: auto; object-fit: contain; }
+    .backup-menu-options {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 30;
+      display: grid;
+      min-width: 180px;
+      padding: 6px;
+      border: 1px solid var(--cl-border);
+      border-radius: 8px;
+      background: var(--cl-surface);
+      box-shadow: 0 10px 28px rgba(0, 43, 54, .28);
+    }
+    .backup-menu-options[hidden] { display: none; }
+    .backup-menu-options button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 9px 10px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--cl-text);
+      font: inherit;
+      font-size: 0.75rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      text-align: left;
+      cursor: pointer;
+    }
+    .backup-menu-options button img { width: 18px; height: 18px; flex: 0 0 18px; object-fit: contain; }
+    .backup-menu-options #btn-backup-settings img {
+      width: 18px;
+      height: 18px;
+      flex-basis: 18px;
+      transform: scale(2.5);
+      transform-origin: center;
+    }
+    .backup-menu-options button:hover,
+    .backup-menu-options button:focus-visible { background: var(--cl-surface-hover); color: var(--cl-primary); outline: none; }
+
+    .backup-settings-dialog {
+      max-width: 390px;
+      padding: 20px;
+      border: 1px solid var(--cl-border);
+      border-radius: 10px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, .35);
+    }
+    .backup-settings-dialog::backdrop { background: rgba(0, 43, 54, .55); }
+    .backup-settings-dialog fieldset { display: grid; gap: 8px; margin: 0 0 14px; border: 1px solid var(--cl-border); border-radius: 7px; }
+    .backup-settings-dialog legend { padding: 0 5px; color: var(--cl-primary); font-weight: 600; }
+    .backup-settings-dialog label { color: var(--cl-text); cursor: pointer; }
+    .backup-settings-dialog select { padding: 6px; border: 1px solid var(--cl-border); border-radius: 5px; background: var(--cl-surface); color: var(--cl-text); font: inherit; }
+    .backup-status { margin: 0 0 12px; color: var(--cl-text-muted); font-size: .88rem; }
+    .backup-privacy-note { margin: 0 0 12px; color: var(--cl-text-muted); font-size: .78rem; line-height: 1.4; }
+    /* Padrão visual de aviso nativo do navegador. */
+    .backup-folder-guide { width: min(400px, calc(100vw - 32px)); margin: auto; padding: 0; border: 1px solid #484848; border-radius: 16px; background: #242424; color: #f4f4f4; box-shadow: 0 22px 60px rgba(0, 0, 0, .58); }
+    .backup-folder-guide::backdrop { background: rgba(0, 0, 0, .46); }
+    .backup-folder-guide form { padding: 24px 20px 20px; }
+    .backup-folder-guide p { margin: 0; color: #f2f2f2; font-size: 1rem; line-height: 1.42; }
+    .backup-folder-guide-notice { display: flex; align-items: center; gap: 7px; font-weight: 300; }
+    .backup-folder-guide-notice svg { width: 18px; height: 18px; flex: 0 0 18px; fill: #f5c542; stroke: #c99612; stroke-width: 1.5; stroke-linejoin: round; }
+    .backup-folder-guide-actions { display: flex; justify-content: flex-end; gap: 18px; margin-top: 28px; }
+    .backup-folder-guide-cancel,
+    .backup-folder-guide-continue { padding: 0; border: 0; background: transparent; color: #fff; font: inherit; font-weight: 300; cursor: pointer; }
+    .backup-folder-guide-continue { margin-right: 16px; }
+    #backup-folder-guide .backup-folder-guide-cancel:hover,
+    #backup-folder-guide .backup-folder-guide-cancel:focus,
+    #backup-folder-guide .backup-folder-guide-cancel:focus-visible,
+    #backup-folder-guide .backup-folder-guide-continue:hover,
+    #backup-folder-guide .backup-folder-guide-continue:focus,
+    #backup-folder-guide .backup-folder-guide-continue:focus-visible { background: transparent !important; color: #d0d0d0 !important; outline: none; }
+
+    .cloud-permission-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 32px); margin: auto; padding: 0; border: 1px solid var(--cl-border); border-radius: 14px; background: var(--cl-surface); color: var(--cl-text); box-shadow: 0 22px 60px rgba(0, 0, 0, .4); }
+    .cloud-permission-dialog::backdrop { background: rgba(0, 43, 54, .62); }
+    .cloud-permission-dialog form { padding: 22px; }
+    .cloud-permission-dialog h2 { margin: 0 0 12px; font-size: 1.15rem; }
+    .cloud-permission-dialog h3 { margin: 0 0 6px; font-size: .88rem; }
+    .cloud-permission-dialog p { margin: 0 0 12px; color: var(--cl-text-muted); font-size: .84rem; line-height: 1.48; }
+    .cloud-permission-summary { margin: 16px 0 12px; padding: 13px; border: 1px solid var(--cl-border); border-radius: 9px; background: color-mix(in srgb, var(--cl-primary) 7%, transparent); }
+    .cloud-permission-summary p { margin: 0; color: var(--cl-text); }
+    .cloud-permission-limits { color: var(--cl-text) !important; font-weight: 600; }
+    .cloud-permission-dialog details { margin: 14px 0 18px; color: var(--cl-text-muted); font-size: .8rem; }
+    .cloud-permission-dialog summary { cursor: pointer; font-weight: 650; }
+    .cloud-permission-dialog details p { margin: 8px 0 0; }
+    .cloud-permission-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+    .cloud-permission-cancel { border: 0; background: transparent; color: var(--cl-text-muted); font: inherit; cursor: pointer; }
+    .cloud-permission-continue { margin: 0; white-space: nowrap; }
+    .backup-status.is-error { color: var(--cl-danger); font-weight: 650; }
+    .backup-test-button { margin: 0 0 10px; }
+
+    /* Painel visual de configuração de backup. */
+    #backup-settings-dialog {
+      width: min(var(--backup-dialog-width, 33.3333vw), calc(100vw - 32px));
+      height: min(var(--backup-dialog-height, 100vh), 100vh);
+      max-width: calc(100vw - 32px);
+      box-sizing: border-box;
+      max-height: 100vh;
+      padding: 0;
+      overflow: auto;
+    }
+
+    #backup-settings-form {
+      padding: 20px;
+    }
+
+    /* Painel de restauração: usa a mesma linguagem visual do painel de
+       configuração, sem alterar o dropdown que o abre no cabeçalho. */
+    #restore-backup-dialog {
+      width: min(420px, calc(100vw - 32px));
+      max-width: calc(100vw - 32px);
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #restore-backup-form { padding: 20px; }
+    #restore-backup-dialog .backup-dialog-header { margin: -20px -20px 20px; }
+    #restore-backup-dialog .backup-dialog-title-icon svg { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .restore-backup-options { display: grid; gap: 14px; }
+    .restore-backup-field { display: grid; gap: 6px; color: var(--cl-text); font-size: .78rem; font-weight: 650; }
+    .restore-backup-field span { color: var(--cl-text-muted); }
+    .restore-backup-field select { width: 100%; box-sizing: border-box; min-height: 38px; padding: 8px 10px; border-radius: 7px; }
+    .restore-backup-copy { display: flex; align-items: flex-start; gap: 8px; padding: 11px; border: 1px solid var(--cl-border); border-radius: 8px; color: var(--cl-text); font-size: .78rem; line-height: 1.35; }
+    .restore-backup-copy input { margin: 2px 0 0; accent-color: var(--cl-primary); }
+    #restore-backup-dialog .restore-backup-actions { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--cl-border); }
+    #restore-backup-dialog .restore-backup-actions .cl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; margin: 0; padding: 8px 12px; border: 1px solid var(--cl-border); border-radius: 7px; background: var(--cl-surface); color: var(--cl-text); font: inherit; font-size: .78rem; font-weight: 650; cursor: pointer; }
+    #restore-backup-dialog .restore-backup-actions .cl-btn:hover,
+    #restore-backup-dialog .restore-backup-actions .cl-btn:focus-visible { border-color: var(--cl-primary); color: var(--cl-primary); outline: none; }
+    #restore-backup-dialog .restore-backup-actions .backup-save-button { border-color: var(--cl-primary); background: var(--cl-primary); color: #fff; }
+    #restore-backup-dialog .restore-backup-actions .backup-save-button:hover,
+    #restore-backup-dialog .restore-backup-actions .backup-save-button:focus-visible { color: #fff; filter: brightness(1.08); }
+    #restore-backup-dialog .restore-backup-actions svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .backup-dialog-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin: -20px -20px 20px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--cl-border);
+      background: var(--cl-surface-2);
+    }
+
+    .backup-dialog-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .backup-dialog-title h2 {
+      margin: 0 0 3px;
+      color: var(--cl-text);
+      font-size: 1.05rem;
+    }
+
+    .backup-dialog-title p {
+      margin: 0;
+      color: var(--cl-text-muted);
+      font-size: .78rem;
+    }
+
+    .backup-dialog-title-icon,
+    .backup-option-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      border: 1px solid color-mix(in srgb, var(--cl-primary) 32%, transparent);
+      background: color-mix(in srgb, var(--cl-primary) 12%, transparent);
+      color: var(--cl-primary);
+    }
+
+    .backup-dialog-title-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+    }
+
+    .backup-dialog-title-icon svg,
+    .backup-option-icon svg,
+    .backup-dialog-actions svg,
+    .backup-dialog-close svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .backup-dialog-title-icon svg,
+    .backup-dialog-title-icon img {
+      width: 21px;
+      height: 21px;
+      object-fit: contain;
+    }
+
+    .backup-dialog-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      padding: 0;
+      border: 1px solid var(--cl-border);
+      border-radius: 6px;
+      background: var(--cl-surface);
+      color: var(--cl-text-muted);
+      cursor: pointer;
+    }
+
+    .backup-dialog-close svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .backup-dialog-close:hover,
+    .backup-dialog-close:focus-visible {
+      border-color: var(--cl-primary);
+      color: var(--cl-primary);
+      outline: none;
+    }
+
+    #backup-settings-dialog .backup-option-section {
+      margin: 0 0 16px;
+      padding: 13px;
+      border: 1px solid var(--cl-border);
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--cl-surface-2) 62%, transparent);
+    }
+
+    #backup-settings-dialog .backup-option-section legend {
+      padding: 0 7px;
+      color: var(--cl-text);
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .backup-required-mark { color: var(--cl-danger); }
+
+    .backup-option-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    #backup-settings-dialog .backup-option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 11px 34px 11px 11px;
+      border: 1px solid var(--cl-border);
+      border-radius: 8px;
+      background: var(--cl-surface);
+      transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+    }
+
+    #backup-settings-dialog .backup-option:hover {
+      border-color: color-mix(in srgb, var(--cl-primary) 66%, var(--cl-border));
+      transform: translateY(-1px);
+    }
+
+    #backup-settings-dialog .backup-option:has(input:checked) {
+      border-color: var(--cl-primary);
+      background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cl-primary) 45%, transparent);
+    }
+
+    #backup-settings-dialog .backup-option--fixed {
+      border-color: var(--cl-primary);
+      background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cl-primary) 45%, transparent);
+      cursor: default;
+    }
+
+    .backup-option > input {
+      position: absolute;
+      top: 11px;
+      right: 11px;
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      accent-color: var(--cl-primary);
+    }
+
+    .backup-option-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+    }
+
+    .backup-option-icon svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .backup-option-icon.backup-google-drive-icon svg {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .backup-option-icon.backup-manual-icon .manual-file,
+    .backup-option-icon.backup-manual-icon .manual-fold {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 10;
+    }
+
+    .backup-option-icon.backup-manual-icon .manual-symbol {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .backup-option-copy {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .backup-option-copy strong {
+      color: var(--cl-text);
+      font-size: .82rem;
+      line-height: 1.15;
+    }
+
+    .backup-option-copy small {
+      overflow: hidden;
+      color: var(--cl-text-muted);
+      font-size: .68rem;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #backup-settings-dialog .backup-option--with-action {
+      flex-wrap: wrap;
+    }
+
+    #backup-settings-dialog .backup-option--with-action .backup-option-copy {
+      flex: 1 1 calc(100% - 44px);
+    }
+
+    #backup-settings-dialog .backup-destination-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-width: 0;
+      max-width: calc(100% - 44px);
+      margin: -2px 0 0 44px;
+      padding: 4px 8px;
+      border: 1px solid var(--cl-border);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--cl-primary);
+      font: inherit;
+      font-size: .68rem;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    #backup-settings-dialog .backup-destination-action:hover,
+    #backup-settings-dialog .backup-destination-action:focus-visible {
+      border-color: var(--cl-primary);
+      background: color-mix(in srgb, var(--cl-primary) 10%, transparent);
+      outline: none;
+    }
+
+    #backup-settings-dialog .backup-destination-action.is-connected,
+    #backup-settings-dialog .backup-destination-action.is-connected:hover,
+    #backup-settings-dialog .backup-destination-action.is-connected:focus-visible {
+      border-color: #16a34a !important;
+      background: color-mix(in srgb, #16a34a 18%, transparent) !important;
+      color: #16a34a !important;
+      box-shadow: 0 0 0 2px color-mix(in srgb, #16a34a 16%, transparent) !important;
+    }
+
+    #backup-settings-dialog .backup-destination-action.is-sync-required,
+    #backup-settings-dialog .backup-destination-action.is-location-required {
+      border-color: #b58900;
+      background: color-mix(in srgb, #b58900 18%, transparent);
+      color: #b58900;
+      box-shadow: 0 0 0 2px color-mix(in srgb, #b58900 18%, transparent);
+    }
+
+    #backup-settings-dialog .backup-destination-action svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    #backup-settings-dialog .backup-destination-action span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #backup-settings-dialog #btn-sync-google-drive,
+    #backup-settings-dialog #btn-sync-onedrive { min-width: 128px; }
+    #backup-settings-dialog #btn-sync-google-drive,
+    #backup-settings-dialog #btn-sync-onedrive { margin: 6px 0 0 44px; }
+
+
+    #backup-settings-dialog .backup-retention-section {
+      padding-bottom: 12px;
+    }
+
+    #backup-settings-dialog .backup-retention {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--cl-text-muted);
+      font-size: .78rem;
+    }
+
+    .backup-retention select {
+      min-width: 150px;
+    }
+
+    .backup-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      padding-top: 2px;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .cl-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 36px;
+      margin: 0;
+      padding: 8px 12px;
+      border: 1px solid var(--cl-border);
+      border-radius: 7px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .cl-btn svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .cl-btn:hover,
+    #backup-settings-dialog .backup-dialog-actions .cl-btn:focus-visible {
+      border-color: var(--cl-primary);
+      color: var(--cl-primary);
+      outline: none;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button {
+      border-color: var(--cl-primary);
+      background: var(--cl-primary);
+      color: #fff;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button svg,
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button:hover svg,
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button:focus-visible svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.4;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button:hover,
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button:focus-visible {
+      filter: brightness(1.08);
+      color: #fff;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button:disabled,
+    #backup-settings-dialog .backup-dialog-actions .backup-save-button:disabled:hover {
+      border-color: #b58900;
+      background: color-mix(in srgb, #b58900 18%, var(--cl-surface));
+      color: #b58900;
+      box-shadow: 0 0 0 2px color-mix(in srgb, #b58900 16%, transparent);
+      opacity: 1;
+      filter: none;
+      cursor: not-allowed;
+    }
+
+    .backup-reminder-dialog {
+      width: min(440px, calc(100vw - 32px));
+      padding: 0;
+      border: 1px solid var(--cl-border);
+      border-radius: 12px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      box-shadow: 0 18px 54px rgba(0, 0, 0, .4);
+    }
+
+    .backup-reminder-dialog::backdrop { background: rgba(0, 43, 54, .68); }
+    .backup-reminder-dialog form { padding: 20px; }
+
+    .backup-reminder-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+      margin: -20px -20px 18px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--cl-border);
+      background: color-mix(in srgb, var(--cl-primary) 7%, var(--cl-surface));
+    }
+
+    .backup-reminder-header h2 { margin: 0 0 7px; font-size: 1rem; color: var(--cl-text); }
+    .backup-reminder-header p { margin: 0; color: var(--cl-text-muted); font-size: .82rem; line-height: 1.5; }
+
+    .backup-reminder-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 100px;
+      width: 100px;
+      height: 100px;
+      color: var(--cl-primary);
+    }
+
+    .backup-reminder-icon svg {
+      width: 30px;
+      height: 30px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .backup-reminder-icon img {
+      display: block;
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+    }
+
+    .backup-reminder-dismiss {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 18px;
+      color: var(--cl-text);
+      font-size: .82rem;
+      cursor: pointer;
+    }
+
+    .backup-reminder-dismiss input { margin: 0; accent-color: var(--cl-primary); }
+    .backup-reminder-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+    .backup-reminder-actions .cl-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid var(--cl-border);
+      border-radius: 6px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      font: inherit;
+      font-size: .8rem;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .backup-reminder-actions .backup-reminder-configure {
+      border-color: var(--cl-primary);
+      background: var(--cl-primary);
+      color: #fff;
+    }
+
+    #backup-reminder-dialog .backup-reminder-configure,
+    #backup-reminder-dialog .backup-reminder-configure:hover,
+    #backup-reminder-dialog .backup-reminder-configure:focus-visible {
+      color: #fff;
+    }
+
+    #backup-reminder-dialog .backup-reminder-actions svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .backup-reminder-actions .cl-btn:hover,
+    .backup-reminder-actions .cl-btn:focus-visible {
+      border-color: var(--cl-primary);
+      outline: none;
+      filter: brightness(1.08);
+    }
+
+    @media (max-width: 480px) {
+      .backup-reminder-dialog { width: calc(100vw - 16px); }
+      .backup-reminder-actions { align-items: stretch; flex-direction: column-reverse; }
+      .backup-reminder-actions .cl-btn { width: 100%; }
+    }
+
+    @media (max-width: 560px) {
+      #backup-settings-dialog {
+        width: calc(100vw - 16px);
+        max-height: 100vh;
+      }
+
+      #backup-settings-form {
+        padding: 14px;
+      }
+
+      .backup-dialog-header {
+        margin: -14px -14px 16px;
+        padding: 14px;
+      }
+
+      .backup-option-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #backup-settings-dialog .backup-retention,
+      .backup-dialog-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .backup-retention select {
+        width: 100%;
+      }
     }
 
     .header-save-btn .save-btn-dot {
@@ -631,16 +1381,23 @@
       transition: flex-basis 0.2s ease, width 0.2s ease;
     }
 
+    .learning-platform-root.is-resizing-panels .theory-pane,
+    .learning-platform-root.is-resizing-panels .ide-container-pane {
+      transition: none;
+    }
+
     .learning-platform-root.ide-recolhido .theory-pane {
-      width: 100%;
-      max-width: 100%;
-      flex: 1 1 auto;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      flex: 1 1 auto !important;
     }
 
     .learning-platform-root.ide-recolhido .ide-container-pane {
-      flex: 0 0 0;
-      width: 0;
-      min-width: 0;
+      flex: 0 0 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      min-width: 0 !important;
       overflow: visible;
     }
 
@@ -652,10 +1409,10 @@
       /* Controle flutuante na divisória, sem ocupar largura de nenhum painel. */
       position: absolute;
       top: 0;
-      width: 2px;
+      width: var(--ide-splitter-size);
       height: 100%;
-      transform: translateX(-50%);
-      background: #0f141c;
+      transform: translateX(-1px);
+      background: var(--ide-control-contrast);
       cursor: col-resize;
       z-index: 20;
       transition: background-color 0.15s ease;
@@ -670,8 +1427,14 @@
       height: 24px;
       transform: translate(-50%, -50%);
       border-radius: 2px;
-      background: rgba(255, 255, 255, 0.2);
+      background: var(--ide-splitter-handle);
       transition: background-color 0.15s ease;
+    }
+
+    .pane-resizer::after {
+      content: '';
+      position: absolute;
+      inset: 0 -7px;
     }
 
     .pane-resizer:hover,
@@ -680,8 +1443,13 @@
     }
 
     .pane-resizer:hover::before,
+    .pane-resizer:focus-visible::before,
     .pane-resizer.is-dragging::before {
-      background: #161b22;
+      background: #4ab5f7;
+    }
+
+    .pane-resizer:focus-visible {
+      outline: none;
     }
 
     /* ==========================================================
@@ -922,6 +1690,12 @@
       background: #21262d;
     }
 
+    .toolbar-btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     .editor-toggle-checkbox {
       width: 14px;
       height: 14px;
@@ -969,6 +1743,13 @@
 
     .tab-text {
       margin-left: 4px;
+    }
+
+    .code-tab-logo {
+      display: block;
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
     }
 
     .ace-erro-ondulado {
@@ -1036,6 +1817,21 @@
     .toolbar-btn {
       width: 38px;
       padding: 0;
+    }
+
+    /* Histórico ocupa menos espaço que importação/exportação, mas suas
+       setas ganham alguns pixels para permanecerem fáceis de reconhecer. */
+    #btn-undo,
+    #btn-redo {
+      width: 30px;
+    }
+
+    #btn-undo svg,
+    #btn-redo svg {
+      width: 17px;
+      height: 17px;
+      max-width: 17px;
+      max-height: 17px;
     }
 
     .tab-action-btn {
@@ -1122,23 +1918,19 @@
     }
 
     .editors-area {
-      display: grid;
+      display: flex;
       width: 100%;
       height: 100%;
-      grid-template-columns: 1fr;
+      min-height: 0;
       overflow: hidden;
       background: #161b22;
     }
 
     .editors-area.split-2 {
-      grid-template-columns: 1fr 1fr;
-      gap: 1px;
       background: #30363d;
     }
 
     .editors-area.split-3 {
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1px;
       background: #30363d;
     }
 
@@ -1154,6 +1946,86 @@
 
     .tab-pane.show-pane {
       display: block;
+      flex: 1 1 0;
+    }
+
+    .editor-split-resizer,
+    .preview-split-resizer {
+      display: none;
+      flex: 0 0 var(--ide-splitter-size);
+      position: relative;
+      z-index: 10;
+      background: var(--ide-control-contrast);
+      touch-action: none;
+      transition: background-color .15s ease;
+    }
+
+    .editor-split-resizer.is-visible {
+      display: block;
+      width: var(--ide-splitter-size);
+      height: 100%;
+      cursor: col-resize;
+    }
+
+    .preview-split-resizer.is-visible {
+      display: block;
+      width: 100%;
+      height: var(--ide-splitter-size);
+      flex-basis: var(--ide-splitter-size);
+      cursor: row-resize;
+    }
+
+    /* Mesmo padrão da divisória Plataforma/IDE: barra discreta e um
+       pequeno pegador central, com área de clique maior que a linha. */
+    .editor-split-resizer::after,
+    .preview-split-resizer::after {
+      content: '';
+      position: absolute;
+      inset: 0 -6px;
+      background: transparent;
+    }
+
+    .editor-split-resizer::before,
+    .preview-split-resizer::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 1;
+      width: 5px;
+      height: 24px;
+      transform: translate(-50%, -50%);
+      border-radius: 2px;
+      background: var(--ide-splitter-handle);
+      transition: background-color .15s ease;
+    }
+
+    .preview-split-resizer::before {
+      width: 24px;
+      height: 5px;
+    }
+
+    .editor-split-resizer:hover,
+    .editor-split-resizer:focus-visible,
+    .editor-split-resizer.is-dragging,
+    .preview-split-resizer:hover,
+    .preview-split-resizer:focus-visible,
+    .preview-split-resizer.is-dragging {
+      background: var(--ide-control-contrast);
+    }
+
+    .editor-split-resizer:hover::before,
+    .editor-split-resizer:focus-visible::before,
+    .editor-split-resizer.is-dragging::before,
+    .preview-split-resizer:hover::before,
+    .preview-split-resizer:focus-visible::before,
+    .preview-split-resizer.is-dragging::before {
+      background: #4ab5f7;
+    }
+
+    .editor-split-resizer:focus-visible,
+    .preview-split-resizer:focus-visible {
+      outline: none;
     }
 
     .ace-container {
@@ -1183,7 +2055,7 @@
       top: 3px;
       z-index: 50;
       display: flex;
-      gap: 4px;
+      gap: 3px;
       pointer-events: none;
     }
 
@@ -1200,46 +2072,33 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
-      min-height: 22px;
+      width: 15px;
+      height: 15px;
+      min-height: 15px;
       padding: 0;
-      border-radius: 3px;
-      background: rgba(15, 20, 28, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #a0aab5;
+      border: 0;
+      background: transparent;
+      color: #002b36;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-      backdrop-filter: blur(2px);
+      transition: none;
     }
 
     .preview-btn svg {
-      width: 11px;
-      height: 11px;
-      max-width: 11px;
-      max-height: 11px;
-    }
-
-    .preview-btn:hover {
-      background: rgba(22, 27, 34, 0.95);
-      color: #4ab5f7;
-      border-color: #4ab5f7;
-    }
-
-    .preview-btn-layout.is-active,
-    .preview-btn-max.is-active {
-      background: rgba(22, 27, 34, 0.95);
-      color: #4ab5f7;
-      border-color: #4ab5f7;
+      width: 10px;
+      height: 10px;
+      max-width: 10px;
+      max-height: 10px;
     }
 
     .window-content.with-preview .editors-area {
-      height: 50%;
+      height: auto;
+      flex: 1 1 0;
     }
 
     .window-content.with-preview .preview-area {
-      height: 50%;
+      height: auto;
+      flex: 1 1 0;
     }
 
     .window-content.with-preview.preview-vertical {
@@ -1262,16 +2121,16 @@
     }
 
     .window-content.with-preview.preview-vertical .tab-pane.show-pane {
-      flex: 47 1 0;
+      flex: 1 1 0;
     }
 
     .window-content.with-preview.preview-vertical .preview-area {
-      flex: 47 1 0;
+      flex: 1 1 0;
     }
 
     .window-content.with-preview.preview-vertical.no-tabs-active .editors-area {
-      display: grid;
-      flex: 47 1 0;
+      display: flex;
+      flex: 1 1 0;
       width: auto;
       height: 100%;
       min-width: 0;
@@ -1293,6 +2152,12 @@
       height: 100%;
       border: none;
       background: #fff;
+    }
+
+    .preview-area--dark,
+    .preview-area:has(.preview-iframe--dark),
+    .preview-iframe--dark {
+      background: #002b36;
     }
 
     @media (max-width: 900px) {
@@ -1320,14 +2185,18 @@
         top: auto;
         left: 0;
         width: 100%;
-        height: 12px;
-        transform: translateY(-50%);
+        height: var(--ide-splitter-size);
+        transform: translateY(-1px);
         cursor: row-resize;
       }
 
       .pane-resizer::before {
-        width: 36px;
-        height: 3px;
+        width: 24px;
+        height: 5px;
+      }
+
+      .pane-resizer::after {
+        inset: -7px 0;
       }
     }
     
@@ -1404,7 +2273,9 @@
     .pane-resizer { background: var(--ide-control-contrast); }
     .pane-resizer:hover,
     .pane-resizer.is-dragging { background: var(--ide-control-contrast); }
-    .pane-resizer::before { background: var(--cl-primary); }
+    .pane-resizer::before,
+    .editor-split-resizer::before,
+    .preview-split-resizer::before { background: var(--ide-splitter-handle); }
 
     .back-to-dashboard-btn,
     .toggle-indice-btn,
@@ -1574,6 +2445,15 @@
       box-shadow: inset 0 -2px 0 #f7df1e;
     }
 
+    /* No Solarized claro, o amarelo padrão do JavaScript ofusca. */
+    [data-theme="solarized-light"] .code-tab[data-target="js-pane"]:hover,
+    [data-theme="solarized-light"] .code-tab[data-target="js-pane"]:focus-within,
+    [data-theme="solarized-light"] .code-tab[data-target="js-pane"].active {
+      color: #7a6500;
+      background: rgba(191, 159, 0, 0.18);
+      box-shadow: inset 0 -2px 0 #7a6500;
+    }
+
     /* Cor única dos controles: escura no Solarized claro e clara no escuro.
        Preview fica de fora porque usa contraste próprio sobre fundo branco. */
     .learning-platform-root button:not(.preview-btn) {
@@ -1596,6 +2476,150 @@
     .learning-platform-root button:not(.preview-btn):focus-visible svg {
       fill: #4ab5f7;
       stroke: #4ab5f7;
+    }
+
+    /* Controles do preview seguem os mesmos estados dos botões da IDE,
+       mantendo apenas o posicionamento flutuante sobre o resultado. */
+    .preview-btn {
+      width: 30px;
+      height: 30px;
+      min-height: 30px;
+      border: 1px solid var(--cl-border);
+      border-radius: 4px;
+      background: var(--cl-surface);
+      color: var(--ide-control-contrast);
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+    .preview-btn svg {
+      width: 14px;
+      height: 14px;
+      max-width: 14px;
+      max-height: 14px;
+      fill: currentColor;
+      stroke: currentColor;
+    }
+
+    .preview-btn:hover,
+    .preview-btn:focus,
+    .preview-btn:focus-visible,
+    .preview-btn.is-active {
+      background: var(--ide-button-hover);
+      color: #4ab5f7;
+      border-color: #4ab5f7;
+      outline: none;
+    }
+
+    /* Preview: somente os ícones. Estes estados finais anulam todos os
+       fundos, bordas e realces declarados pelos controles gerais da IDE. */
+    .preview-btn,
+    .preview-btn:hover,
+    .preview-btn:focus,
+    .preview-btn:focus-visible,
+    .preview-btn.is-active,
+    .preview-btn-layout.is-active,
+    .preview-btn-max.is-active {
+      width: 15px;
+      height: 15px;
+      min-height: 15px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: #002b36;
+      box-shadow: none;
+      outline: none;
+      transition: none;
+    }
+
+    .preview-btn svg,
+    .preview-btn:hover svg,
+    .preview-btn:focus svg,
+    .preview-btn.is-active svg {
+      width: 10px;
+      height: 10px;
+      max-width: 10px;
+      max-height: 10px;
+      fill: #002b36;
+      stroke: #002b36;
+    }
+
+    .preview-btn:hover,
+    .preview-btn:focus-visible {
+      color: #268bd2;
+    }
+
+    .preview-btn:hover svg,
+    .preview-btn:focus-visible svg {
+      fill: #268bd2;
+      stroke: #268bd2;
+    }
+
+    [data-theme="solarized-dark"] .preview-btn svg,
+    [data-theme="solarized-dark"] .preview-btn:hover svg,
+    [data-theme="solarized-dark"] .preview-btn:focus svg,
+    [data-theme="solarized-dark"] .preview-btn:focus-visible svg,
+    [data-theme="solarized-dark"] .preview-btn.is-active svg,
+    [data-theme="solarized-dark"] .preview-btn-layout.is-active svg,
+    [data-theme="solarized-dark"] .preview-btn-max.is-active svg {
+      fill: #fff;
+      stroke: #fff;
+    }
+
+    [data-theme="solarized-dark"] .preview-btn-theme svg,
+    [data-theme="solarized-dark"] .preview-btn-theme:hover svg,
+    [data-theme="solarized-dark"] .preview-btn-theme:focus-visible svg {
+      fill: none;
+      stroke: #fff;
+    }
+
+    [data-theme="solarized-light"] .preview-btn svg,
+    [data-theme="solarized-light"] .preview-btn:hover svg,
+    [data-theme="solarized-light"] .preview-btn:focus svg,
+    [data-theme="solarized-light"] .preview-btn:focus-visible svg,
+    [data-theme="solarized-light"] .preview-btn.is-active svg,
+    [data-theme="solarized-light"] .preview-btn-layout.is-active svg,
+    [data-theme="solarized-light"] .preview-btn-max.is-active svg {
+      fill: #002b36;
+      stroke: #002b36;
+    }
+
+    [data-theme="solarized-light"] .preview-btn-theme svg,
+    [data-theme="solarized-light"] .preview-btn-theme:hover svg,
+    [data-theme="solarized-light"] .preview-btn-theme:focus-visible svg {
+      fill: none;
+      stroke: #002b36;
+    }
+
+    /* A cor dos controles acompanha o tema próprio do Preview, que pode ser
+       alternado independentemente do tema geral da IDE. */
+    .preview-area:not(.preview-area--dark) .preview-btn svg,
+    .preview-area:not(.preview-area--dark) .preview-btn:hover svg,
+    .preview-area:not(.preview-area--dark) .preview-btn:focus svg,
+    .preview-area:not(.preview-area--dark) .preview-btn:focus-visible svg,
+    .preview-area:not(.preview-area--dark) .preview-btn.is-active svg {
+      fill: #002b36;
+      stroke: #002b36;
+    }
+
+    .preview-area.preview-area--dark .preview-btn svg,
+    .preview-area.preview-area--dark .preview-btn:hover svg,
+    .preview-area.preview-area--dark .preview-btn:focus svg,
+    .preview-area.preview-area--dark .preview-btn:focus-visible svg,
+    .preview-area.preview-area--dark .preview-btn.is-active svg {
+      fill: #fff;
+      stroke: #fff;
+    }
+
+    .preview-area:not(.preview-area--dark) .preview-btn-theme svg {
+      fill: none;
+      stroke: #002b36;
+    }
+
+    .preview-area.preview-area--dark .preview-btn-theme svg {
+      fill: none;
+      stroke: #fff;
     }
 
     .theory-content,

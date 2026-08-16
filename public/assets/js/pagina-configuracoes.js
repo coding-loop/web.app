@@ -25,6 +25,13 @@
     document.addEventListener("DOMContentLoaded", function () {
         const theme = document.getElementById("cl-settings-theme");
         const reset = document.getElementById("cl-settings-password-reset");
+        const deleteButton = document.getElementById("cl-settings-delete-account");
+        const deleteDialog = document.getElementById("cl-delete-account-dialog");
+        const deleteForm = document.getElementById("cl-delete-account-form");
+        const deleteInput = document.getElementById("cl-delete-account-confirmation");
+        const deleteCancel = document.getElementById("cl-delete-account-cancel");
+        const deleteConfirm = document.getElementById("cl-delete-account-confirm");
+        const deleteStatus = document.getElementById("cl-delete-account-status");
         theme.addEventListener("change", function () { CL.ui.setTheme(theme.value); });
         reset.addEventListener("click", async function () {
             const user = CL.auth.getUser();
@@ -33,6 +40,33 @@
             const sent = await CL.auth.sendPasswordReset(user.email);
             reset.disabled = false;
             if (sent) reset.textContent = "E-mail enviado";
+        });
+
+        deleteButton.addEventListener("click", function () {
+            deleteForm.reset();
+            deleteStatus.textContent = "";
+            deleteDialog.showModal();
+            deleteInput.focus();
+        });
+        deleteCancel.addEventListener("click", function () { deleteDialog.close(); });
+        deleteForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            if (deleteInput.value.trim() !== "EXCLUIR") {
+                deleteStatus.textContent = 'Digite "EXCLUIR" para confirmar.';
+                deleteInput.focus();
+                return;
+            }
+            deleteConfirm.disabled = true;
+            deleteCancel.disabled = true;
+            deleteStatus.textContent = "Excluindo seus dados e conta…";
+            const deleted = await CL.auth.deleteAccount();
+            if (deleted) {
+                window.location.href = CL.config.landingUrl + "?reason=account-deleted";
+                return;
+            }
+            deleteStatus.textContent = "Não foi possível concluir. Entre novamente e tente de novo.";
+            deleteConfirm.disabled = false;
+            deleteCancel.disabled = false;
         });
     });
 })();

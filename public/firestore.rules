@@ -3,6 +3,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    /* Comunicados publicados podem ser lidos por alunos autenticados;
+       criar, editar e remover exige a custom claim admin. */
+    match /announcements/{announcementId} {
+      allow read: if request.auth != null && (resource.data.status == 'published' || isAdmin());
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
     /* users/{uid} -> perfil do aluno.
        Só o próprio usuário autenticado (uid do Firebase Auth igual
        ao id do documento) pode ler ou escrever seus dados. Ninguém

@@ -27,7 +27,9 @@
         document.getElementById("cl-profile-name").value = name;
         document.getElementById("cl-profile-email").value = user.email || "";
         document.getElementById("cl-profile-bio").value = saved.bio || "";
-        if (photo) setProfilePhoto(photo, user.avatar, name);
+        /* A foto da conta é o padrão. profileAvatar, quando definido,
+           pertence somente ao Perfil e não altera o cabeçalho. */
+        if (photo) setProfilePhoto(photo, saved.profileAvatar || user.avatar, name);
     }
 
     CL.pages.profile.init = function () {
@@ -69,7 +71,7 @@
                 name: document.getElementById("cl-profile-name").value.trim(),
                 bio: document.getElementById("cl-profile-bio").value.trim()
             };
-            if (uploadedAvatar) data.avatar = uploadedAvatar;
+            if (uploadedAvatar) data.profileAvatar = uploadedAvatar;
             if (!data.name) return;
             button.disabled = true;
             status.textContent = "Salvando…";

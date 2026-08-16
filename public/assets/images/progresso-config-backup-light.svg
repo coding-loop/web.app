@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+
+body { margin-top: 0 !important; padding-top: 0 !important; }
+</style>
+</head>
+<body>
+
+
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="800" height="800" fill="none">
+
+  <!-- NUVEM + SETAS - no Solarized Light o traço é #657b83 (base00) -->
+  <g transform="translate(12 13) scale(0.032) translate(-250 -330)">
+    <g fill="none" stroke="#657b83" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 185 325 L 140 325 A 45 45 0 0 1 135 235 A 75 75 0 0 1 268 185 A 60 60 0 0 1 370 230 A 45 45 0 0 1 345 325 L 330 325"/>
+      <line x1="295" y1="325" x2="296" y2="325"/>
+      <path d="M 190 325 L 190 372 L 162 372 L 225 440 L 288 372 L 260 372 L 260 325"/>
+      <path d="M 260 325 L 260 285 L 232 285 L 295 217 L 358 285 L 330 285 L 330 325"/>
+    </g>
+  </g>
+
+  <g transform="translate(8.3 9.2) scale(0.28) translate(-11 -10)">
+    <!-- Engrenagem Solarized Light - fill base3 + contorno base00 -->
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" 
+      fill="#fdf6e3" 
+      stroke="#657b83" 
+      stroke-width="1.2" 
+      stroke-linejoin="round" 
+      stroke-linecap="round" 
+      paint-order="stroke"/>
+    
+    <!-- Centro vazado -->
+    <circle cx="12" cy="12" r="3" fill="none" stroke="#657b83" stroke-width="1.2" />
+  </g>
+
+</svg>
+
+
+<script>
+window.addEventListener("error", function (e) {
+  try { window.parent.postMessage({ tipo: "erro-execucao-js", mensagem: e.message, linha: e.lineno, coluna: e.colno }, "*"); } catch (err) {}
+});
+window.addEventListener("unhandledrejection", function (e) {
+  try {
+    var msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+    window.parent.postMessage({ tipo: "erro-execucao-js", mensagem: "Promise rejeitada: " + msg }, "*");
+  } catch (err) {}
+});
+
+</script>
+</body>
+</html>

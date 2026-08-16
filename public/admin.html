@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="solarized-dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Administração de avisos — Coding Loop</title>
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+  <script defer src="assets/js/admin.js"></script>
+</head>
+<body>
+  <main class="cl-admin-shell">
+    <header class="cl-admin-header">
+      <div><p class="cl-admin-eyebrow">CODING LOOP · ÁREA RESTRITA</p><h1>Central de avisos</h1><p>Envie comunicados que serão exibidos no dashboard dos alunos.</p></div>
+      <div class="cl-admin-account"><span id="admin-user">Verificando acesso…</span><button class="cl-admin-button cl-admin-button--ghost" id="admin-logout" type="button">Sair</button></div>
+    </header>
+    <div class="cl-admin-access" hidden id="admin-denied">
+      <h2>Acesso de administrador necessário</h2>
+      <p>Esta conta não possui permissão para administrar avisos. Peça ao proprietário do Firebase para habilitar a custom claim <code>admin: true</code> e entre novamente.</p>
+      <a class="cl-admin-button" href="index.html">Voltar ao site</a>
+    </div>
+    <section class="cl-admin-grid" hidden id="admin-panel">
+      <form class="cl-admin-composer" id="announcement-form">
+        <div class="cl-admin-section-head"><div><h2 id="form-heading">Novo aviso</h2><p>O aviso será publicado imediatamente.</p></div><button class="cl-admin-text-button" hidden id="cancel-edit" type="button">Cancelar edição</button></div>
+        <label>Título <input autocomplete="off" id="announcement-title" maxlength="100" name="title" placeholder="Ex.: Nova aula liberada" required></label>
+        <label>Mensagem <textarea id="announcement-message" maxlength="1000" name="message" placeholder="Escreva o comunicado para os alunos." required rows="6"></textarea><small><span id="message-count">0</span>/1000 caracteres</small></label>
+        <div class="cl-admin-fields">
+          <label>Tipo <select id="announcement-level" name="level"><option value="info">Informação</option><option value="success">Novidade</option><option value="urgent">Importante</option></select></label>
+          <label>Público <select id="announcement-audience" name="audience"><option value="all">Todos os alunos</option><option value="html">Alunos de HTML</option><option value="css">Alunos de CSS</option><option value="js">Alunos de JavaScript</option></select></label>
+        </div>
+        <div class="cl-admin-actions"><span aria-live="polite" id="form-status"></span><button class="cl-admin-button" id="publish-button" type="submit">Publicar aviso</button></div>
+      </form>
+      <section class="cl-admin-history" aria-labelledby="history-title"><div class="cl-admin-section-head"><div><h2 id="history-title">Avisos publicados</h2><p>Edite ou remova comunicados existentes.</p></div></div><div aria-live="polite" id="announcement-list"><p class="cl-admin-muted">Carregando avisos…</p></div></section>
+    </section>
+  </main>
+</body>
+</html>

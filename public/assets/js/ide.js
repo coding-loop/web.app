@@ -118,16 +118,44 @@
        instalada pelo editor depois do boot; antes disso não há nada a gravar. */
     function prepararTrocaDeEtapa() {
       if (typeof window.salvarRascunhoAtualDaIde === 'function') {
-        window.salvarRascunhoAtualDaIde();
+        Promise.resolve(window.salvarRascunhoAtualDaIde()).then(function () {
+          sincronizarNuvemAutomaticamente(true);
+        });
       }
     }
 
     const theoryContentEl = document.getElementById('theory-content');
     const moduleTitleEl = document.getElementById('module-title');
-    const btnExportProgress = document.getElementById('btn-export-progress');
-    const btnImportProgress = document.getElementById('btn-import-progress');
+    const btnBackupMenu = document.getElementById('btn-backup-menu');
+    const backupMenuOptions = document.getElementById('backup-menu-options');
+    const btnBackupNow = document.getElementById('btn-backup-now');
+    const btnRestoreBackup = document.getElementById('btn-restore-backup');
+    const btnBackupSettings = document.getElementById('btn-backup-settings');
+    const backupSettingsDialog = document.getElementById('backup-settings-dialog');
+    const backupSettingsForm = document.getElementById('backup-settings-form');
+    const restoreBackupDialog = document.getElementById('restore-backup-dialog');
+    const restoreBackupForm = document.getElementById('restore-backup-form');
+    const restoreBackupSource = document.getElementById('restore-backup-source');
+    const restoreBackupVersion = document.getElementById('restore-backup-version');
+    const restoreBackupVersionRow = document.getElementById('restore-backup-version-row');
+    const backupStatus = document.getElementById('backup-status');
+    const btnTestBackupConnection = document.getElementById('btn-test-backup-connection');
+    const btnSaveBackupSettings = document.getElementById('btn-save-backup-settings');
     const inputImportProgress = document.getElementById('input-import-progress');
+    const btnSelectBackupFolder = document.getElementById('btn-select-backup-folder');
+    const backupFolderGuide = document.getElementById('backup-folder-guide');
+    const btnSyncGoogleDrive = document.getElementById('btn-sync-google-drive');
+    const btnSyncOneDrive = document.getElementById('btn-sync-onedrive');
+    const cloudPermissionDialog = document.getElementById('cloud-permission-dialog');
+    const cloudPermissionService = document.getElementById('cloud-permission-service');
+    const cloudPermissionServiceCopy = document.getElementById('cloud-permission-service-copy');
+    const cloudPermissionScope = document.getElementById('cloud-permission-scope');
+    const cloudPermissionLimits = document.getElementById('cloud-permission-limits');
+    const backupReminderDialog = document.getElementById('backup-reminder-dialog');
+    const backupReminderDismiss = document.getElementById('backup-reminder-dismiss');
+    const btnReminderConfigureBackup = document.getElementById('btn-reminder-configure-backup');
     const progressBar = document.getElementById('progress-bar');
+    let pastaBackupSelecionada = null;
 
     // ---------- Índice do curso (novo) ----------
     const toggleIndiceBtn = document.getElementById('toggle-indice');
@@ -294,7 +322,7 @@
         // Botão de voltar (canto superior esquerdo do card): na 1ª etapa
         // do módulo leva pra trilha de módulos na Dashboard; nas demais,
         // volta pra etapa anterior.
-        const tituloVoltar = ehPrimeira ? 'Voltar para a trilha de módulos' : 'Etapa anterior';
+        const tituloVoltar = ehPrimeira ? 'Voltar para a Trilha de Módulos' : 'Etapa Anterior';
         const btnVoltar =
           '<button type="button" class="step-nav-btn step-nav-btn--back" data-step-action="back" title="' + tituloVoltar + '" aria-label="' + tituloVoltar + '">' +
             '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>' +
@@ -304,7 +332,7 @@
         // direito): na última etapa leva pra trilha de módulos (pra
         // aluno escolher o próximo módulo, se já destravado); nas
         // demais, avança pra próxima etapa.
-        const tituloAvancar = ehUltima ? 'Concluir e ir para a trilha de módulos' : 'Próxima etapa';
+        const tituloAvancar = ehUltima ? 'Concluir e Ir para a Trilha de Módulos' : 'Próxima Etapa';
         const btnAvancar =
           '<div class="step-nav-footer">' +
             '<button type="button" class="step-nav-btn step-nav-btn--next" data-step-action="next" title="' + tituloAvancar + '" aria-label="' + tituloAvancar + '">' +
@@ -430,45 +458,694 @@
 
     window.salvarPosicaoDaIde = salvarProgresso;
 
-    if (btnExportProgress) {
-      btnExportProgress.addEventListener('click', function () {
-        const exportar = function () {
-          if (!CL.api || typeof CL.api.exportStudyData !== 'function') return;
-          const blob = new Blob([JSON.stringify(CL.api.exportStudyData(), null, 2)], { type: 'application/json' });
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = 'coding-loop-progresso.json';
-          link.click();
-          URL.revokeObjectURL(link.href);
+    function nomeArquivoBackup() {
+      const agora = new Date();
+      const dataArquivo = agora.getFullYear() + '-' + String(agora.getMonth() + 1).padStart(2, '0') + '-' + String(agora.getDate()).padStart(2, '0') + '-' + String(agora.getHours()).padStart(2, '0') + String(agora.getMinutes()).padStart(2, '0');
+      return 'coding-loop-progresso-' + dataArquivo + '.json';
+    }
+
+    function baixarBackup(data) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = nomeArquivoBackup();
+      link.click();
+      setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+    }
+
+    function abrirBancoDaPastaBackup() {
+      return new Promise(function (resolve, reject) {
+        if (!window.indexedDB) return reject(new Error('IndexedDB não disponível.'));
+        const request = indexedDB.open('coding-loop-backup', 1);
+        request.onupgradeneeded = function () {
+          if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
         };
-        if (typeof window.salvarRascunhoAtualDaIde === 'function') {
-          window.salvarRascunhoAtualDaIde().then(exportar);
-        } else {
-          exportar();
+        request.onsuccess = function () { resolve(request.result); };
+        request.onerror = function () { reject(request.error); };
+      });
+    }
+
+    async function guardarPastaBackup(handle) {
+      const banco = await abrirBancoDaPastaBackup();
+      await new Promise(function (resolve, reject) {
+        const transaction = banco.transaction('handles', 'readwrite');
+        transaction.objectStore('handles').put(handle, 'computer-folder');
+        transaction.oncomplete = resolve;
+        transaction.onerror = function () { reject(transaction.error); };
+      });
+      banco.close();
+    }
+
+    async function obterPastaBackup() {
+      try {
+        const banco = await abrirBancoDaPastaBackup();
+        const handle = await new Promise(function (resolve, reject) {
+          const request = banco.transaction('handles', 'readonly').objectStore('handles').get('computer-folder');
+          request.onsuccess = function () { resolve(request.result || null); };
+          request.onerror = function () { reject(request.error); };
+        });
+        banco.close();
+        return handle;
+      } catch (error) { return null; }
+    }
+
+    async function pastaTemPermissao(handle, solicitar) {
+      if (!handle) return false;
+      const options = { mode: 'readwrite' };
+      if (typeof handle.queryPermission === 'function' && await handle.queryPermission(options) === 'granted') return true;
+      return Boolean(solicitar && typeof handle.requestPermission === 'function' && await handle.requestPermission(options) === 'granted');
+    }
+
+    async function salvarBackupNoComputador(data) {
+      const pasta = await obterPastaBackup();
+      if (pasta && await pastaTemPermissao(pasta, true)) {
+        const arquivo = await pasta.getFileHandle(nomeArquivoBackup(), { create: true });
+        const gravacao = await arquivo.createWritable();
+        await gravacao.write(JSON.stringify(data, null, 2));
+        await gravacao.close();
+        return true;
+      }
+      baixarBackup(data);
+      return false;
+    }
+
+    function obterTokenGoogleDrive(interativo) {
+      return new Promise(function (resolve, reject) {
+        if (!window.google || !google.accounts || !google.accounts.oauth2) return reject(new Error('O Google Drive ainda não está disponível.'));
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CL.config.googleDriveClientId,
+          scope: 'https://www.googleapis.com/auth/drive.appdata',
+          callback: function (response) {
+            if (response.error) reject(new Error(response.error));
+            else resolve(response.access_token);
+          }
+        });
+        tokenClient.requestAccessToken({ prompt: interativo ? 'consent' : '' });
+      });
+    }
+
+    async function enviarBackupGoogleDrive(data, interativo) {
+      const settings = CL.api.getBackupSettings();
+      const token = await obterTokenGoogleDrive(Boolean(interativo));
+      const content = JSON.stringify(data, null, 2);
+      const fileIdSalvo = settings.drivePrivateFileId;
+      let response;
+      if (fileIdSalvo) {
+        response = await fetch('https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(fileIdSalvo) + '?uploadType=media', {
+          method: 'PATCH', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: content
+        });
+      } else {
+        const boundary = 'coding-loop-backup-' + Date.now();
+        const metadata = { name: 'coding-loop-progresso.json', mimeType: 'application/json', parents: ['appDataFolder'] };
+        const body = '--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata) + '\r\n--' + boundary + '\r\nContent-Type: application/json\r\n\r\n' + content + '\r\n--' + boundary + '--';
+        response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'multipart/related; boundary=' + boundary }, body: body
+        });
+      }
+      if (!response.ok) throw new Error('Não foi possível salvar o backup no Google Drive.');
+      const result = await response.json().catch(function () { return {}; });
+      if (result.id) CL.api.saveBackupSettings({ drivePrivateFileId: result.id, lastBackupAt: new Date().toISOString() });
+    }
+
+    async function restaurarBackupGoogleDrive() {
+      const settings = CL.api.getBackupSettings();
+      const token = await obterTokenGoogleDrive(true);
+      let fileId = settings.drivePrivateFileId;
+      if (!fileId) {
+        const list = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'coding-loop-progresso.json'&orderBy=modifiedTime%20desc&pageSize=1&fields=files(id)&spaces=appDataFolder", { headers: { Authorization: 'Bearer ' + token } });
+        const files = await list.json();
+        fileId = files.files && files.files[0] && files.files[0].id;
+      }
+      if (!fileId) throw new Error('Nenhum backup foi encontrado no Google Drive.');
+      const response = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media', { headers: { Authorization: 'Bearer ' + token } });
+      if (!response.ok) throw new Error('Não foi possível ler o backup do Google Drive.');
+      return response.json();
+    }
+
+    let clienteMicrosoft;
+    async function obterTokenOneDrive(interativo) {
+      if (!window.msal || !CL.config.microsoftOneDriveClientId) throw new Error('O login do OneDrive ainda não está disponível.');
+      if (!clienteMicrosoft) {
+        clienteMicrosoft = new msal.PublicClientApplication({
+          auth: { clientId: CL.config.microsoftOneDriveClientId, authority: 'https://login.microsoftonline.com/common', redirectUri: window.location.origin },
+          cache: { cacheLocation: 'sessionStorage' }
+        });
+        if (typeof clienteMicrosoft.initialize === 'function') await clienteMicrosoft.initialize();
+      }
+      const request = { scopes: ['User.Read', 'Files.ReadWrite.AppFolder'] };
+      const account = clienteMicrosoft.getActiveAccount() || clienteMicrosoft.getAllAccounts()[0];
+      if (account) {
+        try {
+          const result = await clienteMicrosoft.acquireTokenSilent(Object.assign({ account: account }, request));
+          return result.accessToken;
+        } catch (error) {
+          if (!interativo) throw error;
+        }
+      }
+      if (!interativo) throw new Error('A autorização do OneDrive precisa ser renovada.');
+      const result = await clienteMicrosoft.acquireTokenPopup(request);
+      clienteMicrosoft.setActiveAccount(result.account);
+      return result.accessToken;
+    }
+
+    async function enviarBackupOneDrive(data, interativo) {
+      const token = await obterTokenOneDrive(Boolean(interativo));
+      const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/special/approot:/coding-loop-progresso.json:/content', {
+        method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(data, null, 2)
+      });
+      if (!response.ok) throw new Error('Não foi possível salvar o backup no OneDrive.');
+      const file = await response.json();
+      CL.api.saveBackupSettings({ oneDriveFileId: file.id, lastBackupAt: new Date().toISOString() });
+    }
+
+    async function restaurarBackupOneDrive() {
+      const token = await obterTokenOneDrive(true);
+      const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/special/approot:/coding-loop-progresso.json:/content', { headers: { Authorization: 'Bearer ' + token } });
+      if (response.status === 404) throw new Error('Nenhum backup foi encontrado no OneDrive.');
+      if (!response.ok) throw new Error('Não foi possível ler o backup do OneDrive.');
+      return response.json();
+    }
+
+    function mensagemErroOneDrive(error) {
+      const detalhe = error && (error.errorCode || error.error || error.message);
+      if (detalhe === 'redirect_uri_mismatch') return 'A URL local não está autorizada no aplicativo Microsoft. Adicione http://localhost:5500 em Authentication → Single-page application (SPA).';
+      if (detalhe === 'popup_window_error' || detalhe === 'popup_window_timeout') return 'O navegador bloqueou a janela de login do OneDrive. Permita pop-ups para este site e tente novamente.';
+      return 'Não foi possível entrar na conta do OneDrive. Detalhe: ' + (detalhe || 'verifique as permissões e tente novamente.');
+    }
+
+    function fecharMenuBackup() {
+      if (backupMenuOptions) backupMenuOptions.hidden = true;
+      if (btnBackupMenu) btnBackupMenu.setAttribute('aria-expanded', 'false');
+    }
+
+    async function fazerBackup() {
+      const settings = CL.api.getBackupSettings();
+      const data = CL.api.exportStudyData();
+      const destinations = settings.destinations || [];
+      if (destinations.includes('computer')) await salvarBackupNoComputador(data);
+      if (destinations.includes('local')) CL.api.saveLocalBackup();
+      if (destinations.includes('drive')) await enviarBackupGoogleDrive(data, true);
+      if (destinations.includes('onedrive')) await enviarBackupOneDrive(data, true);
+      CL.api.saveBackupSettings({ lastBackupAt: data.exportedAt, lastBackupDestinations: destinations });
+      sincronizacaoNuvemPendente = false;
+      fecharMenuBackup();
+    }
+
+    let sincronizacaoNuvemPendente = false;
+    let sincronizacaoNuvemEmAndamento = false;
+    let temporizadorSincronizacaoNuvem = null;
+    const ATRASO_SINCRONIZACAO_NUVEM = 2 * 60 * 1000;
+    const INTERVALO_VERIFICACAO_NUVEM = 10 * 60 * 1000;
+
+    function agendarSincronizacaoNuvem() {
+      sincronizacaoNuvemPendente = true;
+      clearTimeout(temporizadorSincronizacaoNuvem);
+      temporizadorSincronizacaoNuvem = setTimeout(function () { sincronizarNuvemAutomaticamente(false); }, ATRASO_SINCRONIZACAO_NUVEM);
+    }
+
+    async function sincronizarNuvemAutomaticamente(forcar) {
+      if (sincronizacaoNuvemEmAndamento || (!forcar && !sincronizacaoNuvemPendente)) return false;
+      const settings = CL.api.getBackupSettings();
+      const destinos = settings.destinations || [];
+      const tarefas = [];
+      const dados = CL.api.exportStudyData();
+      if (destinos.includes('drive') && settings.googleDriveConnected) tarefas.push(enviarBackupGoogleDrive(dados, false));
+      if (destinos.includes('onedrive') && settings.oneDriveConnected) tarefas.push(enviarBackupOneDrive(dados, false));
+      if (!tarefas.length) return false;
+      sincronizacaoNuvemEmAndamento = true;
+      const resultados = await Promise.allSettled(tarefas);
+      sincronizacaoNuvemEmAndamento = false;
+      if (resultados.some(function (resultado) { return resultado.status === 'fulfilled'; })) {
+        sincronizacaoNuvemPendente = false;
+        CL.api.saveBackupSettings({ lastCloudSyncAt: dados.exportedAt });
+        return true;
+      }
+      return false;
+    }
+
+    setInterval(function () { sincronizarNuvemAutomaticamente(false); }, INTERVALO_VERIFICACAO_NUVEM);
+
+    function importarArquivoDeBackup() {
+      inputImportProgress.click();
+    }
+
+    function atualizarStatusBackup() {
+      if (!backupStatus) return;
+      backupStatus.classList.remove('is-error');
+      const settings = CL.api.getBackupSettings();
+      if (!settings.lastBackupAt) { backupStatus.textContent = 'Último backup: ainda não realizado.'; return; }
+      const locais = (settings.lastBackupDestinations || []).map(function (local) {
+        return { computer: 'Computador', local: 'LocalStorage', drive: 'Google Drive', onedrive: 'OneDrive' }[local] || local;
+      });
+      backupStatus.textContent = 'Último backup: ' + new Date(settings.lastBackupAt).toLocaleString('pt-BR') + (locais.length ? ' — ' + locais.join(', ') : '');
+    }
+
+    async function testarConexoesBackup() {
+      const formData = new FormData(backupSettingsForm);
+      const destinos = formData.getAll('destinations');
+      const testes = [];
+      if (!destinos.length || (!destinos.includes('drive') && !destinos.includes('onedrive'))) {
+        return window.alert('Marque Google Drive ou OneDrive para testar a conexão.');
+      }
+      if (destinos.includes('drive') && !await confirmarPermissaoNuvem('google')) return;
+      if (destinos.includes('onedrive') && !await confirmarPermissaoNuvem('microsoft')) return;
+      if (destinos.includes('drive')) testes.push(obterTokenGoogleDrive(true).then(function (token) {
+        const endpoint = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=1&fields=files(id)';
+        return fetch(endpoint, { headers: { Authorization: 'Bearer ' + token } }).then(function (resposta) { if (!resposta.ok) throw new Error(); return 'Google Drive'; });
+      }));
+      if (destinos.includes('onedrive')) testes.push(obterTokenOneDrive(true).then(function (token) {
+        return fetch('https://graph.microsoft.com/v1.0/me/drive', { headers: { Authorization: 'Bearer ' + token } }).then(function (resposta) { if (!resposta.ok) throw new Error(); return 'OneDrive'; });
+      }));
+      try { window.alert('Conexão confirmada: ' + (await Promise.all(testes)).join(' e ') + '.'); }
+      catch (error) { window.alert('Não foi possível confirmar a conexão. Verifique as permissões e as URLs autorizadas.'); }
+    }
+
+    function atualizarBotaoDestino(botao, texto, conectado) {
+      if (!botao) return;
+      const rotulo = botao.querySelector('span');
+      if (rotulo) rotulo.textContent = texto;
+      botao.classList.toggle('is-connected', Boolean(conectado));
+      if (conectado) {
+        botao.classList.remove('is-sync-required', 'is-location-required');
+      }
+    }
+
+    function marcarDestinoDoBotao(botao) {
+      const opcao = botao && botao.closest('.backup-option');
+      const campo = opcao && opcao.querySelector('input[name="destinations"]');
+      if (campo) campo.checked = true;
+    }
+
+    function atualizarEstadoSincronizacao() {
+      const settings = CL.api.getBackupSettings();
+      [
+        { botao: btnSyncGoogleDrive, conectado: settings.googleDriveConnected },
+        { botao: btnSyncOneDrive, conectado: settings.oneDriveConnected }
+      ].forEach(function (item) {
+        if (!item.botao) return;
+        const opcao = item.botao.closest('.backup-option');
+        const campo = opcao && opcao.querySelector('input[name="destinations"]');
+        const selecionado = Boolean(campo && campo.checked);
+        item.botao.classList.toggle('is-sync-required', selecionado && !item.conectado);
+        item.botao.classList.toggle('is-connected', selecionado && Boolean(item.conectado));
+      });
+      atualizarEstadoBotaoSalvarBackup();
+    }
+
+    function atualizarEstadoLocalBackup() {
+      if (!btnSelectBackupFolder) return;
+      const opcao = btnSelectBackupFolder.closest('.backup-option');
+      const campo = opcao && opcao.querySelector('input[name="destinations"]');
+      const selecionado = Boolean(campo && campo.checked);
+      btnSelectBackupFolder.classList.toggle('is-location-required', selecionado && !pastaBackupSelecionada);
+      btnSelectBackupFolder.classList.toggle('is-connected', selecionado && Boolean(pastaBackupSelecionada));
+      atualizarEstadoBotaoSalvarBackup();
+    }
+
+    function configuracaoBackupEstaCompleta() {
+      if (!backupSettingsForm) return false;
+      const formData = new FormData(backupSettingsForm);
+      const destinations = formData.getAll('destinations');
+      if (!destinations.includes('local')) destinations.push('local');
+      if (!destinations.length || !formData.get('schedule') || !formData.get('mode')) return false;
+      const settings = CL.api.getBackupSettings();
+      if (destinations.includes('computer') && !pastaBackupSelecionada) return false;
+      if (destinations.includes('drive') && !settings.googleDriveConnected) return false;
+      if (destinations.includes('onedrive') && !settings.oneDriveConnected) return false;
+      return true;
+    }
+
+    function atualizarEstadoBotaoSalvarBackup() {
+      if (!btnSaveBackupSettings) return;
+      const pronto = configuracaoBackupEstaCompleta();
+      btnSaveBackupSettings.disabled = !pronto;
+      btnSaveBackupSettings.setAttribute('aria-disabled', String(!pronto));
+      btnSaveBackupSettings.title = pronto ? 'Salvar Configurações' : 'Conclua as Opções Obrigatórias';
+    }
+
+    async function atualizarAcoesDestino() {
+      const pasta = await obterPastaBackup();
+      pastaBackupSelecionada = pasta;
+      atualizarBotaoDestino(btnSelectBackupFolder, pasta ? pasta.name : 'Escolher Local', Boolean(pasta));
+      const settings = CL.api.getBackupSettings();
+      atualizarBotaoDestino(btnSyncGoogleDrive, settings.googleDriveConnected ? 'Sincronizado' : 'Sincronizar', settings.googleDriveConnected);
+      atualizarBotaoDestino(btnSyncOneDrive, settings.oneDriveConnected ? 'Sincronizado' : 'Sincronizar', settings.oneDriveConnected);
+      atualizarEstadoLocalBackup();
+      atualizarEstadoSincronizacao();
+    }
+
+    async function escolherPastaBackup() {
+      if (typeof window.showDirectoryPicker !== 'function') {
+        window.alert('A escolha de pasta não é compatível com este navegador. O backup continuará usando o download padrão.');
+        return;
+      }
+      try {
+        const pastaEscolhida = await window.showDirectoryPicker({ id: 'coding-loop-backup', mode: 'readwrite', startIn: 'documents' });
+        const pasta = pastaEscolhida.name === 'Coding Loop Backups'
+          ? pastaEscolhida
+          : await pastaEscolhida.getDirectoryHandle('Coding Loop Backups', { create: true });
+        await guardarPastaBackup(pasta);
+        pastaBackupSelecionada = pasta;
+        marcarDestinoDoBotao(btnSelectBackupFolder);
+        atualizarBotaoDestino(btnSelectBackupFolder, pasta.name, true);
+        atualizarEstadoLocalBackup();
+      } catch (error) {
+        if (!error || error.name !== 'AbortError') {
+          window.alert('Não foi possível preparar a pasta exclusiva de backup. Verifique a permissão da pasta escolhida e tente novamente.');
+        }
+      }
+    }
+
+    if (btnSelectBackupFolder) btnSelectBackupFolder.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (backupFolderGuide) backupFolderGuide.showModal();
+      else escolherPastaBackup();
+    });
+    if (backupFolderGuide) backupFolderGuide.addEventListener('close', function () {
+      if (backupFolderGuide.returnValue === 'continue') escolherPastaBackup();
+    });
+
+    function confirmarPermissaoNuvem(servico) {
+      const permissoes = {
+        google: {
+          nome: 'Google Drive',
+          acesso: 'Criar, ler, atualizar e excluir o backup na área privada do Coding Loop no seu Google Drive.',
+          limite: 'O arquivo não aparece no Google Drive e somente o Coding Loop pode restaurá-lo. Você pode revogar o acesso a qualquer momento.'
+        },
+        microsoft: {
+          nome: 'Microsoft OneDrive',
+          acesso: 'Criar, ler, atualizar e excluir o arquivo de backup na pasta exclusiva do aplicativo no seu OneDrive.',
+          limite: 'Também solicitamos a identificação básica da conta Microsoft para concluir a conexão. Não solicitamos acesso aos outros arquivos do seu OneDrive, nem a contatos ou arquivos compartilhados.'
+        }
+      }[servico];
+      if (!permissoes || !cloudPermissionDialog) return Promise.resolve(true);
+      cloudPermissionService.textContent = permissoes.nome;
+      cloudPermissionServiceCopy.textContent = permissoes.nome;
+      cloudPermissionScope.textContent = permissoes.acesso;
+      cloudPermissionLimits.textContent = permissoes.limite;
+      return new Promise(function (resolve) {
+        cloudPermissionDialog.addEventListener('close', function aoFechar() {
+          cloudPermissionDialog.removeEventListener('close', aoFechar);
+          resolve(cloudPermissionDialog.returnValue === 'continue');
+        });
+        cloudPermissionDialog.showModal();
+      });
+    }
+
+    if (btnSyncGoogleDrive) btnSyncGoogleDrive.addEventListener('click', async function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        if (!await confirmarPermissaoNuvem('google')) return;
+        await obterTokenGoogleDrive(true);
+        CL.api.saveBackupSettings({ googleDriveConnected: true });
+        marcarDestinoDoBotao(btnSyncGoogleDrive);
+        atualizarBotaoDestino(btnSyncGoogleDrive, 'Sincronizado', true);
+        atualizarEstadoSincronizacao();
+      } catch (error) {
+        window.alert('Não foi possível entrar na conta do Google Drive. Verifique as permissões e tente novamente.');
+      }
+    });
+
+    if (btnSyncOneDrive) btnSyncOneDrive.addEventListener('click', async function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        if (!await confirmarPermissaoNuvem('microsoft')) return;
+        await obterTokenOneDrive(true);
+        CL.api.saveBackupSettings({ oneDriveConnected: true });
+        marcarDestinoDoBotao(btnSyncOneDrive);
+        atualizarBotaoDestino(btnSyncOneDrive, 'Sincronizado', true);
+        atualizarEstadoSincronizacao();
+      } catch (error) {
+        window.alert(mensagemErroOneDrive(error));
+      }
+    });
+
+    if (backupSettingsForm) {
+      backupSettingsForm.querySelectorAll('input[name="destinations"]').forEach(function (campo) {
+        campo.addEventListener('change', function () {
+          if (!campo.checked && (campo.value === 'drive' || campo.value === 'onedrive')) {
+            const nome = campo.value === 'drive' ? 'Google Drive' : 'OneDrive';
+            if (!window.confirm('Tem certeza que deseja desabilitar a sincronização com ' + nome + '? Os backups existentes não serão apagados.')) {
+              campo.checked = true;
+              return;
+            }
+          }
+          atualizarEstadoLocalBackup();
+          atualizarEstadoSincronizacao();
+        });
+      });
+      backupSettingsForm.addEventListener('change', atualizarEstadoBotaoSalvarBackup);
+    }
+
+    function confirmarERestaurar(backup, origem, criarCopia, conflito) {
+      if (!backup) return window.alert('Nenhum backup foi encontrado em ' + origem + '.');
+      if (conflito === 'newest') {
+        const atual = CL.api._studyIndex && CL.api._studyIndex();
+        const dataAtual = atual && atual.updatedAt ? new Date(atual.updatedAt).getTime() : 0;
+        const dataBackup = backup.index && backup.index.updatedAt ? new Date(backup.index.updatedAt).getTime() : 0;
+        if (dataAtual && dataBackup && dataAtual >= dataBackup) return window.alert('O progresso atual é o mais recente; nenhuma restauração foi feita.');
+      }
+      const dataBackup = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString('pt-BR') : 'data não informada';
+      if (!window.confirm('Restaurar o backup de ' + origem + ' (' + dataBackup + ') substituirá o progresso atual. Continuar?')) return;
+      if (criarCopia) CL.api.saveLocalBackup();
+      CL.api.importStudyData(backup);
+      window.location.reload();
+    }
+
+    function atualizarVersoesDeRestauracao() {
+      const usarLocal = restoreBackupSource && restoreBackupSource.value === 'local';
+      if (restoreBackupVersionRow) restoreBackupVersionRow.hidden = !usarLocal;
+      if (!usarLocal || !restoreBackupVersion) return;
+      const versoes = CL.api.getLocalBackupVersions ? CL.api.getLocalBackupVersions() : [];
+      restoreBackupVersion.innerHTML = versoes.map(function (backup, indice) {
+        const data = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString('pt-BR') : 'sem data';
+        return '<option value="' + indice + '">Versão ' + (indice + 1) + ' — ' + data + '</option>';
+      }).join('') || '<option value="0">Nenhuma versão disponível</option>';
+    }
+
+    if (btnBackupMenu && backupMenuOptions) {
+      btnBackupMenu.addEventListener('click', function () {
+        const aberto = !backupMenuOptions.hidden;
+        backupMenuOptions.hidden = aberto;
+        btnBackupMenu.setAttribute('aria-expanded', String(!aberto));
+      });
+      document.addEventListener('click', function (event) {
+        if (!event.target.closest('.backup-menu')) fecharMenuBackup();
+      });
+    }
+    if (btnBackupNow) btnBackupNow.addEventListener('click', function () {
+      const concluir = function () { fazerBackup().catch(function (error) { window.alert(error.message); }); };
+      if (typeof window.salvarRascunhoAtualDaIde === 'function') window.salvarRascunhoAtualDaIde().then(concluir);
+      else concluir();
+    });
+    if (btnRestoreBackup) btnRestoreBackup.addEventListener('click', function () {
+      const settings = CL.api.getBackupSettings();
+      const destinations = settings.destinations || [];
+      fecharMenuBackup();
+      if (restoreBackupDialog && restoreBackupSource) {
+        const nomes = { computer: 'Computador (arquivo .json)', local: 'LocalStorage deste navegador', drive: 'Google Drive (privado do app)', onedrive: 'OneDrive' };
+        restoreBackupSource.innerHTML = destinations.map(function (destino) { return '<option value="' + destino + '">' + nomes[destino] + '</option>'; }).join('');
+        if (!destinations.length) return window.alert('Escolha ao menos um local de backup nas configurações.');
+        atualizarVersoesDeRestauracao();
+        restoreBackupDialog.showModal();
+        return;
+      }
+      if (destinations.includes('local')) {
+        const backup = CL.api.getLocalBackup();
+        if (!backup) return window.alert('Nenhum backup local foi encontrado.');
+        if (window.confirm('Restaurar o backup local substituirá o progresso atual. Continuar?')) { CL.api.importStudyData(backup); window.location.reload(); }
+      } else if (destinations.includes('computer')) importarArquivoDeBackup();
+      else if (destinations.includes('drive')) {
+        restaurarBackupGoogleDrive().then(function (backup) {
+          if (window.confirm('Restaurar o backup do Google Drive substituirá o progresso atual. Continuar?')) { CL.api.importStudyData(backup); window.location.reload(); }
+        }).catch(function (error) { window.alert(error.message); });
+      } else if (destinations.includes('onedrive')) {
+        restaurarBackupOneDrive().then(function (backup) {
+          if (window.confirm('Restaurar o backup do OneDrive substituirá o progresso atual. Continuar?')) { CL.api.importStudyData(backup); window.location.reload(); }
+        }).catch(function (error) { window.alert(error.message); });
+      } else window.alert('Escolha um local de backup nas configurações.');
+    });
+
+    function mostrarErroConfiguracaoBackup(mensagem) {
+      if (!backupStatus) return;
+      backupStatus.textContent = mensagem;
+      backupStatus.classList.add('is-error');
+    }
+
+    function validarConfiguracaoBackup() {
+      const formData = new FormData(backupSettingsForm);
+      const destinations = formData.getAll('destinations');
+      if (!destinations.includes('local')) destinations.push('local');
+      if (!destinations.length) {
+        mostrarErroConfiguracaoBackup('Selecione pelo menos um destino de backup.');
+        return false;
+      }
+      if (!formData.get('schedule')) {
+        mostrarErroConfiguracaoBackup('Selecione uma opção de frequência.');
+        return false;
+      }
+      if (!formData.get('mode')) {
+        mostrarErroConfiguracaoBackup('Selecione um tipo de atualização.');
+        return false;
+      }
+      if (destinations.includes('computer') && !pastaBackupSelecionada) {
+        mostrarErroConfiguracaoBackup('Escolha uma pasta para concluir a configuração do backup no computador.');
+        atualizarEstadoLocalBackup();
+        return false;
+      }
+      const settings = CL.api.getBackupSettings();
+      if (destinations.includes('drive') && !settings.googleDriveConnected) {
+        mostrarErroConfiguracaoBackup('Conclua a sincronização com o Google Drive antes de salvar.');
+        atualizarEstadoSincronizacao();
+        return false;
+      }
+      if (destinations.includes('onedrive') && !settings.oneDriveConnected) {
+        mostrarErroConfiguracaoBackup('Conclua a sincronização com o OneDrive antes de salvar.');
+        atualizarEstadoSincronizacao();
+        return false;
+      }
+      backupStatus.classList.remove('is-error');
+      return true;
+    }
+
+    if (btnBackupSettings && backupSettingsDialog) btnBackupSettings.addEventListener('click', function () {
+      fecharMenuBackup();
+      const theoryPane = document.querySelector('.theory-pane');
+      if (theoryPane) {
+        const larguraDisponivel = Math.max(0, window.innerWidth - 32);
+        const dimensoesPainel = theoryPane.getBoundingClientRect();
+        const plataforma = document.querySelector('.learning-platform-root');
+        const alturaPlataforma = plataforma ? plataforma.getBoundingClientRect().height : window.innerHeight;
+        const larguraPainel = Math.min(dimensoesPainel.width, larguraDisponivel);
+        const alturaPainel = Math.min(alturaPlataforma, window.innerHeight);
+        backupSettingsDialog.style.setProperty('--backup-dialog-width', larguraPainel + 'px');
+        backupSettingsDialog.style.setProperty('--backup-dialog-height', alturaPainel + 'px');
+      }
+      const settings = CL.api.getBackupSettings();
+      Object.keys(settings).forEach(function (key) {
+        const field = backupSettingsForm.querySelector('[name="' + key + '"][value="' + settings[key] + '"]');
+        if (field) field.checked = true;
+      });
+      backupSettingsForm.querySelectorAll('[name="destinations"]').forEach(function (field) {
+        field.checked = settings.destinations.includes(field.value);
+      });
+      atualizarEstadoBotaoSalvarBackup();
+      atualizarAcoesDestino();
+      atualizarStatusBackup();
+      backupSettingsDialog.showModal();
+    });
+
+    if (backupSettingsForm) backupSettingsForm.addEventListener('submit', function (event) {
+      const valor = event.submitter && event.submitter.value;
+      const settings = CL.api.getBackupSettings();
+      if (valor !== 'cancel' && !validarConfiguracaoBackup()) {
+        event.preventDefault();
+        return;
+      }
+      if (valor === 'cancel' && !settings.configurationCompleted) {
+        event.preventDefault();
+        mostrarErroConfiguracaoBackup('Conclua e salve as opções obrigatórias antes de sair.');
+      }
+    });
+
+    if (backupSettingsDialog) backupSettingsDialog.addEventListener('cancel', function (event) {
+      if (!CL.api.getBackupSettings().configurationCompleted) {
+        event.preventDefault();
+        mostrarErroConfiguracaoBackup('Conclua e salve as opções obrigatórias antes de sair.');
+      }
+    });
+
+    if (backupSettingsDialog) backupSettingsDialog.addEventListener('close', function () {
+      if (backupSettingsDialog.returnValue !== 'save') return;
+      const formData = new FormData(backupSettingsForm);
+      const destinations = formData.getAll('destinations');
+      if (!destinations.includes('local')) destinations.push('local');
+      if (!destinations.length) return window.alert('Escolha ao menos um local para o backup.');
+      CL.api.saveBackupSettings({ destinations: destinations, schedule: formData.get('schedule'), mode: formData.get('mode'), retentionCount: Number(formData.get('retentionCount')) || 1, configurationCompleted: true });
+      atualizarStatusBackup();
+    });
+    if (btnTestBackupConnection) btnTestBackupConnection.addEventListener('click', testarConexoesBackup);
+
+    function chaveAvisoBackup() {
+      const uid = CL.state && CL.state.user && CL.state.user.uid ? CL.state.user.uid : 'usuario';
+      return 'backupReminderDismissed:' + uid;
+    }
+
+    function abrirAvisoBackupSeNecessario() {
+      if (!backupReminderDialog || typeof backupReminderDialog.showModal !== 'function') return;
+      const dispensado = CL.storage && typeof CL.storage.get === 'function'
+        ? CL.storage.get(chaveAvisoBackup(), false)
+        : false;
+      if (!dispensado && !backupReminderDialog.open) backupReminderDialog.showModal();
+    }
+
+    if (backupReminderDialog) {
+      backupReminderDialog.addEventListener('close', function () {
+        if (backupReminderDismiss && backupReminderDismiss.checked && CL.storage && typeof CL.storage.set === 'function') {
+          CL.storage.set(chaveAvisoBackup(), true);
         }
       });
     }
 
-    if (btnImportProgress && inputImportProgress) {
-      btnImportProgress.addEventListener('click', function () { inputImportProgress.click(); });
-      inputImportProgress.addEventListener('change', function () {
-        const file = inputImportProgress.files && inputImportProgress.files[0];
-        inputImportProgress.value = '';
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function () {
-          try {
-            const data = JSON.parse(reader.result);
-            if (!window.confirm('Importar este progresso substituirá os dados salvos neste navegador. Continuar?')) return;
-            CL.api.importStudyData(data);
-            window.location.reload();
-          } catch (error) {
-            window.alert('Não foi possível importar este arquivo de progresso.');
-          }
-        };
-        reader.readAsText(file);
+    if (btnReminderConfigureBackup) {
+      btnReminderConfigureBackup.addEventListener('click', function () {
+        if (backupReminderDialog && backupReminderDialog.open) backupReminderDialog.close('configure');
+        setTimeout(function () {
+          if (btnBackupSettings) btnBackupSettings.click();
+        }, 0);
       });
     }
+
+    let criarCopiaAntesRestaurar = true;
+    if (restoreBackupDialog) restoreBackupDialog.addEventListener('close', function () {
+      if (restoreBackupDialog.returnValue !== 'restore') return;
+      const origem = restoreBackupSource.value;
+      criarCopiaAntesRestaurar = restoreBackupForm.elements.backupBeforeRestore.checked;
+      const conflito = restoreBackupForm.elements.conflict.value;
+      if (origem === 'computer') return importarArquivoDeBackup();
+      if (origem === 'local') {
+        const versoes = CL.api.getLocalBackupVersions ? CL.api.getLocalBackupVersions() : [];
+        return confirmarERestaurar(versoes[Number(restoreBackupVersion.value)] || CL.api.getLocalBackup(), 'LocalStorage', criarCopiaAntesRestaurar, conflito);
+      }
+      const leitura = origem === 'drive' ? restaurarBackupGoogleDrive() : restaurarBackupOneDrive();
+      const nome = origem === 'drive' ? 'Google Drive' : 'OneDrive';
+      leitura.then(function (backup) { confirmarERestaurar(backup, nome, criarCopiaAntesRestaurar, conflito); }).catch(function (error) { window.alert(error.message); });
+    });
+    if (restoreBackupSource) restoreBackupSource.addEventListener('change', atualizarVersoesDeRestauracao);
+    if (inputImportProgress) inputImportProgress.addEventListener('change', function () {
+      const file = inputImportProgress.files && inputImportProgress.files[0];
+      inputImportProgress.value = '';
+      if (!file) return;
+      const LIMITE_BACKUP_BYTES = 5 * 1024 * 1024;
+      if (file.size > LIMITE_BACKUP_BYTES) return window.alert('Este arquivo é maior que 5 MB e foi bloqueado por segurança.');
+      if (file.type && file.type !== 'application/json' && !file.name.toLowerCase().endsWith('.json')) return window.alert('Escolha apenas um arquivo de backup .json do Coding Loop.');
+      const reader = new FileReader();
+      reader.onload = function () {
+        try {
+          const backup = JSON.parse(reader.result);
+          if (!CL.api.validateStudyData || !CL.api.validateStudyData(backup)) throw new Error('Arquivo inválido');
+          confirmarERestaurar(backup, 'Computador', criarCopiaAntesRestaurar, restoreBackupForm ? restoreBackupForm.elements.conflict.value : 'replace');
+        } catch (error) { window.alert('Não foi possível importar este arquivo de progresso.'); }
+      };
+      reader.readAsText(file);
+    });
+
+    function executarBackupAgendado() {
+      const settings = CL.api.getBackupSettings();
+      if (!(settings.destinations || []).includes('local')) return;
+      const agora = Date.now();
+      const ultimo = settings.lastBackupAt ? new Date(settings.lastBackupAt).getTime() : 0;
+      const intervalo = settings.schedule === 'weekly' ? 7 * 24 * 60 * 60 * 1000 : settings.schedule === 'monthly' ? 30 * 24 * 60 * 60 * 1000 : 0;
+      if (intervalo && agora - ultimo >= intervalo) CL.api.saveLocalBackup();
+    }
+    executarBackupAgendado();
+    window.addEventListener('pagehide', function () {
+      const settings = CL.api.getBackupSettings();
+      if (settings.schedule === 'exit' && (settings.destinations || []).includes('local')) CL.api.saveLocalBackup();
+    });
 
     window.salvarCodigoDoAluno = function (codigo) {
       const chave = chaveEtapa(getModuloAtual().id, currentStep);
@@ -541,6 +1218,7 @@
     aplicarModuloDaUrl();
     renderEtapas();
     updateStepsUI();
+    setTimeout(abrirAvisoBackupSeNecessario, 350);
   } // fim de iniciarTeoria
   // Chamada pelo bootIde() (rodapé deste arquivo) só depois que o Ace
   // (window.ace) estiver carregado E os dados do Firestore já tiverem
@@ -565,9 +1243,15 @@
         var previewContainer = document.getElementById('preview-container');
         var btnPreviewLayout = document.getElementById('btn-preview-layout');
         var btnPreviewMaximize = document.getElementById('btn-preview-maximize');
+        var btnPreviewTheme = document.getElementById('btn-preview-theme');
         var iconPreviewMax = document.getElementById('icon-preview-max');
         var iconPreviewRestore = document.getElementById('icon-preview-restore');
+        var iconPreviewThemeLight = document.getElementById('icon-preview-theme-light');
+        var iconPreviewThemeDark = document.getElementById('icon-preview-theme-dark');
+        var previewSplitResizer = document.getElementById('preview-split-resizer');
         var btnRun = document.getElementById('btn-run');
+        var btnUndo = document.getElementById('btn-undo');
+        var btnRedo = document.getElementById('btn-redo');
         var btnImportFile = document.getElementById('btn-import-file');
         var btnExportFile = document.getElementById('btn-export-file');
         var exportCodeDialog = document.getElementById('export-code-dialog');
@@ -592,6 +1276,164 @@
 
         var prefPreviewVertical = true;
         var prefPreviewMaximized = false;
+        var previewTemaEscuro = false;
+
+        function obterPaineisVisiveis() {
+          return Array.prototype.slice.call(editorsContainer.querySelectorAll('.tab-pane.show-pane'));
+        }
+
+        function limparTamanhosDosPaineis() {
+          [editorsContainer, previewContainer].concat(obterPaineisVisiveis()).forEach(function (painel) {
+            painel.style.flex = '';
+          });
+        }
+
+        function configurarRedimensionadores() {
+          var paineis = obterPaineisVisiveis();
+          var modoLateral = contentWrapper.classList.contains('preview-vertical') &&
+            previewContainer.classList.contains('show-preview');
+          var comPreview = previewContainer.classList.contains('show-preview');
+          var divisores = Array.prototype.slice.call(editorsContainer.querySelectorAll('.editor-split-resizer'));
+
+          divisores.forEach(function (divisor) {
+            divisor.classList.remove('is-visible');
+            divisor.removeAttribute('data-before');
+            divisor.removeAttribute('data-after');
+            divisor.tabIndex = -1;
+          });
+
+          if (previewSplitResizer) {
+            var mostrarDivisorPreview = comPreview && !modoLateral && !prefPreviewMaximized;
+            previewSplitResizer.classList.toggle('is-visible', mostrarDivisorPreview);
+            previewSplitResizer.tabIndex = mostrarDivisorPreview ? 0 : -1;
+            previewSplitResizer.setAttribute('data-before', 'editors-container');
+            previewSplitResizer.setAttribute('data-after', 'preview-container');
+          }
+
+          if (prefPreviewMaximized) return;
+          paineis.forEach(function (painel, indice) {
+            var divisor = divisores[indice];
+            if (!divisor) return;
+            var proximoPainel = paineis[indice + 1] || (modoLateral && comPreview ? previewContainer : null);
+            if (!proximoPainel) return;
+            painel.after(divisor);
+            divisor.setAttribute('data-before', painel.id);
+            divisor.setAttribute('data-after', proximoPainel.id);
+            divisor.setAttribute('aria-label', 'Redimensionar ' + nomeDoPainel(painel) + ' e ' + nomeDoPainel(proximoPainel));
+            divisor.setAttribute('aria-valuenow', '50');
+            divisor.tabIndex = 0;
+            divisor.classList.add('is-visible');
+          });
+        }
+
+        function nomeDoPainel(painel) {
+          var nomes = {
+            'html-pane': 'HTML',
+            'css-pane': 'CSS',
+            'js-pane': 'JavaScript',
+            'preview-container': 'Preview',
+            'editors-container': 'editores'
+          };
+          return nomes[painel && painel.id] || 'painéis';
+        }
+
+        function elementosDoDivisor(divisor) {
+          return {
+            antes: document.getElementById(divisor.getAttribute('data-before')),
+            depois: document.getElementById(divisor.getAttribute('data-after'))
+          };
+        }
+
+        function aplicarTamanhoAoPar(divisor, antes, depois, eixo, novoAntes) {
+          if (!antes || !depois) return;
+          var tamanhoAntes = eixo === 'x' ? antes.getBoundingClientRect().width : antes.getBoundingClientRect().height;
+          var tamanhoDepois = eixo === 'x' ? depois.getBoundingClientRect().width : depois.getBoundingClientRect().height;
+          var total = tamanhoAntes + tamanhoDepois;
+          var minimo = Math.min(140, total * 0.42);
+          var tamanhoLimitado = Math.max(minimo, Math.min(novoAntes, total - minimo));
+          var novoDepois = total - tamanhoLimitado;
+          antes.style.flex = '0 0 ' + tamanhoLimitado + 'px';
+          depois.style.flex = '0 0 ' + novoDepois + 'px';
+          divisor.setAttribute('aria-valuenow', String(Math.round((tamanhoLimitado / total) * 100)));
+          redimensionarEditores();
+        }
+
+        function iniciarRedimensionamento(divisor, antes, depois, eixo, evento) {
+          if (!antes || !depois) return;
+          var inicio = eixo === 'x' ? evento.clientX : evento.clientY;
+          var tamanhoAntes = eixo === 'x' ? antes.getBoundingClientRect().width : antes.getBoundingClientRect().height;
+          divisor.classList.add('is-dragging');
+          document.body.style.userSelect = 'none';
+          document.body.style.cursor = eixo === 'x' ? 'col-resize' : 'row-resize';
+          if (divisor.setPointerCapture) divisor.setPointerCapture(evento.pointerId);
+
+          function mover(e) {
+            var delta = (eixo === 'x' ? e.clientX : e.clientY) - inicio;
+            aplicarTamanhoAoPar(divisor, antes, depois, eixo, tamanhoAntes + delta);
+          }
+
+          function finalizar() {
+            divisor.classList.remove('is-dragging');
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+            window.removeEventListener('pointermove', mover);
+            window.removeEventListener('pointerup', finalizar);
+            window.removeEventListener('pointercancel', finalizar);
+          }
+
+          window.addEventListener('pointermove', mover);
+          window.addEventListener('pointerup', finalizar);
+          window.addEventListener('pointercancel', finalizar);
+          evento.preventDefault();
+        }
+
+        function eixoDoDivisor(divisor) {
+          return divisor.getAttribute('aria-orientation') === 'horizontal' ? 'y' : 'x';
+        }
+
+        function controlarDivisorPeloTeclado(divisor, evento) {
+          var paineis = elementosDoDivisor(divisor);
+          if (!paineis.antes || !paineis.depois) return;
+          var eixo = eixoDoDivisor(divisor);
+          var tamanhoAtual = eixo === 'x' ? paineis.antes.getBoundingClientRect().width : paineis.antes.getBoundingClientRect().height;
+          var passo = evento.shiftKey ? 64 : 24;
+          var delta = 0;
+          if ((eixo === 'x' && evento.key === 'ArrowLeft') || (eixo === 'y' && evento.key === 'ArrowUp')) delta = -passo;
+          if ((eixo === 'x' && evento.key === 'ArrowRight') || (eixo === 'y' && evento.key === 'ArrowDown')) delta = passo;
+          if (evento.key === 'Home') aplicarTamanhoAoPar(divisor, paineis.antes, paineis.depois, eixo, 0);
+          else if (evento.key === 'End') aplicarTamanhoAoPar(divisor, paineis.antes, paineis.depois, eixo, Number.MAX_SAFE_INTEGER);
+          else if (delta) aplicarTamanhoAoPar(divisor, paineis.antes, paineis.depois, eixo, tamanhoAtual + delta);
+          else return;
+          evento.preventDefault();
+        }
+
+        function restaurarDivisor(divisor) {
+          var paineis = elementosDoDivisor(divisor);
+          if (!paineis.antes || !paineis.depois) return;
+          var eixo = eixoDoDivisor(divisor);
+          var total = eixo === 'x'
+            ? paineis.antes.getBoundingClientRect().width + paineis.depois.getBoundingClientRect().width
+            : paineis.antes.getBoundingClientRect().height + paineis.depois.getBoundingClientRect().height;
+          aplicarTamanhoAoPar(divisor, paineis.antes, paineis.depois, eixo, total / 2);
+        }
+
+        Array.prototype.slice.call(editorsContainer.querySelectorAll('.editor-split-resizer')).forEach(function (divisor) {
+          divisor.addEventListener('pointerdown', function (evento) {
+            var paineis = elementosDoDivisor(divisor);
+            iniciarRedimensionamento(divisor, paineis.antes, paineis.depois, 'x', evento);
+          });
+          divisor.addEventListener('keydown', function (evento) { controlarDivisorPeloTeclado(divisor, evento); });
+          divisor.addEventListener('dblclick', function () { restaurarDivisor(divisor); });
+        });
+
+        if (previewSplitResizer) {
+          previewSplitResizer.addEventListener('pointerdown', function (evento) {
+            var paineis = elementosDoDivisor(previewSplitResizer);
+            iniciarRedimensionamento(previewSplitResizer, paineis.antes, paineis.depois, 'y', evento);
+          });
+          previewSplitResizer.addEventListener('keydown', function (evento) { controlarDivisorPeloTeclado(previewSplitResizer, evento); });
+          previewSplitResizer.addEventListener('dblclick', function () { restaurarDivisor(previewSplitResizer); });
+        }
 
         function atualizarAlturaReal() {
           var altura = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
@@ -617,6 +1459,44 @@
         htmlEditor = criarEditor('html-editor', 'ace/mode/html', codigoInicial.html || '');
         cssEditor = criarEditor('css-editor', 'ace/mode/css', codigoInicial.css || '');
         jsEditor = criarEditor('js-editor', 'ace/mode/javascript', codigoInicial.js || '');
+
+        // Os controles agem sobre o último editor que recebeu foco. Assim,
+        // continuam previsíveis mesmo quando mais de uma aba está visível.
+        var editorAtivoParaHistorico = htmlEditor;
+        function atualizarControlesHistorico() {
+          if (!editorAtivoParaHistorico) return;
+          var historico = editorAtivoParaHistorico.session.getUndoManager();
+          if (btnUndo) btnUndo.disabled = !historico.hasUndo();
+          if (btnRedo) btnRedo.disabled = !historico.hasRedo();
+        }
+
+        [htmlEditor, cssEditor, jsEditor].forEach(function (editor) {
+          editor.on('focus', function () {
+            editorAtivoParaHistorico = editor;
+            atualizarControlesHistorico();
+          });
+          editor.session.on('change', atualizarControlesHistorico);
+        });
+
+        if (btnUndo) {
+          btnUndo.addEventListener('click', function () {
+            if (!editorAtivoParaHistorico) return;
+            editorAtivoParaHistorico.undo();
+            editorAtivoParaHistorico.focus();
+            atualizarControlesHistorico();
+          });
+        }
+
+        if (btnRedo) {
+          btnRedo.addEventListener('click', function () {
+            if (!editorAtivoParaHistorico) return;
+            editorAtivoParaHistorico.redo();
+            editorAtivoParaHistorico.focus();
+            atualizarControlesHistorico();
+          });
+        }
+
+        atualizarControlesHistorico();
 
         window.addEventListener('theme:mudou', function (event) {
           var themeAce = event.detail === 'solarized-light' ? 'ace/theme/solarized_light' : 'ace/theme/solarized_dark';
@@ -687,7 +1567,10 @@
         function salvarRascunhoAtual() {
           cancelarSalvamentoAutomatico();
           return salvarCodigoAgora().then(function (salvou) {
-            if (salvou) marcarComoSalvo();
+            if (salvou) {
+              marcarComoSalvo();
+              agendarSincronizacaoNuvem();
+            }
             return salvou;
           }).catch(function () {
             marcarComoNaoSalvo();
@@ -1106,6 +1989,9 @@
           var html = htmlEditor.getValue();
           var css = cssEditor.getValue();
           var js = escaparFechamentoScript(jsEditor.getValue());
+          var estiloTemaPreview = previewTemaEscuro
+            ? 'html, body { min-height: 100%; background-color: #002b36 !important; color: #fdf6e3 !important; color-scheme: dark; } body > * { background-color: #002b36 !important; color: #fdf6e3 !important; }'
+            : 'html, body { min-height: 100%; background-color: #ffffff !important; color: #1f2933 !important; color-scheme: light; } body > * { background-color: #ffffff !important; color: #1f2933 !important; }';
 
           var handlerErros =
             'window.addEventListener("error", function (e) {\n' +
@@ -1118,7 +2004,7 @@
             '  } catch (err) {}\n' +
             '});\n';
 
-          var prefixo = '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<style>\n' + css + '\nbody { margin-top: 0 !important; padding-top: 0 !important; }\n</style>\n</head>\n<body>\n' + html + '\n<script>\n' + handlerErros;
+          var prefixo = '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<style>\n' + css + '\nbody { margin: 0 !important; padding: 0 0 0 6px !important; }\n' + estiloTemaPreview + '\n</style>\n</head>\n<body>\n' + html + '\n<script>\n' + handlerErros;
 
           offsetLinhaJSNoPreview = prefixo.split('\n').length - 1;
 
@@ -1134,6 +2020,7 @@
 
         function renderizarPreview() {
           removerIframePreview();
+          previewContainer.classList.toggle('preview-area--dark', previewTemaEscuro);
 
           clearTimeout(timeoutErrosExecucao);
           timeoutErrosExecucao = null;
@@ -1144,6 +2031,7 @@
 
           var novoIframe = document.createElement('iframe');
           novoIframe.className = 'preview-iframe';
+          novoIframe.classList.toggle('preview-iframe--dark', previewTemaEscuro);
           novoIframe.id = 'preview-output';
           novoIframe.title = 'Preview do código';
           novoIframe.setAttribute('sandbox', 'allow-scripts');
@@ -1255,6 +2143,8 @@
           alternarIcones(iconPreviewMax, iconPreviewRestore, prefPreviewMaximized);
 
           renderizarPreview();
+          limparTamanhosDosPaineis();
+          configurarRedimensionadores();
           setTimeout(redimensionarEditores, 50);
         }
 
@@ -1272,6 +2162,8 @@
           btnPreviewMaximize.setAttribute('aria-pressed', 'false');
           btnPreviewLayout.classList.remove('is-active');
           btnPreviewLayout.setAttribute('aria-pressed', 'false');
+          limparTamanhosDosPaineis();
+          configurarRedimensionadores();
           setTimeout(redimensionarEditores, 50);
         }
 
@@ -1318,6 +2210,8 @@
 
           contentWrapper.classList.toggle('no-tabs-active', idsAtivos.length === 0);
 
+          limparTamanhosDosPaineis();
+          configurarRedimensionadores();
           setTimeout(redimensionarEditores, 50);
         }
 
@@ -1501,6 +2395,8 @@
           btnPreviewLayout.classList.toggle('is-active', vertical);
           btnPreviewLayout.setAttribute('aria-pressed', String(vertical));
 
+          limparTamanhosDosPaineis();
+          configurarRedimensionadores();
           setTimeout(redimensionarEditores, 150);
         });
 
@@ -1512,8 +2408,22 @@
           btnPreviewMaximize.setAttribute('aria-pressed', String(maximizado));
           alternarIcones(iconPreviewMax, iconPreviewRestore, maximizado);
 
+          limparTamanhosDosPaineis();
+          configurarRedimensionadores();
           setTimeout(redimensionarEditores, 150);
         });
+
+        if (btnPreviewTheme) {
+          btnPreviewTheme.addEventListener('click', function () {
+            previewTemaEscuro = !previewTemaEscuro;
+            btnPreviewTheme.classList.toggle('is-active', previewTemaEscuro);
+            btnPreviewTheme.setAttribute('aria-pressed', String(previewTemaEscuro));
+            btnPreviewTheme.title = previewTemaEscuro ? 'Tema Claro do Preview' : 'Tema Escuro do Preview';
+            btnPreviewTheme.setAttribute('aria-label', btnPreviewTheme.title);
+            alternarIcones(iconPreviewThemeLight, iconPreviewThemeDark, previewTemaEscuro);
+            if (previewContainer.classList.contains('show-preview')) renderizarPreview();
+          });
+        }
 
         dragContainer.addEventListener('dragstart', function (e) {
           var aba = e.target.closest('.code-tab[draggable="true"]');
@@ -1667,59 +2577,75 @@
 
       var MIN_THEORY = 260;
       var MIN_IDE = 300;
-
+      var DEFAULT_RATIO = 1 / 3;
+      var ratioAtual = DEFAULT_RATIO;
       var arrastando = false;
       var vertical = false;
       var frameAgendado = null;
 
-      function posicionarResizer() {
+      function atualizarOrientacao() {
         vertical = getComputedStyle(root).flexDirection === 'column';
+        resizer.setAttribute('aria-orientation', vertical ? 'horizontal' : 'vertical');
+        resizer.style.cursor = vertical ? 'row-resize' : 'col-resize';
+      }
+
+      function limites(total) {
+        var minimoTeoria = Math.min(MIN_THEORY, total * 0.45);
+        var minimoIde = Math.min(MIN_IDE, total * 0.45);
+        return { min: minimoTeoria, max: Math.max(minimoTeoria, total - minimoIde) };
+      }
+
+      function posicionarResizer() {
+        atualizarOrientacao();
+        var tamanhoTeoria = vertical
+          ? theoryPane.getBoundingClientRect().height
+          : theoryPane.getBoundingClientRect().width;
         if (vertical) {
-          resizer.style.left = '';
-          resizer.style.top = theoryPane.getBoundingClientRect().height + 'px';
+          resizer.style.left = '0';
+          resizer.style.top = tamanhoTeoria + 'px';
         } else {
-          resizer.style.top = '';
-          resizer.style.left = theoryPane.getBoundingClientRect().width + 'px';
+          resizer.style.top = '0';
+          resizer.style.left = tamanhoTeoria + 'px';
         }
       }
 
-      function aplicarTamanho(px) {
-        theoryPane.style.flexGrow = '0';
-        theoryPane.style.flexShrink = '0';
-        theoryPane.style.flexBasis = px + 'px';
-        theoryPane.style.minWidth = '0';
-        theoryPane.style.maxWidth = 'none';
-        theoryPane.style.width = vertical ? '' : px + 'px';
-        theoryPane.style.height = vertical ? px + 'px' : '';
+      function aplicarTamanho(px, atualizarRatio) {
+        atualizarOrientacao();
+        var rect = root.getBoundingClientRect();
+        var total = vertical ? rect.height : rect.width;
+        if (!total) return;
+        var faixa = limites(total);
+        var tamanhoTeoria = Math.round(Math.max(faixa.min, Math.min(px, faixa.max)));
+        var tamanhoIde = Math.max(0, total - tamanhoTeoria);
 
+        theoryPane.style.flex = '0 0 ' + tamanhoTeoria + 'px';
+        idePane.style.flex = '0 0 ' + tamanhoIde + 'px';
+        theoryPane.style.minWidth = '0';
+        theoryPane.style.minHeight = '0';
+        idePane.style.minWidth = '0';
+        idePane.style.minHeight = '0';
+        theoryPane.style.maxWidth = vertical ? '' : 'none';
+        theoryPane.style.width = vertical ? '100%' : tamanhoTeoria + 'px';
+        theoryPane.style.height = vertical ? tamanhoTeoria + 'px' : '100%';
+        idePane.style.width = vertical ? '100%' : tamanhoIde + 'px';
+        idePane.style.height = vertical ? tamanhoIde + 'px' : '100%';
+
+        if (atualizarRatio !== false) ratioAtual = tamanhoTeoria / total;
+        resizer.setAttribute('aria-valuenow', String(Math.round(ratioAtual * 100)));
         posicionarResizer();
         window.dispatchEvent(new Event('ide:resize'));
       }
 
-      function calcularPosicao(clientX, clientY) {
+      function tamanhoPeloPonteiro(clientX, clientY) {
         var rect = root.getBoundingClientRect();
-        var total = vertical ? rect.height : rect.width;
-        var pos = vertical ? (clientY - rect.top) : (clientX - rect.left);
-        // O resizer é sobreposto à borda e não ocupa espaço no layout.
-        var maxTheory = total - MIN_IDE;
-        return Math.max(MIN_THEORY, Math.min(pos, maxTheory));
+        return vertical ? clientY - rect.top : clientX - rect.left;
       }
 
-      function iniciarArraste(clientX, clientY) {
-        if (root.classList.contains('ide-recolhido')) return;
-        arrastando = true;
-        vertical = getComputedStyle(root).flexDirection === 'column';
-        resizer.classList.add('is-dragging');
-        document.body.style.userSelect = 'none';
-        document.body.style.cursor = vertical ? 'row-resize' : 'col-resize';
-      }
-
-      function moverArraste(clientX, clientY) {
-        if (!arrastando) return;
-        if (frameAgendado) return;
+      function agendarTamanho(px) {
+        if (frameAgendado) cancelAnimationFrame(frameAgendado);
         frameAgendado = requestAnimationFrame(function () {
           frameAgendado = null;
-          aplicarTamanho(calcularPosicao(clientX, clientY));
+          aplicarTamanho(px);
         });
       }
 
@@ -1727,37 +2653,55 @@
         if (!arrastando) return;
         arrastando = false;
         resizer.classList.remove('is-dragging');
+        root.classList.remove('is-resizing-panels');
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
       }
 
-      resizer.addEventListener('mousedown', function (e) {
-        iniciarArraste(e.clientX, e.clientY);
-        e.preventDefault();
+      resizer.addEventListener('pointerdown', function (event) {
+        if (root.classList.contains('ide-recolhido')) return;
+        atualizarOrientacao();
+        arrastando = true;
+        resizer.classList.add('is-dragging');
+        root.classList.add('is-resizing-panels');
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = vertical ? 'row-resize' : 'col-resize';
+        if (resizer.setPointerCapture) resizer.setPointerCapture(event.pointerId);
+        event.preventDefault();
       });
 
-      document.addEventListener('mousemove', function (e) {
-        moverArraste(e.clientX, e.clientY);
-      });
-
-      document.addEventListener('mouseup', finalizarArraste);
-
-      window.addEventListener('resize', posicionarResizer);
-      posicionarResizer();
-
-      resizer.addEventListener('touchstart', function (e) {
-        var t = e.touches[0];
-        if (t) iniciarArraste(t.clientX, t.clientY);
-      }, { passive: true });
-
-      document.addEventListener('touchmove', function (e) {
+      resizer.addEventListener('pointermove', function (event) {
         if (!arrastando) return;
-        var t = e.touches[0];
-        if (t) {
-          moverArraste(t.clientX, t.clientY);
-          e.preventDefault();
-        }
-      }, { passive: false });
+        agendarTamanho(tamanhoPeloPonteiro(event.clientX, event.clientY));
+      });
+      resizer.addEventListener('pointerup', finalizarArraste);
+      resizer.addEventListener('pointercancel', finalizarArraste);
 
-      document.addEventListener('touchend', finalizarArraste);
+      resizer.addEventListener('keydown', function (event) {
+        atualizarOrientacao();
+        var atual = vertical ? theoryPane.getBoundingClientRect().height : theoryPane.getBoundingClientRect().width;
+        var passo = event.shiftKey ? 64 : 24;
+        var delta = 0;
+        if ((!vertical && event.key === 'ArrowLeft') || (vertical && event.key === 'ArrowUp')) delta = -passo;
+        if ((!vertical && event.key === 'ArrowRight') || (vertical && event.key === 'ArrowDown')) delta = passo;
+        if (event.key === 'Home') aplicarTamanho(0);
+        else if (event.key === 'End') aplicarTamanho(Number.MAX_SAFE_INTEGER);
+        else if (delta) aplicarTamanho(atual + delta);
+        else return;
+        event.preventDefault();
+      });
+
+      resizer.addEventListener('dblclick', function () {
+        var rect = root.getBoundingClientRect();
+        aplicarTamanho((vertical ? rect.height : rect.width) * DEFAULT_RATIO);
+      });
+
+      window.addEventListener('resize', function () {
+        atualizarOrientacao();
+        var rect = root.getBoundingClientRect();
+        aplicarTamanho((vertical ? rect.height : rect.width) * ratioAtual, false);
+      });
+
+      var rectInicial = root.getBoundingClientRect();
+      aplicarTamanho((getComputedStyle(root).flexDirection === 'column' ? rectInicial.height : rectInicial.width) * DEFAULT_RATIO);
     })();

@@ -21,6 +21,22 @@
 
     CL.api = {};
 
+    /* Comunicados são públicos apenas depois de publicados. A escrita é
+       reservada às contas com a custom claim `admin` nas regras do Firestore. */
+    CL.api.listAnnouncements = async function () {
+        try {
+            if (!CL.firebase || !CL.firebase.db) return [];
+            const snapshot = await CL.firebase.db.collection("announcements")
+                .where("status", "==", "published")
+                .orderBy("publishedAt", "desc").limit(8).get();
+            return snapshot.docs.map(function (doc) { return Object.assign({ id: doc.id }, doc.data()); });
+        } catch (error) {
+            /* Um aviso indisponível não pode impedir o aluno de estudar. */
+            if (CL.config && CL.config.debug) console.warn("[CL.api] announcements:", error);
+            return [];
+        }
+    };
+
     /* Rascunho local por usuário. O estudo não gera escrita no Firestore;
        o conteúdo é enviado em lote antes do logout. */
     CL.api._draftKey = function () {
@@ -264,6 +280,7 @@
     };
 
     CL.api._saveStudyIndex = function (index) {
+        index.updatedAt = new Date().toISOString();
         localStorage.setItem(CL.api._studyKey(), JSON.stringify(index));
     };
 
@@ -297,8 +314,19 @@
         return { format: "coding-loop-study", version: 1, exportedAt: new Date().toISOString(), index: index, exercises: exercises };
     };
 
+    CL.api.validateStudyData = function (data) {
+        if (!data || data.format !== "coding-loop-study" || data.version !== 1 || !data.index || typeof data.index !== "object" || !data.exercises || typeof data.exercises !== "object") return false;
+        const ids = Object.keys(data.exercises);
+        if (ids.length > 1000) return false;
+        return ids.every(function (id) {
+            const code = data.exercises[id];
+            return typeof id === "string" && id.length <= 200 && code && typeof code === "object" &&
+                ["html", "css", "js"].every(function (part) { return typeof (code[part] || "") === "string" && (code[part] || "").length <= 1024 * 1024; });
+        });
+    };
+
     CL.api.importStudyData = function (data) {
-        if (!data || data.format !== "coding-loop-study" || data.version !== 1 || !data.index || typeof data.index !== "object") {
+        if (!CL.api.validateStudyData(data)) {
             throw new Error("Arquivo de progresso inválido.");
         }
         const current = CL.api._studyIndex();
@@ -314,6 +342,97 @@
             imported.savedExercises[id] = true;
         });
         CL.api._saveStudyIndex(imported);
+        return true;
+    };
+
+    CL.api._backupSettingsKey = function () { return `${CL.config.storagePrefix}:study-backup-settings:${CL.api._uid()}`; };
+    CL.api._backupKey = function () { return `${CL.config.storagePrefix}:study-backup:${CL.api._uid()}`; };
+    CL.api._backupVersionsKey = function () { return `${CL.config.storagePrefix}:study-backup-versions:${CL.api._uid()}`; };
+    CL.api.getBackupSettings = function () {
+        const defaults = { destinations: ["computer", "local", "drive"], googleDriveScopeVersion: 2, schedule: "exit", mode: "incremental", retentionCount: 1, defaultsVersion: 3, configurationCompleted: false, lastBackupAt: null, lastBackupDestinations: [] };
+        try {
+            const stored = JSON.parse(localStorage.getItem(CL.api._backupSettingsKey())) || {};
+            const settings = Object.assign(defaults, stored);
+            if (stored.defaultsVersion !== 3) {
+                if (!stored.defaultsVersion || stored.defaultsVersion < 2) settings.mode = "incremental";
+                settings.retentionCount = 1;
+                settings.defaultsVersion = 3;
+                localStorage.setItem(CL.api._backupSettingsKey(), JSON.stringify(settings));
+            }
+            if (!Array.isArray(settings.destinations)) settings.destinations = settings.destination ? [settings.destination] : defaults.destinations.slice();
+            if (!settings.destinations.includes("local")) settings.destinations.push("local");
+            if (settings.googleDriveScopeVersion !== 2) {
+                settings.googleDriveConnected = false;
+                settings.googleDriveScopeVersion = 2;
+                localStorage.setItem(CL.api._backupSettingsKey(), JSON.stringify(settings));
+            }
+            if (!["exit", "weekly", "monthly"].includes(settings.schedule)) settings.schedule = "exit";
+            return settings;
+        } catch (error) { return defaults; }
+    };
+    CL.api.saveBackupSettings = function (settings) {
+        const next = Object.assign(CL.api.getBackupSettings(), settings || {});
+        localStorage.setItem(CL.api._backupSettingsKey(), JSON.stringify(next));
+        return next;
+    };
+    CL.api.saveLocalBackup = function () {
+        const settings = CL.api.getBackupSettings();
+        const next = CL.api.exportStudyData();
+        if (settings.mode === "incremental") {
+            try {
+                const previous = JSON.parse(localStorage.getItem(CL.api._backupKey()));
+                if (previous && previous.exercises) {
+                    Object.keys(next.exercises).forEach(function (id) {
+                        if (JSON.stringify(next.exercises[id]) === JSON.stringify(previous.exercises[id])) next.exercises[id] = previous.exercises[id];
+                    });
+                }
+            } catch (error) {}
+        }
+        localStorage.setItem(CL.api._backupKey(), JSON.stringify(next));
+        try {
+            const versions = JSON.parse(localStorage.getItem(CL.api._backupVersionsKey())) || [];
+            versions.unshift(next);
+            versions.splice(Math.max(1, Number(settings.retentionCount) || 3));
+            localStorage.setItem(CL.api._backupVersionsKey(), JSON.stringify(versions));
+        } catch (error) {}
+        CL.api.saveBackupSettings({ lastBackupAt: next.exportedAt });
+        return next;
+    };
+    CL.api.getLocalBackup = function () {
+        try { return JSON.parse(localStorage.getItem(CL.api._backupKey())); } catch (error) { return null; }
+    };
+    CL.api.getLocalBackupVersions = function () {
+        try { return JSON.parse(localStorage.getItem(CL.api._backupVersionsKey())) || []; } catch (error) { return []; }
+    };
+
+    /* Exclusão definitiva dos dados que o Coding Loop controla. O browser
+       não tem permissão para apagar arquivos já baixados pelo usuário nem
+       arquivos em provedores de nuvem externos sem uma autorização própria. */
+    CL.api.deleteAllUserData = async function () {
+        const uid = CL.api._uid();
+        const userRef = CL.firebase.db.collection("users").doc(uid);
+
+        /* Firestore não remove subcoleções ao apagar o documento-pai. */
+        for (const collectionName of ["progress", "exercises"]) {
+            let snapshot;
+            do {
+                snapshot = await userRef.collection(collectionName).limit(400).get();
+                if (!snapshot.empty) {
+                    const batch = CL.firebase.db.batch();
+                    snapshot.docs.forEach(function (doc) { batch.delete(doc.ref); });
+                    await batch.commit();
+                }
+            } while (!snapshot.empty);
+        }
+        await userRef.delete();
+
+        const userKeyPart = ":" + uid;
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i);
+            if (key && key.indexOf(CL.config.storagePrefix + ":") === 0 && key.indexOf(userKeyPart) !== -1) keys.push(key);
+        }
+        keys.forEach(function (key) { localStorage.removeItem(key); });
         return true;
     };
 

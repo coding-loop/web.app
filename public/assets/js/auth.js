@@ -88,6 +88,7 @@
         "auth/invalid-credential": "Email ou senha incorretos.",
         "auth/too-many-requests": "Muitas tentativas seguidas. Aguarde um pouco e tente de novo.",
         "auth/account-exists-with-different-credential": "Esse email já está cadastrado usando outro método de login (Google, Facebook, etc). Tente entrar por ele.",
+        "auth/requires-recent-login": "Por segurança, entre novamente antes de excluir a conta.",
         "auth/network-request-failed": "Falha de conexão. Verifique sua internet e tente novamente."
     };
 
@@ -306,6 +307,21 @@
         }
     };
 
+    /* A remoção da conta no Firebase pode exigir login recente. Nesse caso
+       preservamos a conta e mostramos ao usuário como concluir a ação. */
+    CL.auth.deleteAccount = async function () {
+        const firebaseUser = CL.firebase.auth.currentUser;
+        if (!firebaseUser || !CL.auth.isAuthenticated()) return false;
+        try {
+            await CL.api.deleteAllUserData();
+            await firebaseUser.delete();
+            return true;
+        } catch (error) {
+            CL.auth._handleError("deleteAccount", error);
+            return false;
+        }
+    };
+
     /* AUTH > UPDATE USER — atualiza o rascunho local; o Firebase é
        sincronizado em lote antes do logout. */
     CL.auth.updateUser = async function (data) {
@@ -319,7 +335,6 @@
             await CL.api.saveProfile(data);
             const firebaseData = {};
             if (typeof data.name === "string") firebaseData.displayName = data.name;
-            if (typeof data.avatar === "string") firebaseData.photoURL = data.avatar;
             if (Object.keys(firebaseData).length && CL.firebase.auth.currentUser) {
                 await CL.firebase.auth.currentUser.updateProfile(firebaseData);
             }
@@ -330,7 +345,11 @@
             return false;
         }
 
-        CL.state.user = Object.assign({}, CL.state.user, data);
+        /* profileAvatar é uma personalização local do Coding Loop; não faz
+           parte do Firebase Auth nem altera a foto importada da conta. */
+        const stateData = Object.assign({}, data);
+        delete stateData.profileAvatar;
+        CL.state.user = Object.assign({}, CL.state.user, stateData);
         CL.auth.renderUser();
         return true;
     };

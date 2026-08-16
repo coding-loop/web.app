@@ -336,6 +336,32 @@
     }, 120);
   }
 
+  /* A largura da Platform Learn também muda quando a IDE é recolhida ou
+     quando o divisor interno é arrastado. Essas alterações não disparam o
+     evento resize da janela, então observamos diretamente cada trilha. */
+  var largurasObservadas = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
+  var observerTrilha = typeof ResizeObserver !== 'undefined'
+    ? new ResizeObserver(function (entries) {
+        var larguraMudou = entries.some(function (entry) {
+          var largura = entry.contentRect.width;
+          var anterior = largurasObservadas ? largurasObservadas.get(entry.target) : entry.target._trilhaLarguraObservada;
+          if (largurasObservadas) largurasObservadas.set(entry.target, largura);
+          else entry.target._trilhaLarguraObservada = largura;
+          return typeof anterior === 'number' && Math.abs(anterior - largura) > 0.5;
+        });
+        if (larguraMudou) agendarRedesenho();
+      })
+    : null;
+
+  function observarRedimensionamento(container) {
+    if (!observerTrilha || container._trilhaResizeObserved) return;
+    container._trilhaResizeObserved = true;
+    var larguraInicial = container.getBoundingClientRect().width;
+    if (largurasObservadas) largurasObservadas.set(container, larguraInicial);
+    else container._trilhaLarguraObservada = larguraInicial;
+    observerTrilha.observe(container);
+  }
+
   if (typeof window !== 'undefined') {
     window.addEventListener('resize', agendarRedesenho);
   }
@@ -400,6 +426,7 @@
     if (containersAtivos.indexOf(container) === -1) {
       containersAtivos.push(container);
     }
+    observarRedimensionamento(container);
 
     // requestAnimationFrame garante que o navegador já terminou o
     // layout (posição/tamanho reais das bolinhas) antes de medir.
