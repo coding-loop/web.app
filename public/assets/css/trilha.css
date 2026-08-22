@@ -309,6 +309,108 @@ body:has(#cl-app[data-page="course"]) {
   z-index: 0;
 }
 
+/* Alternador entre o mapa visual e o índice linear de módulos. */
+.trilha-layout-controles {
+  position: absolute;
+  z-index: 200;
+  top: 1rem;
+  left: 1rem;
+  display: inline-flex;
+  padding: .25rem;
+  gap: .2rem;
+  border: 1px solid color-mix(in srgb, var(--cl-border, #586e75) 75%, transparent);
+  border-radius: .7rem;
+  background: color-mix(in srgb, var(--cl-surface, #073642) 88%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+  backdrop-filter: blur(10px);
+}
+
+.trilha-layout-controle {
+  border: 0;
+  border-radius: .5rem;
+  padding: .55rem .75rem;
+  color: var(--cl-text-muted, #93a1a1);
+  background: transparent;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.trilha-layout-controle:hover,
+.trilha-layout-controle.is-active {
+  color: var(--cl-on-primary, #fff);
+  background: var(--cl-primary, #268bd2);
+}
+
+/* Índice LMS: cada módulo é expansível, mostra seu estado e lista as
+   atividades sem substituir a trilha lúdica que já existia. */
+.trilha-container--indice {
+  -webkit-mask-image: none;
+  mask-image: none;
+  background-image: none !important;
+  background: var(--cl-bg, #002b36);
+  /* Reserva espaço para o mesmo banner Code Path do layout trilha. */
+  padding: clamp(8rem, 14vw, 12rem) clamp(1rem, 5vw, 4rem) 3rem;
+  box-sizing: border-box;
+}
+
+.curso-indice {
+  width: min(100%, 920px);
+  margin: 0 auto;
+  color: var(--cl-text, #fdf6e3);
+}
+
+.curso-indice__cabecalho {
+  display: grid;
+  grid-template-columns: 1fr minmax(160px, 260px);
+  gap: 1.5rem;
+  align-items: end;
+  margin-bottom: 2rem;
+}
+
+.curso-indice__cabecalho h1 { margin: .2rem 0 .4rem; font-size: clamp(1.45rem, 3vw, 2.2rem); }
+.curso-indice__cabecalho p { margin: 0; color: var(--cl-text-muted, #93a1a1); }
+.curso-indice__sobretitulo { color: var(--cl-primary, #268bd2) !important; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.curso-indice__progresso { height: .55rem; overflow: hidden; border-radius: 999px; background: var(--cl-surface-2, #073642); }
+.curso-indice__progresso span { display: block; height: 100%; border-radius: inherit; background: var(--cl-success, #859900); transition: width .2s ease; }
+.curso-indice__lista, .curso-indice__etapas { padding: 0; margin: 0; list-style: none; }
+.curso-indice__lista { display: grid; gap: .8rem; counter-reset: modulos; }
+.curso-indice__item { border: 1px solid var(--cl-border, #586e75); border-left: 4px solid var(--cl-border, #586e75); border-radius: .75rem; background: var(--cl-surface, #073642); overflow: hidden; }
+.curso-indice__item--completed { border-left-color: var(--cl-success, #859900); }
+.curso-indice__item--current { border-left-color: var(--cl-primary, #268bd2); box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent); }
+.curso-indice__item--locked { opacity: .7; }
+.curso-indice__item summary { display: grid; grid-template-columns: 2.5rem 1fr auto; gap: .8rem; align-items: center; padding: 1rem 1.1rem; cursor: pointer; list-style: none; }
+.curso-indice__item summary::-webkit-details-marker { display: none; }
+.curso-indice__numero { width: 2rem; height: 2rem; border: 1px solid var(--cl-border, #586e75); border-radius: 50%; display: grid; place-items: center; font-weight: 700; }
+.curso-indice__titulo, .curso-indice__etapa div { display: grid; gap: .2rem; min-width: 0; }
+.curso-indice__titulo strong, .curso-indice__etapa strong { overflow-wrap: anywhere; }
+.curso-indice__link-etapa { color: var(--cl-text, #fdf6e3); font-weight: 700; overflow-wrap: anywhere; text-decoration: none; }
+.curso-indice__link-etapa:hover, .curso-indice__link-etapa:focus-visible { color: var(--cl-primary, #268bd2); text-decoration: underline; }
+.curso-indice__titulo small, .curso-indice__etapa small, .curso-indice__requisito { color: var(--cl-text-muted, #93a1a1); font-size: .82rem; }
+.curso-indice__status { display: inline-flex; align-items: center; gap: .4rem; color: var(--cl-text-muted, #93a1a1); white-space: nowrap; font-size: .82rem; font-weight: 650; }
+.curso-indice__status i { font-style: normal; color: var(--cl-primary, #268bd2); }
+.curso-indice__item--completed .curso-indice__status i, .curso-indice__etapa--completed > span { color: var(--cl-success, #859900); }
+.curso-indice__item--locked .curso-indice__status i, .curso-indice__etapa--locked > span { color: var(--cl-text-muted, #93a1a1); }
+.curso-indice__conteudo { padding: 0 1.1rem 1.1rem 4.35rem; border-top: 1px solid color-mix(in srgb, var(--cl-border, #586e75) 60%, transparent); }
+.curso-indice__requisito { margin: .9rem 0; }
+.curso-indice__etapas { display: grid; gap: .7rem; }
+.curso-indice__etapa { display: grid; grid-template-columns: 1.25rem 1fr; gap: .65rem; align-items: start; }
+.curso-indice__etapa > span { padding-top: .1rem; color: var(--cl-primary, #268bd2); text-align: center; }
+.curso-indice__acao { margin-top: 1rem; border: 0; border-radius: .45rem; padding: .6rem .85rem; color: var(--cl-on-primary, #fff); background: var(--cl-primary, #268bd2); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.curso-indice__acao--bloqueada { color: var(--cl-text-muted, #93a1a1); background: var(--cl-surface-2, #073642); cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .trilha-layout-controles { top: .6rem; right: .6rem; }
+  .trilha-layout-controle { padding: .45rem .55rem; font-size: .72rem; }
+  .trilha-container--indice { padding: 7.2rem 1rem 2rem; }
+  .curso-indice__cabecalho { display: block; }
+  .curso-indice__progresso { margin-top: 1.2rem; }
+  .curso-indice__item summary { grid-template-columns: 2.25rem 1fr; }
+  .curso-indice__status { grid-column: 2; }
+  .curso-indice__conteudo { padding-left: 1rem; }
+}
+
 .trilha-path-segmento {
   fill: none;
   stroke: var(--cl-border, #586e75);

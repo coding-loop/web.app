@@ -49,12 +49,69 @@
         '<a class="cl-topbar-link" data-page="course" href="#course/' + encodeURIComponent(curso.id) + '">' +
         logo +
         '<span class="cl-topbar-label">' + curso.nome + '</span>' +
-        '<span class="cl-topbar-caret">&#9662;</span></a></li>';
+        '</a></li>';
     }).join('');
   }
 
-  function irParaIde(moduloId) {
-    window.location.href = 'ide.html?modulo=' + encodeURIComponent(moduloId);
+  // Também transforma os atalhos de curso em menus de layout fora da página
+  // da trilha, para que HTML/CSS/JS tenham o mesmo comportamento em toda a
+  // dashboard.
+  montarMenuCursos();
+
+  function irParaIde(moduloId, etapaNumero, layoutIndice) {
+    var destino = 'ide.html?modulo=' + encodeURIComponent(moduloId);
+    if (etapaNumero) destino += '&etapa=' + encodeURIComponent(etapaNumero);
+    if (layoutIndice) destino += '&indice=' + encodeURIComponent(layoutIndice);
+    window.location.href = destino;
+  }
+
+  function escaparHtml(valor) {
+    return String(valor == null ? '' : valor).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function textoPlano(valor) {
+    return CL.curso && CL.curso.tituloTextoPlano ? CL.curso.tituloTextoPlano(valor) : String(valor || '').replace(/<[^>]+>/g, ' ').trim();
+  }
+
+  /* Índice linear: reaproveita os mesmos dados e bloqueios do mapa, mas
+     mostra módulos e etapas numa hierarquia típica de plataformas LMS. */
+  function renderizarIndice(container, curso, progresso, moduloAtual) {
+    var modulos = curso.modulos || [];
+    var concluidos = modulos.filter(function (modulo) { return CL.curso.moduloConcluido(modulo, progresso); }).length;
+    var statusInfo = {
+      completed: { rotulo: 'Concluído', descricao: 'Módulo finalizado', icone: '&#10003;' },
+      current: { rotulo: 'Em andamento', descricao: 'Continue de onde parou', icone: '&#8226;' },
+      available: { rotulo: 'Disponível', descricao: 'Pronto para começar', icone: '&#9679;' },
+      locked: { rotulo: 'Bloqueado', descricao: 'Aguardando pré-requisito', icone: '&#128274;' }
+    };
+    container.classList.add('trilha-container--indice');
+    container.innerHTML = '<section class="curso-indice" aria-label="Índice de módulos do curso"><header class="curso-indice__cabecalho"><div><p>' + concluidos + ' de ' + modulos.length + ' módulos concluídos</p></div><div class="curso-indice__progresso" aria-label="' + concluidos + ' de ' + modulos.length + ' módulos concluídos"><span style="width:' + (modulos.length ? (concluidos / modulos.length) * 100 : 0) + '%"></span></div></header><ol class="curso-indice__lista">' + modulos.map(function (modulo, indice) {
+      var concluido = CL.curso.moduloConcluido(modulo, progresso);
+      var anteriorConcluido = indice === 0 || CL.curso.moduloConcluido(modulos[indice - 1], progresso);
+      var status = concluido ? 'completed' : (anteriorConcluido ? (modulo.id === moduloAtual.id ? 'current' : 'available') : 'locked');
+      var info = statusInfo[status];
+      var etapasConcluidas = (modulo.etapas || []).filter(function (etapa, etapaIndice) { var item = progresso[CL.curso.chaveEtapa(modulo.id, etapaIndice + 1)]; return item && item.concluida; }).length;
+      var aberto = status === 'current' || status === 'available' ? ' open' : '';
+      var acao = status === 'locked' ? '<span class="curso-indice__acao curso-indice__acao--bloqueada">Bloqueado</span>' : '<button type="button" class="curso-indice__acao" data-indice-modulo="' + escaparHtml(modulo.id) + '">Abrir índice de etapas</button>';
+      return '<li class="curso-indice__item curso-indice__item--' + status + '"><details' + aberto + '><summary><span class="curso-indice__numero">' + (indice + 1) + '</span><span class="curso-indice__titulo"><strong>Módulo ' + (indice + 1) + ': ' + escaparHtml(modulo.nome) + '</strong><small>' + etapasConcluidas + ' de ' + modulo.etapas.length + ' etapas concluídas</small></span><span class="curso-indice__status"><i aria-hidden="true">' + info.icone + '</i>' + info.rotulo + '</span></summary><div class="curso-indice__conteudo"><p class="curso-indice__requisito">' + (status === 'locked' ? 'Conclua o módulo anterior para liberar este conteúdo.' : info.descricao + '.') + '</p><ol class="curso-indice__etapas">' + (modulo.etapas || []).map(function (etapa, etapaIndice) {
+        var etapaProgresso = progresso[CL.curso.chaveEtapa(modulo.id, etapaIndice + 1)] || {};
+        var etapaConcluida = !!etapaProgresso.concluida;
+        var anteriorEtapaConcluida = etapaIndice === 0 || (progresso[CL.curso.chaveEtapa(modulo.id, etapaIndice)] || {}).concluida;
+        var etapaStatus = etapaConcluida ? 'completed' : (status === 'locked' || !anteriorEtapaConcluida ? 'locked' : 'available');
+        var regra = etapa.regraConclusao || etapa.requisito || etapa.regra || 'Deve concluir';
+        var tituloEtapa = escaparHtml(textoPlano(etapa.titulo || ('Etapa ' + (etapaIndice + 1))));
+        var destinoEtapa = 'ide.html?modulo=' + encodeURIComponent(modulo.id) + '&etapa=' + (etapaIndice + 1);
+        var conteudoEtapa = etapaStatus === 'locked'
+          ? '<strong>' + tituloEtapa + '</strong>'
+          : '<a class="curso-indice__link-etapa" href="' + destinoEtapa + '">' + tituloEtapa + '</a>';
+        return '<li class="curso-indice__etapa curso-indice__etapa--' + etapaStatus + '"><span aria-hidden="true">' + (etapaConcluida ? '&#10003;' : (etapaStatus === 'locked' ? '&#128274;' : '&#9675;')) + '</span><div>' + conteudoEtapa + '<small>' + escaparHtml(regra) + '</small></div></li>';
+      }).join('') + '</ol>' + acao + '</div></details></li>';
+    }).join('') + '</ol></section>';
+    container._indiceOnSelect = function (moduloId) { irParaIde(moduloId, null, 'lista'); };
+    if (!container._indiceBound) {
+      container.addEventListener('click', function (evento) { var botao = evento.target.closest('[data-indice-modulo]'); if (botao && typeof container._indiceOnSelect === 'function') container._indiceOnSelect(botao.getAttribute('data-indice-modulo')); });
+      container._indiceBound = true;
+    }
   }
 
   function resolverCursoId() {
@@ -91,6 +148,7 @@
     montarMenuCursos();
     var cursoId = resolverCursoId();
     var curso = CL.curso.CURSOS[cursoId];
+    var layoutAtual = window.localStorage.getItem('cl-layout-aprendizagem') || 'mapa';
 
     // Marca o container com o curso atual (html/css/js). É esse
     // atributo que o trilha.css usa pra escolher a imagem de fundo
@@ -114,11 +172,19 @@
 
       var nodes = CL.curso.buildModuloNodes(curso.modulos, progresso, moduloAtual.id);
 
+      if (layoutAtual === 'indice') {
+        CL.trilha.atualizarTituloFixo(container, { cursoId: cursoId });
+        renderizarIndice(container, curso, progresso, moduloAtual);
+        return;
+      }
+
+      container.classList.remove('trilha-container--indice');
+
       CL.trilha.render(container, {
         nodes: nodes,
         cursoId: cursoId,
         layout: 'vinte-um-por-tela',
-        onSelect: irParaIde,
+        onSelect: function (moduloId) { irParaIde(moduloId, null, 'trilha'); },
         onReset: function (moduloId) {
           var confirmado = window.confirm(
             'Refazer este módulo? O progresso e o código salvo de todas as etapas dele serão apagados.'

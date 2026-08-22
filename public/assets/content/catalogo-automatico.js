@@ -18,8 +18,4 @@ window.CL_CONTEUDO_MANIFEST_AUTOMATICO = [
   'assets/content/js/modulo-01/etapa-01.js',
   'assets/content/js/modulos-planejamento.js',
   'assets/content/js/posicoes-trilha.js',
-  'assets/content/templates/curso.js',
-  'assets/content/templates/etapa.js',
-  'assets/content/templates/modulo.js',
-  'assets/content/templates/posicoes-trilha.js',
 ];

@@ -1675,16 +1675,16 @@
     ]
   }  };
 
-  /* Catálogo inicial enxuto: somente o curso HTML e seu primeiro módulo
-     estão publicados. CSS, JavaScript e os próximos módulos devem ser
-     adicionados gradualmente pelos arquivos em assets/content/. Os dados
-     legados permanecem acima apenas como referência e não são exibidos. */
+  /* Cursos publicados: HTML, CSS e JavaScript aparecem no painel desde o
+     início. Os módulos e etapas são preenchidos gradualmente pelos arquivos
+     em assets/content/, sem depender de o aluno abrir outra trilha antes. */
   CL.curso.CURSOS.html.modulos = CL.curso.CURSOS.html.modulos.slice(0, 1);
-  delete CL.curso.CURSOS.css;
-  delete CL.curso.CURSOS.js;
+  CL.curso.CURSOS.css.modulos = [];
+  CL.curso.CURSOS.js.modulos = [];
 
-  /* Ordem de exibição das trilhas publicadas. */
-  CL.curso.ORDEM_CURSOS = ['html'];
+  /* Ordem de exibição das trilhas publicadas. Novos cursos registrados por
+     assets/content/ são acrescentados automaticamente ao final desta lista. */
+  CL.curso.ORDEM_CURSOS = ['html', 'css', 'js'];
 
   /* API de conteúdo. Arquivos em assets/content usam estes métodos para
      registrar cursos, módulos e etapas sem tocar neste arquivo-base. */

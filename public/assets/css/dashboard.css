@@ -79,18 +79,77 @@
 
             }
 
-            /* Dashboard e configurações são filhos diretos do main, não de
+            /* Dashboard, perfil e configurações são filhos diretos do main, não de
                #cl-content. Como #cl-main bloqueia overflow, estas páginas
                precisam ser os próprios painéis roláveis para que nenhum
                formulário, card ou botão fique abaixo da área visível. */
-            #cl-main > #cl-page-dashboard.cl-is-active,
-            #cl-main > #cl-page-settings.cl-is-active {
+#cl-main > #cl-page-dashboard.cl-is-active,
+#cl-main > #cl-page-home.cl-is-active,
+#cl-main > #cl-page-profile.cl-is-active,
+#cl-main > #cl-page-settings.cl-is-active {
                 min-height: 0;
                 overflow-x: hidden;
                 overflow-y: auto;
                 overscroll-behavior: contain;
                 scrollbar-gutter: stable;
-            }
+}
+
+/* Carrossel de destaques: aparece no topo da área principal do painel. */
+.cl-main-carousel {
+    margin: clamp(1rem, 2vw, 1.5rem) auto 0;
+    width: min(1180px, calc(100% - clamp(2rem, 6vw, 5rem)));
+    overflow: hidden;
+    /* border: 1px solid var(--cl-border);*/
+    background: transparent; /*var(--cl-surface);*/
+    color: var(--cl-text);
+}
+
+.cl-carousel-viewport { overflow: hidden; }
+.cl-carousel-track { display: flex; transition: transform .45s ease; }
+.cl-carousel-slide { box-sizing: border-box; flex: 0 0 100%; min-height: 230px; padding: clamp(1.5rem, 4vw, 3rem); display: flex; align-items: center; }
+.cl-carousel-slide--primary { background: linear-gradient(120deg, var(--cl-surface), color-mix(in srgb, var(--cl-primary) 22%, var(--cl-surface))); }
+.cl-carousel-slide--accent { background: linear-gradient(120deg, var(--cl-surface), color-mix(in srgb, var(--cl-info) 18%, var(--cl-surface))); }
+.cl-carousel-slide--neutral { background: var(--cl-surface-2); }
+.cl-carousel-content { max-width: 680px; }
+.cl-carousel-eyebrow { margin: 0 0 .45rem; color: var(--cl-primary); font-size: .74rem; font-weight: 800; letter-spacing: .12em; }
+.cl-carousel-content h2 { margin: 0; color: var(--cl-text); font-size: clamp(1.45rem, 3vw, 2.2rem); }
+.cl-carousel-content p:not(.cl-carousel-eyebrow) { margin: .75rem 0 0; color: var(--cl-text-muted); line-height: 1.6; }
+.cl-carousel-link { display: inline-flex; align-items: center; gap: .65rem; margin-top: 1.25rem; padding: .75rem 1rem; background: var(--cl-primary); color: var(--cl-on-primary); font-weight: 700; text-decoration: none; }
+.cl-carousel-link:hover { background: var(--cl-info); }
+.cl-carousel-controls { display: flex; align-items: center; justify-content: center; gap: .85rem; padding: .8rem 1rem; border-top: 1px solid var(--cl-border); }
+.cl-carousel-button { display: inline-grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 1px solid var(--cl-border); border-radius: 50%; background: transparent; color: var(--cl-text); cursor: pointer; }
+.cl-carousel-button:hover, .cl-carousel-button:focus-visible { border-color: var(--cl-primary); color: var(--cl-primary); }
+.cl-carousel-button svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cl-carousel-indicators { display: flex; align-items: center; gap: .45rem; }
+.cl-carousel-indicator { width: .55rem; height: .55rem; padding: 0; border: 0; border-radius: 50%; background: var(--cl-border); cursor: pointer; }
+.cl-carousel-indicator.is-active { width: 1.45rem; border-radius: .4rem; background: var(--cl-primary); }
+
+@media (prefers-reduced-motion: reduce) { .cl-carousel-track { transition: none; } }
+@media (max-width: 720px) { .cl-main-carousel { width: calc(100% - 2rem); } .cl-carousel-slide { min-height: 260px; } }
+
+/* Área institucional interna, acessada pelo logo/nome Coding Loop. O painel
+   individual do aluno continua sendo a rota dashboard, aberta pelo avatar. */
+.cl-home-area {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    color: var(--cl-text);
+}
+
+.cl-home-area-hero,
+.cl-home-area-card {
+    border: 1px solid var(--cl-border);
+    background: var(--cl-surface);
+}
+
+.cl-home-area-hero { padding: clamp(1.75rem, 5vw, 4rem); }
+.cl-home-area-eyebrow { margin: 0 0 .5rem; color: var(--cl-primary); font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+.cl-home-area h1, .cl-home-area h2 { margin: 0; color: var(--cl-text); }
+.cl-home-area-hero > p:not(.cl-home-area-eyebrow), .cl-home-area-card p { max-width: 660px; margin: .75rem 0 0; color: var(--cl-text-muted); line-height: 1.6; }
+.cl-home-area-action { display: inline-flex; gap: .75rem; margin-top: 1.5rem; padding: .8rem 1rem; background: var(--cl-primary); color: var(--cl-on-primary); font-weight: 700; text-decoration: none; }
+.cl-home-area-action:hover { background: var(--cl-info); }
+.cl-home-area-card { margin-top: 1rem; padding: 1.25rem; }
+.cl-home-area-card a { display: inline-block; margin-top: 1rem; color: var(--cl-primary); font-weight: 700; }
 
 
 
@@ -119,9 +178,12 @@
 
                 width: 4rem;
                 height: 4rem;
+                max-height: none;
                 border-radius: var(--cl-radius-sm);
 
             }
+
+            #cl-header .cl-logo .cl-header-logo-img { max-height: none; }
 
 
 
@@ -295,6 +357,51 @@
 
             }
 
+            .cl-header-logo-img--light { display: none; }
+            [data-theme="solarized-dark"] .cl-header-logo-img--dark { display: none; }
+            [data-theme="solarized-dark"] .cl-header-logo-img--light { display: block; }
+
+            .cl-course-layout-menu .cl-topbar-link {
+                border: 0;
+                background: transparent;
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+            .cl-course-layout-dropdown {
+                position: absolute;
+                top: calc(100% + .35rem);
+                left: 0;
+                z-index: calc(var(--cl-z-nav-toggle) + 100);
+                display: grid;
+                min-width: 150px;
+                padding: .35rem;
+                border: 1px solid var(--cl-border);
+                border-radius: var(--cl-radius-sm);
+                background: var(--cl-surface);
+                box-shadow: var(--cl-shadow-lg);
+            }
+
+            .cl-course-layout-dropdown[hidden] { display: none; }
+
+            .cl-course-layout-dropdown button {
+                border: 0;
+                border-radius: var(--cl-radius-xs, .25rem);
+                padding: .55rem .65rem;
+                color: var(--cl-text);
+                background: transparent;
+                font: inherit;
+                font-size: var(--cl-font-size-sm);
+                text-align: left;
+                cursor: pointer;
+            }
+
+            .cl-course-layout-dropdown button:hover,
+            .cl-course-layout-dropdown button:focus-visible {
+                color: var(--cl-primary);
+                background: var(--cl-surface-hover);
+            }
+
 
 
             .cl-topbar-dropdown {
@@ -391,6 +498,22 @@
   }
 
   .cl-profile-layout { display: grid; grid-template-columns: 148px minmax(0, 760px); align-items: start; gap: var(--cl-space-6); }
+  /* Ícones SVG compartilhados por Perfil, Configurações e Painel do aluno. */
+  .cl-ui-icon { width: 1.05em; height: 1.05em; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.16em; }
+  .cl-dashboard-eyebrow, .cl-dashboard-continue, .cl-dashboard-section-heading h2, .cl-dashboard-panel h2, .cl-profile-form-header h2, .cl-settings-section h2, .cl-settings-row h3, .cl-label-with-icon, .cl-btn .cl-ui-icon { display: inline-flex; align-items: center; gap: .45rem; }
+  .cl-settings-heading-icon { width: 1.05em; height: 1.05em; object-fit: contain; }
+  .cl-password-reset-icon { width: 1.05em; height: 1.05em; flex: 0 0 auto; }
+  .cl-password-reset-icon img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .cl-password-reset-icon--light { display: none !important; }
+  [data-theme="solarized-dark"] .cl-password-reset-icon--dark { display: none !important; }
+  [data-theme="solarized-dark"] .cl-password-reset-icon--light { display: block !important; }
+  #cl-page-settings .cl-page-header { justify-content: center; }
+  #cl-page-settings .cl-page-title { text-align: center; }
+  #cl-page-settings .cl-page-title h1 { display: flex; align-items: center; justify-content: center; gap: .5rem; }
+  #cl-page-settings .cl-settings-list { width: min(100%, 820px); margin-inline: auto; }
+  #cl-page-settings .cl-settings-section { width: 100%; box-sizing: border-box; }
+  .cl-dashboard-stat > .cl-ui-icon { display: block; margin-bottom: .45rem; color: var(--cl-primary); }
+  .cl-profile-photo-upload .cl-ui-icon { width: 1.5rem; height: 1.5rem; }
   .cl-profile-photo-panel { position: relative; display: flex; align-items: flex-start; justify-content: flex-start; width: 138px; height: 138px; border-radius: 50%; overflow: hidden; }
   .cl-profile-photo { width: 132px; height: 132px; border: 3px solid var(--cl-primary); border-radius: 50%; background: var(--cl-surface-alt); object-fit: cover; }
   .cl-profile-photo-upload { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: #fff; background: rgba(0, 43, 54, .62); font-size: var(--cl-font-size-sm); font-weight: var(--cl-font-weight-semibold); opacity: 0; transition: opacity var(--cl-transition); }
@@ -414,19 +537,136 @@
   .cl-settings-row h3 { margin: 0 0 var(--cl-space-1); font-size: var(--cl-font-size-base); }
   .cl-settings-row p, .cl-settings-note { margin: 0; color: var(--cl-text-muted); font-size: var(--cl-font-size-sm); }
   .cl-settings-note { padding-top: var(--cl-space-3); }
+  /* .cl-btn define display:inline-flex e pode sobrescrever o atributo HTML
+     hidden; esta regra garante que redefinição de senha só apareça em contas
+     cadastradas por e-mail e senha. */
+  #cl-settings-password-reset[hidden] { display: none !important; }
   .cl-settings-select-row { cursor: pointer; }
   .cl-settings-select-row select { min-width: 130px; padding: var(--cl-space-2); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-md); background: var(--cl-surface); color: var(--cl-text); font: inherit; }
+  .cl-settings-select-with-icons { display: inline-flex; align-items: center; gap: .4rem; color: var(--cl-primary); }
+  .cl-settings-select-with-icons select { color: var(--cl-text); }
+  .cl-settings-choice-group { display: inline-grid; grid-auto-columns: minmax(92px, 1fr); grid-auto-flow: column; gap: .35rem; padding: .3rem; border: 1px solid var(--cl-border); border-radius: var(--cl-radius-lg); background: color-mix(in srgb, var(--cl-surface-2) 68%, transparent); }
+  .cl-settings-choice { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 2.6rem; border: 1px solid transparent; border-radius: calc(var(--cl-radius-md) - 2px); padding: .55rem .8rem; color: var(--cl-text-muted); background: transparent; font: inherit; font-size: var(--cl-font-size-sm); font-weight: var(--cl-font-weight-semibold); cursor: pointer; transition: background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease; }
+  .cl-settings-choice .cl-ui-icon { width: 1rem; height: 1rem; }
+  .cl-settings-choice-group--icons { position: relative; left: 2px; grid-auto-columns: minmax(89px, 1fr); }
+  .cl-settings-choice-group--icons .cl-settings-choice { min-height: 3.25rem; padding-inline: .9rem; }
+  .cl-settings-choice-group--icons .cl-ui-icon { width: 1.7rem; height: 1.7rem; transform: scale(1.45); }
+  .cl-layout-trilha-icon { width: 4rem; height: 4rem; object-fit: contain; transform: scale(1.3); }
+  .cl-layout-trilha-icon--light { display: none !important; }
+  [data-theme="solarized-dark"] .cl-layout-trilha-icon--dark { display: none !important; }
+  [data-theme="solarized-dark"] .cl-layout-trilha-icon--light { display: block !important; }
+  .cl-settings-choice:hover { color: var(--cl-text); background: color-mix(in srgb, var(--cl-primary) 10%, transparent); }
+  .cl-settings-choice:focus-visible { outline: 2px solid var(--cl-primary); outline-offset: 2px; }
+  .cl-settings-choice.is-active { color: var(--cl-on-primary); border-color: var(--cl-primary); background: var(--cl-primary); box-shadow: 0 2px 7px color-mix(in srgb, var(--cl-primary) 30%, transparent); }
+  /* Preferências: seleção discreta por contorno, sem preenchimento azul. */
+  [data-theme="solarized-light"] #cl-page-settings .cl-settings-choice { color: #002b36; }
+  [data-theme="solarized-light"] #cl-page-settings .cl-settings-choice:hover { color: #002b36; background: transparent; }
+  [data-theme="solarized-light"] #cl-page-settings .cl-settings-choice.is-active { color: #002b36; border-color: #002b36; background: transparent; box-shadow: none; }
+  [data-theme="solarized-light"] #cl-page-settings .cl-settings-choice:focus-visible { outline-color: #002b36; }
+  [data-theme="solarized-dark"] #cl-page-settings .cl-settings-choice { color: #fdf6e3; }
+  [data-theme="solarized-dark"] #cl-page-settings .cl-settings-choice:hover { color: #fdf6e3; background: transparent; }
+  [data-theme="solarized-dark"] #cl-page-settings .cl-settings-choice.is-active { color: #fdf6e3; border-color: #fdf6e3; background: transparent; box-shadow: none; }
+  [data-theme="solarized-dark"] #cl-page-settings .cl-settings-choice:focus-visible { outline-color: #fdf6e3; }
   .cl-settings-danger-zone { border-color: var(--cl-danger); }
   .cl-settings-danger-zone > p { max-width: 620px; margin: 0 0 var(--cl-space-4); color: var(--cl-text-muted); }
   .cl-btn-danger { border-color: var(--cl-danger); background: var(--cl-danger); color: #fff; }
   .cl-btn-danger:hover, .cl-btn-danger:focus-visible { filter: brightness(.9); }
-  .cl-delete-account-dialog { width: min(560px, calc(100vw - 32px)); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-lg); background: var(--cl-surface); color: var(--cl-text); box-shadow: var(--cl-shadow-lg); }
+  [data-theme="solarized-light"] #cl-settings-delete-account { color: #002b36; }
+  .cl-delete-account-dialog { position: fixed; inset: 0; width: min(344px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 0; border: 1px solid var(--cl-border); border-radius: var(--cl-radius-lg); background: var(--cl-surface); color: var(--cl-text); box-shadow: var(--cl-shadow-lg); overflow-y: auto; }
   .cl-delete-account-dialog::backdrop { background: rgba(0, 43, 54, .65); }
-  .cl-delete-account-dialog form { display: grid; gap: var(--cl-space-4); }
+  .cl-delete-account-dialog form { display: grid; gap: .4rem; padding: 0; }
   .cl-delete-account-dialog h2, .cl-delete-account-dialog p { margin: 0; }
   .cl-delete-account-dialog p { color: var(--cl-text-muted); }
-  .cl-delete-account-confirmation { display: grid; gap: var(--cl-space-2); font-weight: var(--cl-font-weight-semibold); }
-  .cl-delete-account-confirmation input { padding: var(--cl-space-3); border: 1px solid var(--cl-border); border-radius: var(--cl-radius-md); background: var(--cl-surface); color: var(--cl-text); font: inherit; }
+  .cl-delete-account-header { position: relative; display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .5rem .7rem; border-bottom: 1px solid var(--cl-border); background: color-mix(in srgb, var(--cl-danger) 8%, var(--cl-surface)); text-align: center; }
+  .cl-delete-account-header h2 { font-size: .9rem; }
+  .cl-delete-account-header p { margin-top: .1rem; font-size: .68rem; }
+  .cl-delete-account-title-icon, .cl-delete-backup-option-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; color: var(--cl-danger); }
+  .cl-delete-account-title-icon { width: 30px; height: 30px; border-radius: 7px; background: color-mix(in srgb, var(--cl-danger) 15%, transparent); }
+  .cl-delete-account-header .cl-delete-account-title-icon { position: absolute; left: .7rem; }
+  .cl-delete-account-title-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cl-delete-account-intro, .cl-delete-backup-options, .cl-delete-backup-note, .cl-delete-account-confirmation, .cl-delete-account-status, .cl-delete-account-actions { margin-inline: .7rem; }
+  .cl-delete-account-intro { font-size: .82rem; line-height: 1.35; }
+  .cl-delete-account-dialog .cl-delete-account-intro { margin-inline: 1.3rem; }
+  .cl-delete-account-intro, .cl-delete-account-confirmation { text-align: center; }
+  [data-theme="solarized-light"] .cl-delete-account-dialog .cl-delete-account-intro { color: #002b36; }
+  [data-theme="solarized-dark"] .cl-delete-account-dialog .cl-delete-account-intro { color: #fdf6e3; }
+  .cl-delete-backup-options { display: grid; gap: .3rem; margin-top: 0; margin-bottom: 0; padding: .45rem; border: 1px solid var(--cl-border); border-radius: 7px; }
+  .cl-delete-backup-options legend { padding: 0 var(--cl-space-1); color: var(--cl-text); font-size: .82rem; font-weight: var(--cl-font-weight-semibold); }
+  .cl-delete-backup-grid { display: grid; gap: .25rem; }
+  .cl-delete-backup-option { display: flex; align-items: center; gap: .45rem; padding: .3rem; border: 1px solid var(--cl-border); border-radius: 6px; color: var(--cl-text); cursor: pointer; }
+  .cl-delete-backup-option:hover { border-color: var(--cl-danger); background: color-mix(in srgb, var(--cl-danger) 7%, transparent); }
+  .cl-delete-backup-option input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--cl-danger); }
+  .cl-delete-backup-option-icon { width: 26px; height: 26px; border-radius: 6px; background: color-mix(in srgb, var(--cl-danger) 10%, transparent); }
+  .cl-delete-backup-option-icon svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cl-delete-backup-option-icon img { width: 15px; height: 15px; object-fit: contain; }
+  .cl-delete-backup-option-copy { display: grid; gap: .12rem; }
+  .cl-delete-backup-option-copy strong { color: var(--cl-text); font-size: .8rem; line-height: 1.1; }
+  .cl-delete-backup-option-copy small { color: var(--cl-text-muted); font-size: .58rem; line-height: 1.1; }
+  .cl-delete-backup-note { color: var(--cl-text-muted); font-size: .68rem; line-height: 1.3; }
+  .cl-delete-account-dialog .cl-delete-account-confirmation { display: block; margin-inline: 1.3rem; font-size: .82rem; font-weight: var(--cl-font-weight-normal); line-height: 1.35; }
+  [data-theme="solarized-light"] .cl-delete-account-dialog .cl-delete-account-confirmation { color: #002b36; }
+  [data-theme="solarized-dark"] .cl-delete-account-dialog .cl-delete-account-confirmation { color: #fdf6e3; }
+  .cl-delete-account-confirmation strong { font-size: .82rem; }
+  .cl-delete-account-confirmation code { padding: .12rem .35rem; border-radius: 4px; background: #fdf6e3; color: var(--cl-danger); font-size: 1.05rem; font-weight: var(--cl-font-weight-semibold); }
+  .cl-delete-account-confirmation input { display: block; width: 100%; box-sizing: border-box; margin-top: .25rem; padding: .3rem .45rem; border: 1px solid var(--cl-border); border-radius: var(--cl-radius-md); background: var(--cl-surface); color: var(--cl-text); font: inherit; }
   .cl-delete-account-status { min-height: 1.25em; }
-  .cl-delete-account-actions { display: flex; justify-content: flex-end; gap: var(--cl-space-3); }
+  .cl-delete-account-actions { display: flex; justify-content: flex-end; gap: var(--cl-space-3); padding: 0 0 .55rem; }
   @media (max-width: 520px) { .cl-settings-row { align-items: flex-start; flex-direction: column; } .cl-settings-select-row select { width: 100%; } }
+
+  /* Painéis centralizados: mesma linguagem dos cards do configurador de
+     backup (superfície elevada, borda discreta, cantos de 10px e grupos). */
+  #cl-page-profile .cl-page-body,
+  #cl-page-settings .cl-page-body {
+    display: flex;
+    justify-content: center;
+    padding: clamp(1rem, 3vw, 2.25rem);
+    box-sizing: border-box;
+  }
+
+  #cl-page-profile .cl-page-container,
+  #cl-page-settings .cl-page-container { width: min(100%, 980px); margin: 0 auto; }
+
+  .cl-profile-layout {
+    width: min(100%, 820px);
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: clamp(1.25rem, 3vw, 2.25rem);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--cl-border);
+    border-radius: 12px;
+    background: var(--cl-surface);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .12);
+  }
+
+  .cl-profile-photo-panel { width: 160px; height: 160px; justify-self: center; border: 1px solid var(--cl-border); background: var(--cl-surface-2); }
+  .cl-profile-photo { width: 154px; height: 154px; }
+  .cl-profile-form { min-width: 0; }
+  .cl-profile-form-header { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--cl-border); }
+  .cl-profile-form-body { gap: 1rem; }
+  .cl-profile-field { padding: .9rem; border: 1px solid var(--cl-border); border-radius: 10px; background: color-mix(in srgb, var(--cl-surface-2) 62%, transparent); }
+  .cl-profile-field input, .cl-profile-field textarea { background: var(--cl-surface); }
+  .cl-profile-actions { margin-top: 1rem; padding-top: 1rem; }
+
+  .cl-settings-list { width: min(100%, 820px); gap: 1rem; }
+  .cl-settings-section { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--cl-border); border-radius: 12px; background: var(--cl-surface); box-shadow: 0 8px 24px rgba(0, 0, 0, .1); }
+  .cl-settings-section h2 { padding-bottom: .85rem; margin-bottom: .25rem; border-bottom: 1px solid var(--cl-border); }
+  .cl-settings-row { padding: 1rem 0; }
+  .cl-settings-row:last-of-type { border-bottom: 0; }
+  .cl-settings-choice-group { flex-wrap: wrap; }
+  .cl-settings-danger-zone { background: color-mix(in srgb, var(--cl-danger) 7%, var(--cl-surface)); }
+
+  .cl-dashboard { max-width: 980px; padding: clamp(1rem, 3vw, 2.25rem); }
+  .cl-dashboard-hero, .cl-dashboard-stat, .cl-dashboard-panel, .cl-dashboard-course, .cl-dashboard-announcement { border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .1); }
+  .cl-dashboard-hero { padding: clamp(1.5rem, 4vw, 2.5rem); }
+  .cl-dashboard-section { margin-top: 1.25rem; }
+  .cl-dashboard-section-heading { padding: 0 .25rem; }
+  .cl-dashboard-stat { align-items: flex-start; min-height: 118px; justify-content: center; }
+
+  @media (max-width: 720px) {
+    #cl-page-profile .cl-page-body, #cl-page-settings .cl-page-body { padding: 1rem; }
+    .cl-profile-layout { grid-template-columns: 1fr; padding: 1rem; }
+    .cl-profile-photo-panel { width: 132px; height: 132px; }
+    .cl-profile-photo { width: 126px; height: 126px; }
+    .cl-settings-section { padding: 1rem; }
+    .cl-settings-choice-group { width: 100%; }
+    .cl-settings-choice-group { grid-auto-columns: minmax(0, 1fr); }
+  }

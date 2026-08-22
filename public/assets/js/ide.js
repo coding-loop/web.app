@@ -86,9 +86,9 @@
     // carregamento; aqui aplicamos CSS ou JavaScript quando for o caso.
     const courseDashboardIcon = document.getElementById('course-dashboard-icon');
     const courseIcons = {
-      html: 'assets/images/icons/html.svg',
-      css: 'assets/images/icons/css.svg',
-      js: 'assets/images/icons/javascript.svg'
+      html: 'assets/images/icons.svg/logo-html.svg',
+      css: 'assets/images/icons.svg/logo-css.svg',
+      js: 'assets/images/icons.svg/logo-javascript.svg'
     };
     if (courseDashboardIcon) {
       courseDashboardIcon.src = courseIcons[cursoAtualId] || courseIcons.html;
@@ -251,6 +251,57 @@
     // (CL.trilha) e os dados dos nós (CL.curso.buildEtapaNodes) são
     // compartilhados com a trilha de Módulos da Dashboard.
     const indiceTituloEl = document.getElementById('indice-titulo-modulo');
+    // `indice=trilha|lista` é enviado pela trilha de módulos para abrir
+    // diretamente o painel de etapas no formato correspondente.
+    const indiceSolicitadoNaUrl = new URLSearchParams(window.location.search).get('indice');
+    const layoutAprendizagem = window.localStorage.getItem('cl-layout-aprendizagem') || 'mapa';
+    let indiceLayoutAtual = indiceSolicitadoNaUrl === 'lista'
+      ? 'lista'
+      : (indiceSolicitadoNaUrl === 'trilha' ? 'trilha' : (layoutAprendizagem === 'indice' ? 'lista' : 'trilha'));
+
+    function escaparTextoIndice(valor) {
+      return String(valor == null ? '' : valor)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function renderIndiceLinear(modulo, nodes) {
+      indiceListaEl.classList.add('indice-lista--linear');
+      indiceListaEl.innerHTML = '<ol class="indice-etapas-linear">' + nodes.map(function (node, indice) {
+        var bloqueada = node.status === 'locked';
+        var estado = node.status === 'completed' ? 'Concluída' : (node.status === 'current' ? 'Em andamento' : (bloqueada ? 'Bloqueada' : 'Disponível'));
+        var titulo = escaparTextoIndice(CL.curso.tituloTextoPlano ? CL.curso.tituloTextoPlano(modulo.etapas[indice].titulo) : modulo.etapas[indice].titulo);
+        var acao = bloqueada
+          ? '<span class="indice-etapas-linear__titulo">' + titulo + '</span>'
+          : '<button type="button" class="indice-etapas-linear__titulo" data-indice-etapa="' + (indice + 1) + '">' + titulo + '</button>';
+        var refazer = node.status === 'completed'
+          ? '<button type="button" class="indice-etapas-linear__refazer" data-indice-refazer="' + (indice + 1) + '">Refazer</button>'
+          : '';
+        return '<li class="indice-etapas-linear__item indice-etapas-linear__item--' + node.status + '">' +
+          '<span class="indice-etapas-linear__icone" aria-hidden="true">' + (node.status === 'completed' ? '&#10003;' : (bloqueada ? '&#128274;' : '&#9675;')) + '</span>' +
+          '<div>' + acao + '<small>' + estado + (node.percentual !== null && node.percentual !== undefined ? ' · ' + node.percentual + '%' : '') + '</small></div>' + refazer + '</li>';
+      }).join('') + '</ol>';
+
+      if (!indiceListaEl._indiceLinearBound) {
+        indiceListaEl.addEventListener('click', function (evento) {
+          var abrir = evento.target.closest('[data-indice-etapa]');
+          if (abrir) {
+            prepararTrocaDeEtapa();
+            currentStep = parseInt(abrir.getAttribute('data-indice-etapa'), 10);
+            updateStepsUI();
+            fecharIndice();
+            return;
+          }
+          var refazer = evento.target.closest('[data-indice-refazer]');
+          if (!refazer) return;
+          var numero = parseInt(refazer.getAttribute('data-indice-refazer'), 10);
+          if (!numero || !window.confirm('Refazer esta etapa? O progresso e o código salvo dela serão apagados.')) return;
+          resetarProgressoEtapa(getModuloAtual().id, numero);
+          renderIndice();
+        });
+        indiceListaEl._indiceLinearBound = true;
+      }
+    }
 
     function renderIndice() {
       const modulo = getModuloAtual();
@@ -259,6 +310,13 @@
       }
 
       const nodes = CL.curso.buildEtapaNodes(modulo, progressoEtapasCache, currentStep);
+
+      if (indiceLayoutAtual === 'lista') {
+        renderIndiceLinear(modulo, nodes);
+        return;
+      }
+
+      indiceListaEl.classList.remove('indice-lista--linear');
 
       CL.trilha.render(indiceListaEl, {
         nodes: nodes,
@@ -293,15 +351,11 @@
       indicePanelEl.hidden = false;
       theoryContentEl.hidden = true;
       toggleIndiceBtn.classList.add('is-active');
-      toggleIndiceBtn.setAttribute('aria-expanded', 'true');
     }
 
     toggleIndiceBtn.addEventListener('click', function () {
-      if (indicePanelEl.hidden) {
-        abrirIndice();
-      } else {
-        fecharIndice();
-      }
+      if (indicePanelEl.hidden) abrirIndice();
+      else fecharIndice();
     });
 
     // Permite que outros scripts leiam a etapa atual sem depender da ordem
@@ -1196,11 +1250,11 @@
     }
 
     // Chegou aqui a partir de um nível da trilha da Dashboard
-    // (ide.html?modulo=modulo-2-estilizando-com-css)? Abre direto
-    // nesse módulo, começando da etapa 1 (a não ser que o aluno já
-    // tenha progresso salvo justamente nesse módulo).
+    // (ide.html?modulo=...&etapa=2)? Abre diretamente no módulo e,
+    // quando fornecida, na etapa solicitada pelo índice do curso.
     function aplicarModuloDaUrl() {
-      const moduloAlvo = new URLSearchParams(window.location.search).get('modulo');
+      const parametrosUrl = new URLSearchParams(window.location.search);
+      const moduloAlvo = parametrosUrl.get('modulo');
       if (!moduloAlvo) return;
 
       const indiceModulo = MODULOS.findIndex(function (modulo) {
@@ -1208,16 +1262,20 @@
       });
       if (indiceModulo === -1) return;
 
-      if (indiceModulo !== currentModuleIndex) {
-        currentModuleIndex = indiceModulo;
-        currentStep = 1;
-      }
+      currentModuleIndex = indiceModulo;
+
+      const etapaAlvo = parseInt(parametrosUrl.get('etapa'), 10);
+      const totalEtapas = getTotalEtapas();
+      currentStep = etapaAlvo >= 1 && etapaAlvo <= totalEtapas ? etapaAlvo : 1;
     }
 
     restaurarProgressoSalvo(posicaoCarregada);
     aplicarModuloDaUrl();
     renderEtapas();
     updateStepsUI();
+    if (indiceSolicitadoNaUrl === 'trilha' || indiceSolicitadoNaUrl === 'lista') {
+      abrirIndice();
+    }
     setTimeout(abrirAvisoBackupSeNecessario, 350);
   } // fim de iniciarTeoria
   // Chamada pelo bootIde() (rodapé deste arquivo) só depois que o Ace

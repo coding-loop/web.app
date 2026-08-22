@@ -38,6 +38,17 @@
     const root = document.getElementById('cl-page-dashboard');
     if (!root || !CL.curso || !CL.curso.CURSOS) return;
 
+    // Os cursos em assets/content/ são registrados de forma assíncrona.
+    // Aguarda o catálogo antes de formar os cards para que toda trilha
+    // publicada (HTML, CSS, JavaScript e futuras) apareça no painel.
+    if (CL.curso.conteudoPronto && typeof CL.curso.conteudoPronto.then === 'function') {
+      try {
+        await CL.curso.conteudoPronto;
+      } catch (error) {
+        console.warn('Alguns conteúdos do catálogo não puderam ser carregados.', error);
+      }
+    }
+
     renderAnnouncements();
 
     const progress = CL.api && CL.api.listProgress ? await CL.api.listProgress() : {};

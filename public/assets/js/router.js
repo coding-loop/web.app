@@ -324,7 +324,13 @@
                     };
 
                     /* ===================================================== */
-                    /* DASHBOARD */
+                    /* ÁREA CODING LOOP */
+                    /* ===================================================== */
+
+                    CL.pages.home = CL.pages.create("home", { title: "Coding Loop" });
+
+                    /* ===================================================== */
+                    /* PAINEL DO ALUNO */
                     /* ===================================================== */
 
                     CL.pages.dashboard = CL.pages.create("dashboard", { title: "Dashboard" });

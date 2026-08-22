@@ -51,16 +51,16 @@
                     <header id='cl-header'>
 
                         <div class='cl-header-brand' id='cl-header-brand'>
-                            <a aria-label='Painel do aluno' class='cl-logo' data-page='dashboard' href='#dashboard' title='Painel do aluno'>
-                                <!-- TROQUE o src abaixo pela URL real do logo (ex: hospedado
-                                     nas imagens do Blogger). Mantido pequeno (2rem) para caber
-                                     nos 10vh do header em qualquer tela. -->
-                                <img alt='Coding Loop' class='cl-header-logo-img' id='cl-header-logo' src='https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhYlZuYvvMwdj9_pd7QhrBAKWdRsdtBbiqtAtFwDrrxdmdlZiBRsAJSfVItMeE7Vk2iiN3APt0IZA97NOnvRxMqJGraW-CkoeA_gH5T0EMFMT3xs3nueHihPaRBYpRpIOs8ctQ53B2SwdiY99FcOOfRtLVVLpidWMSWGbi1xtUb-xIY2A/s1600/Logo-Azul.png'/>
+                            <a aria-label='Área Coding Loop' class='cl-logo' data-page='home' href='#home' title='Área Coding Loop'>
+                                <img alt='' aria-hidden='true' class='cl-header-logo-img cl-header-logo-img--dark' src='assets/images/icons.svg/logo-coding-loop-dark.svg'>
+                                <img alt='' aria-hidden='true' class='cl-header-logo-img cl-header-logo-img--light' src='assets/images/icons.svg/logo-coding-loop-ligth.svg'>
                                 <span>Coding-Loop</span>
                             </a>
                             <a class='cl-tech-badges'> 
                               <img alt="Front-End" class="front-end" id="front-end-img" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgn-WX4yojSTM1yS4kQbbRoeQvqJhXEHtepv_ZCNYbUAiJEAfgOsTESFdNEMmkiZTprTqR6tZlZMfILyka-et2z2TuHVuORDeuXp6cCcQYoQbrZic4KhliFBUH3rX3PxVgxPMFJXU1YgRTJY3xLbSei_yKXBLa2H2tvmn1EvEGO5Kk4Gw/s1600/front_end_developer_labels_1.png"/>
-                              <img alt='HTML5 , CSS3 , JS' class='cl-header-htmlCssJs-img' id='htmlCssJs-img' src='https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhifDLwnhdkUzXYuprb90GsH60Z9gctbcZEGdPljvSWVyp2SXFpFVh_IQGHUjwWtfJ9pC0WaseYJT1eCGOzp323umlU3B2fHJQumvPjvXg6zxnUyf3WCmYEOK1xXrzi8ywylqXtZ_KGyhrUMA0D0by6rUxPE_to5vKGbGxu7aCMbiKTaw/s1600/Html5,Css3,JS.png'/>
+                              <img alt="HTML5" class="cl-header-htmlCssJs-img" src="assets/images/icons.svg/logo-html.svg"/>
+                              <img alt="CSS3" class="cl-header-htmlCssJs-img" src="assets/images/icons.svg/logo-css.svg"/>
+                              <img alt="JavaScript" class="cl-header-htmlCssJs-img" src="assets/images/icons.svg/logo-javascript.svg"/>
                               <img alt="Developer" class="developer" id="developer-img" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEho-Srk81vrGReU19aHs_d5uV-IEo7YQk2UTHTin31uMfFEy0mV9Awmzfs-tiGLPqtMTgTCLuuxMwuZfS8qFYhDvu6TQoLOSYk24aDqA_le0AtgOI1yhmH5Yw-MAHepfvpC4xOE1OioRPEiPziBYCQsv7BG3Gg6LIlCCJiu86WR9nFBLw/s1600/front_end_developer_labels_2.png"/>
                             </a>
                         </div> 
@@ -99,7 +99,7 @@
                                         </button>
 
                                         <button class='cl-dropdown-item' data-action='settings' type='button'>
-                                            <span class='cl-dropdown-icon' aria-hidden='true'><svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='3'></circle><path d='m19.4 15 .1 1.7-1.7 1.7-1.7-.1-1.2.8-.4 1.6h-2.4l-.4-1.6-1.2-.8-1.7.1-1.7-1.7.1-1.7-.8-1.2-1.6-.4v-2.4l1.6-.4.8-1.2-.1-1.7 1.7-1.7 1.7.1 1.2-.8.4-1.6h2.4l.4 1.6 1.2.8 1.7-.1 1.7 1.7-.1 1.7.8 1.2 1.6.4v2.4l-1.6.4-.8 1.2Z'></path></svg></span>
+                                            <span class='cl-dropdown-icon' aria-hidden='true'><svg viewBox='0 0 24 24'><path d='M4 5h16M4 12h16M4 19h16'></path><circle cx='7' cy='5' r='1'></circle><circle cx='13' cy='12' r='1'></circle><circle cx='17' cy='19' r='1'></circle></svg></span>
                                             <span class='cl-dropdown-label'>Configurações</span>
                                         </button>
 
@@ -286,33 +286,101 @@
 
                   <!-- ===================================================== -->
                   <!-- CONTEÚDO DAS PÁGINAS -->
-                  <!-- ===================================================== -->               		                  
+                  <!-- ===================================================== -->
 
-                        <!-- DASHBOARD -->
+                        <!-- ÁREA CODING LOOP — acesso pela marca do cabeçalho -->
+                        <section class='cl-page' data-page='home' hidden='hidden' id='cl-page-home'>
+                        <!--
+                            CARROSSEL (TEMPLATE)
+                            Para adicionar um item, duplique um <article data-carousel-slide>
+                            inteiro. Para remover, apague o <article> correspondente.
+                            O JavaScript cria os indicadores automaticamente.
+                        -->
+                        <section aria-label='Destaques Coding Loop' class='cl-main-carousel' data-carousel data-carousel-interval='7000'>
+                            <div class='cl-carousel-viewport'>
+                                <div class='cl-carousel-track'>
+
+                                    <!-- SLIDE 1 — modelo para cursos ou conteúdos -->
+                                    <article class='cl-carousel-slide cl-carousel-slide--primary' data-carousel-slide>
+                                        <div class='cl-carousel-content'>
+                                            <p class='cl-carousel-eyebrow'>MODELO: CURSO</p>
+                                            <h2>Comece sua jornada Front-End</h2>
+                                            <p>Personalize este texto para divulgar um curso, uma trilha ou uma atividade.</p>
+                                            <a class='cl-carousel-link' href='ide.html'>Abrir a IDE <span aria-hidden='true'>→</span></a>
+                                        </div>
+                                    </article>
+
+                                    <!-- SLIDE 2 — modelo para avisos -->
+                                    <article class='cl-carousel-slide cl-carousel-slide--accent' data-carousel-slide>
+                                        <div class='cl-carousel-content'>
+                                            <p class='cl-carousel-eyebrow'>MODELO: AVISO</p>
+                                            <h2>Seu próximo destaque entra aqui</h2>
+                                            <p>Use este bloco para novidades, comunicados ou lembretes importantes para os alunos.</p>
+                                        </div>
+                                    </article>
+
+                                    <!-- SLIDE 3 — modelo livre -->
+                                    <article class='cl-carousel-slide cl-carousel-slide--neutral' data-carousel-slide>
+                                        <div class='cl-carousel-content'>
+                                            <p class='cl-carousel-eyebrow'>MODELO: PERSONALIZADO</p>
+                                            <h2>Crie um slide do seu jeito</h2>
+                                            <p>Você pode trocar título, texto, link e a classe de cor sem alterar o funcionamento do carrossel.</p>
+                                        </div>
+                                    </article>
+
+                                </div>
+                            </div>
+                            <div class='cl-carousel-controls'>
+                                <button aria-label='Ver destaque anterior' class='cl-carousel-button' data-carousel-prev type='button'>
+                                    <svg aria-hidden='true' viewBox='0 0 24 24'><path d='m14 6-6 6 6 6'></path></svg>
+                                </button>
+                                <div aria-label='Selecionar destaque' class='cl-carousel-indicators' data-carousel-indicators></div>
+                                <button aria-label='Ver próximo destaque' class='cl-carousel-button' data-carousel-next type='button'>
+                                    <svg aria-hidden='true' viewBox='0 0 24 24'><path d='m10 6 6 6-6 6'></path></svg>
+                                </button>
+                            </div>
+                        </section>
+
+                            <div class='cl-page-container cl-home-area'>
+                                <header class='cl-home-area-hero'>
+                                    <p class='cl-home-area-eyebrow'>CODING LOOP</p>
+                                    <h1>Sua plataforma de aprendizado</h1>
+                                    <p>Explore suas ferramentas de estudo. Seu acompanhamento individual fica disponível no menu da foto de perfil.</p>
+                                    <a class='cl-home-area-action' href='ide.html'>Abrir ambiente de código <span aria-hidden='true'>→</span></a>
+                                </header>
+                                <section class='cl-home-area-card' aria-labelledby='home-area-estudos'>
+                                    <h2 id='home-area-estudos'>Continue aprendendo</h2>
+                                    <p>Use os cursos, exercícios e a IDE para avançar na sua jornada de desenvolvimento.</p>
+                                    <a href='ide.html'>Ir para a IDE</a>
+                                </section>
+                            </div>
+                        </section>
+
+                        <!-- PAINEL DO ALUNO — acesso pelo dropdown da foto de perfil -->
                         <section class='cl-page' data-page='dashboard' hidden='hidden' id='cl-page-dashboard'>
                             <div class='cl-page-container cl-dashboard'>
                                 <header class='cl-dashboard-hero'>
-                                    <div><p class='cl-dashboard-eyebrow'>SEU ESPAÇO DE ESTUDO</p><h1 id='dashboard-boas-vindas'>Olá!</h1><p id='dashboard-resumo'>Pronto para continuar sua jornada?</p></div>
-                                    <a class='cl-dashboard-continue' id='dashboard-continuar' href='ide.html'><span>Continuar estudando</span><span aria-hidden='true'>→</span></a>
+                                    <div><p class='cl-dashboard-eyebrow'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 19.5V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14.5l-4-2-4 2-4-2z'/></svg>SEU ESPAÇO DE ESTUDO</p><h1 id='dashboard-boas-vindas'>Olá!</h1><p id='dashboard-resumo'>Pronto para continuar sua jornada?</p></div>
+                                    <a class='cl-dashboard-continue' id='dashboard-continuar' href='ide.html'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M5 12h14M13 6l6 6-6 6'/></svg><span>Continuar estudando</span></a>
                                 </header>
                                 <section aria-labelledby='dashboard-avisos-titulo' class='cl-dashboard-section cl-dashboard-announcements'>
-                                    <div class='cl-dashboard-section-heading'><div><h2 id='dashboard-avisos-titulo'>Avisos</h2><p>Atualizações e comunicados da Coding Loop.</p></div></div>
+                                    <div class='cl-dashboard-section-heading'><div><h2 id='dashboard-avisos-titulo'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4'/></svg>Avisos</h2><p>Atualizações e comunicados da Coding Loop.</p></div></div>
                                     <div aria-live='polite' class='cl-dashboard-announcement-list' id='dashboard-avisos'>
                                         <p class='cl-dashboard-muted'>Carregando avisos...</p>
                                     </div>
                                 </section>
                                 <section aria-label='Resumo do progresso' class='cl-dashboard-stats'>
-                                    <article class='cl-dashboard-stat'><span class='cl-dashboard-stat-value' id='dashboard-etapas-concluidas'>0</span><span>Etapas concluídas</span></article>
-                                    <article class='cl-dashboard-stat'><span class='cl-dashboard-stat-value' id='dashboard-modulos-concluidos'>0</span><span>Módulos concluídos</span></article>
-                                    <article class='cl-dashboard-stat'><span class='cl-dashboard-stat-value' id='dashboard-codigos-salvos'>0</span><span>Códigos salvos</span></article>
+                                    <article class='cl-dashboard-stat'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='m5 12 4 4L19 6'/></svg><span class='cl-dashboard-stat-value' id='dashboard-etapas-concluidas'>0</span><span>Etapas concluídas</span></article>
+                                    <article class='cl-dashboard-stat'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 19.5V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14.5l-4-2-4 2-4-2z'/></svg><span class='cl-dashboard-stat-value' id='dashboard-modulos-concluidos'>0</span><span>Módulos concluídos</span></article>
+                                    <article class='cl-dashboard-stat'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M8 21H5a2 2 0 0 1-2-2v-3m18 0v3a2 2 0 0 1-2 2h-3M8 12h8'/></svg><span class='cl-dashboard-stat-value' id='dashboard-codigos-salvos'>0</span><span>Códigos salvos</span></article>
                                 </section>
                                 <section class='cl-dashboard-section'>
-                                    <div class='cl-dashboard-section-heading'><div><h2>Progresso por curso</h2><p>Continue de onde parou em cada trilha.</p></div></div>
+                                    <div class='cl-dashboard-section-heading'><div><h2><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 19V5m0 14h16M8 15l3-3 3 2 5-6'/></svg>Progresso por curso</h2><p>Continue de onde parou em cada trilha.</p></div></div>
                                     <div class='cl-dashboard-courses' id='dashboard-cursos'></div>
                                 </section>
                                 <section class='cl-dashboard-section cl-dashboard-bottom-grid'>
-                                    <article class='cl-dashboard-panel'><h2>Atividade recente</h2><p class='cl-dashboard-muted'>O acompanhamento por dias será exibido aqui quando o histórico de estudo for ativado.</p><div aria-hidden='true' class='cl-dashboard-activity-bars'><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
-                                    <article class='cl-dashboard-panel'><h2>Próxima missão</h2><p id='dashboard-proxima-missao' class='cl-dashboard-muted'>Abra uma trilha para começar sua primeira etapa.</p></article>
+                                    <article class='cl-dashboard-panel'><h2><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M3 12a9 9 0 1 0 3-6.7M3 4v5h5'/></svg>Atividade recente</h2><p class='cl-dashboard-muted'>O acompanhamento por dias será exibido aqui quando o histórico de estudo for ativado.</p><div aria-hidden='true' class='cl-dashboard-activity-bars'><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+                                    <article class='cl-dashboard-panel'><h2><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='m12 3 2.8 5.7L21 9.6l-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z'/></svg>Próxima missão</h2><p id='dashboard-proxima-missao' class='cl-dashboard-muted'>Abra uma trilha para começar sua primeira etapa.</p></article>
                                 </section>
                             </div>
                         </section>
@@ -403,28 +471,28 @@
                                         <aside class='cl-profile-photo-panel' aria-label='Foto de perfil exclusiva do Coding Loop'>
                                             <img class='cl-profile-photo' id='cl-profile-photo' alt='Foto de perfil'>
                                             <label class='cl-profile-photo-upload' for='cl-profile-photo-file'>
-                                                <span aria-hidden='true'>📷</span>
+                                                <svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h4l2-3h4l2 3h4v13H4z'/><circle cx='12' cy='13' r='3'/></svg>
                                                 <span>Enviar foto</span>
                                             </label>
                                             <input id='cl-profile-photo-file' type='file' accept='image/png,image/jpeg,image/webp' hidden>
                                         </aside>
                                         <form class='cl-profile-form' id='cl-profile-form'>
-                                            <header class='cl-profile-form-header'><h2>Informações pessoais</h2></header>
+                                            <header class='cl-profile-form-header'><h2><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='8' r='4'/><path d='M4 21a8 8 0 0 1 16 0'/></svg>Informações pessoais</h2></header>
                                             <div class='cl-profile-form-body'>
-                                                <label class='cl-profile-field'>Nome de exibição
+                                                <label class='cl-profile-field'><span class='cl-label-with-icon'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='8' r='4'/><path d='M4 21a8 8 0 0 1 16 0'/></svg>Nome de exibição</span>
                                                     <input id='cl-profile-name' name='name' type='text' maxlength='80' autocomplete='name' required>
                                                 </label>
-                                                <label class='cl-profile-field'>E-mail
+                                                <label class='cl-profile-field'><span class='cl-label-with-icon'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><rect x='3' y='5' width='18' height='14' rx='2'/><path d='m3 7 9 6 9-6'/></svg>E-mail</span>
                                                     <input id='cl-profile-email' type='email' readonly>
                                                     <span>O e-mail é gerenciado pelo seu provedor de acesso.</span>
                                                 </label>
-                                                <label class='cl-profile-field'>Sobre você
+                                                <label class='cl-profile-field'><span class='cl-label-with-icon'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 5h16v11H8l-4 4z'/></svg>Sobre você</span>
                                                     <textarea id='cl-profile-bio' name='bio' rows='4' maxlength='280' placeholder='Conte um pouco sobre seus objetivos de estudo.'></textarea>
                                                 </label>
                                             </div>
                                             <div class='cl-profile-actions'>
                                                 <span id='cl-profile-status' aria-live='polite'></span>
-                                                <button class='cl-btn cl-btn-filled cl-primary' type='submit'>Salvar alterações</button>
+                                                <button class='cl-btn cl-btn-filled cl-primary' type='submit'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M5 3h12l3 3v15H5zM8 3v6h8V3m-8 18v-7h8v7'/></svg>Salvar alterações</button>
                                             </div>
                                         </form>
                                     </main>
@@ -436,8 +504,7 @@
                             <div class='cl-page-container'>
                                 <header class='cl-page-header'>
                                     <div class='cl-page-title'>
-                                        <h1>Configurações</h1>
-                                        <p>Preferências e acesso à sua conta.</p>
+                                        <h1><img class='cl-settings-heading-icon' src='assets/images/icons.svg/settings.svg' alt='' aria-hidden='true'>Configurações</h1>
                                     </div>
                                     <div class='cl-page-actions cl-page-actions-right'></div>
                                 </header>
@@ -445,30 +512,37 @@
                                 <div class='cl-page-body'>
                                     <main class='cl-settings-list'>
                                         <section class='cl-settings-section' aria-labelledby='cl-settings-account-title'>
-                                            <h2 id='cl-settings-account-title'>Conta e acesso</h2>
+                                            <h2 id='cl-settings-account-title'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='8' r='4'/><path d='M4 21a8 8 0 0 1 16 0'/></svg>Conta e acesso</h2>
                                             <div class='cl-settings-row'>
-                                                <div><h3>E-mail</h3><p id='cl-settings-email'></p></div>
+                                                <div><h3><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><rect x='3' y='5' width='18' height='14' rx='2'/><path d='m3 7 9 6 9-6'/></svg>E-mail</h3><p id='cl-settings-email'></p></div>
                                             </div>
                                             <div class='cl-settings-row'>
-                                                <div><h3>Método de acesso</h3><p id='cl-settings-provider'></p></div>
+                                                <div><h3><span class='cl-password-reset-icon' aria-hidden='true'><img class='cl-password-reset-icon--dark' src='assets/images/icons.svg/password-reset-dark.svg' alt=''><img class='cl-password-reset-icon--light' src='assets/images/icons.svg/password-reset-light.svg' alt=''></span>Alterar senha</h3><p id='cl-settings-provider'></p></div>
                                                 <button class='cl-btn cl-btn-outline cl-primary' id='cl-settings-password-reset' type='button' hidden>Alterar senha</button>
                                             </div>
                                             <p class='cl-settings-note' id='cl-settings-password-note'></p>
                                         </section>
                                         <section class='cl-settings-section' aria-labelledby='cl-settings-preferences-title'>
-                                            <h2 id='cl-settings-preferences-title'>Preferências</h2>
+                                            <h2 id='cl-settings-preferences-title'><img class='cl-settings-heading-icon' src='assets/images/icons.svg/settings.svg' alt='' aria-hidden='true'>Preferências</h2>
                                             <label class='cl-settings-row cl-settings-select-row' for='cl-settings-theme'>
-                                                <span><h3>Tema</h3><p>Escolha a aparência da plataforma.</p></span>
-                                                <select id='cl-settings-theme'>
+                                                <span><h3><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='4'/><path d='M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19'/></svg>Tema</h3><p>Escolha a aparência da plataforma.</p></span>
+                                                <select id='cl-settings-theme' hidden>
                                                     <option value='solarized-dark'>Escuro</option>
                                                     <option value='solarized-light'>Claro</option>
-                                                </select>
+                                                </select><span class='cl-settings-choice-group' data-setting-control='cl-settings-theme' role='radiogroup' aria-label='Tema'><button class='cl-settings-choice' type='button' value='solarized-dark'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5z'/></svg><span>Escuro</span></button><button class='cl-settings-choice' type='button' value='solarized-light'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='4'/><path d='M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19'/></svg><span>Claro</span></button></span>
+                                            </label>
+                                            <label class='cl-settings-row cl-settings-select-row' for='cl-settings-layout-aprendizagem'>
+                                                <span><h3><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 5h16M4 12h16M4 19h16'/><circle cx='7' cy='5' r='1'/><circle cx='13' cy='12' r='1'/><circle cx='17' cy='19' r='1'/></svg>Layout da aprendizagem</h3><p>Define o mesmo formato para a trilha de módulos e para o índice de etapas.</p></span>
+                                                <select id='cl-settings-layout-aprendizagem' hidden>
+                                                    <option value='mapa'>Layout trilha</option>
+                                                    <option value='indice'>Layout índice</option>
+                                                </select><span class='cl-settings-choice-group cl-settings-choice-group--icons' data-setting-control='cl-settings-layout-aprendizagem' role='radiogroup' aria-label='Layout da aprendizagem'><button aria-label='Layout trilha' class='cl-settings-choice' title='Layout trilha' type='button' value='mapa'><img class='cl-layout-trilha-icon cl-layout-trilha-icon--dark' src='assets/images/icons.svg/trilha-icon-dark.svg' alt=''><img class='cl-layout-trilha-icon cl-layout-trilha-icon--light' src='assets/images/icons.svg/trilha-icon-light.svg' alt=''></button><button aria-label='Layout índice' class='cl-settings-choice' title='Layout índice' type='button' value='indice'><svg class='cl-ui-icon' viewBox='0 0 24' aria-hidden='true'><path d='M5 5h14v14H5zM8 9h8m-8 3h8m-8 3h5'/></svg></button></span>
                                             </label>
                                         </section>
                                         <section class='cl-settings-section cl-settings-danger-zone' aria-labelledby='cl-settings-delete-title'>
-                                            <h2 id='cl-settings-delete-title'>Excluir conta e dados</h2>
+                                            <h2 id='cl-settings-delete-title'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h16M10 11v6m4-6v6M9 7l1-3h4l1 3m-9 0 1 14h10l1-14'/></svg>Excluir conta e dados</h2>
                                             <p>Remove sua conta, progresso, códigos salvos e backups mantidos neste navegador. A ação não pode ser desfeita.</p>
-                                            <button class='cl-btn cl-btn-outline cl-btn-danger' id='cl-settings-delete-account' type='button'>Excluir minha conta</button>
+                                            <button class='cl-btn cl-btn-outline cl-btn-danger' id='cl-settings-delete-account' type='button'><svg class='cl-ui-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h16M10 11v6m4-6v6M9 7l1-3h4l1 3m-9 0 1 14h10l1-14'/></svg>Excluir minha conta</button>
                                         </section>
                                     </main>
                                 </div>
@@ -476,10 +550,20 @@
                         </section>
                     <dialog class='cl-delete-account-dialog' id='cl-delete-account-dialog' aria-labelledby='cl-delete-account-title'>
                         <form id='cl-delete-account-form'>
-                            <h2 id='cl-delete-account-title'>Excluir conta permanentemente?</h2>
-                            <p>Isso apagará os dados do Coding Loop associados a esta conta, inclusive perfil, progresso, códigos e backups salvos neste navegador.</p>
-                            <p>Os backups do Google Drive e OneDrive devem ser apagados na área de backup do curso. Arquivos já baixados ou gravados em uma pasta do seu computador não podem ser apagados pelo site; remova-os manualmente.</p>
-                            <label class='cl-delete-account-confirmation' for='cl-delete-account-confirmation'>Digite <strong>EXCLUIR</strong> para confirmar
+                            <div class='cl-delete-account-header'>
+                                <span class='cl-delete-account-title-icon' aria-hidden='true'><svg viewBox='0 0 24 24'><path d='M4 7h16M10 11v6m4-6v6M9 7l1-3h4l1 3m-9 0 1 14h10l1-14'/></svg></span>
+                                <div><h2 id='cl-delete-account-title'>Excluir conta permanentemente?</h2></div>
+                            </div>
+                            <p class='cl-delete-account-intro'>Todos, e somente os dados, nos limites das permissões ao Coding-Loop, serão apagados.</p>
+                            <fieldset class='cl-delete-backup-options'>
+                                <legend>Remover backups em:</legend>
+                                <div class='cl-delete-backup-grid'>
+                                    <label class='cl-delete-backup-option'><input name='delete-backup-destinations' type='checkbox' value='drive'><span class='cl-delete-backup-option-icon' aria-hidden='true'><img src='assets/images/icons.svg/logo-google-drive.svg' alt=''></span><span class='cl-delete-backup-option-copy'><strong>Google Drive</strong></span></label>
+                                    <label class='cl-delete-backup-option'><input name='delete-backup-destinations' type='checkbox' value='onedrive'><span class='cl-delete-backup-option-icon' aria-hidden='true'><img src='assets/images/icons.svg/logo-onedrive.svg' alt=''></span><span class='cl-delete-backup-option-copy'><strong>OneDrive</strong></span></label>
+                                    <label class='cl-delete-backup-option'><input name='delete-backup-destinations' type='checkbox' value='computer'><span class='cl-delete-backup-option-icon' aria-hidden='true'><svg viewBox='0 0 24 24'><rect x='3' y='4' width='18' height='13' rx='2'/><path d='M8 21h8m-4-4v4'/></svg></span><span class='cl-delete-backup-option-copy'><strong>Computador</strong></span></label>
+                                </div>
+                            </fieldset>
+                            <label class='cl-delete-account-confirmation' for='cl-delete-account-confirmation'>Para confirmar, digite o código: <code>Ex.clu.ir</code>
                                 <input autocomplete='off' id='cl-delete-account-confirmation' required type='text'>
                             </label>
                             <p class='cl-delete-account-status' id='cl-delete-account-status' aria-live='polite'></p>
@@ -643,6 +727,7 @@
     <!-- Liga a trilha de módulos à página "course" registrada acima. -->
     <script defer src="assets/js/pagina-curso.js"></script>
     <script defer src="assets/js/pagina-dashboard.js"></script>
+    <script defer src="assets/js/carrossel.js"></script>
     <script defer src="assets/js/pagina-perfil.js"></script>
     <script defer src="assets/js/pagina-configuracoes.js"></script>
 

@@ -71,4 +71,4 @@ Nunca mude o `id` de um curso ou módulo depois de publicar. O progresso salvo n
 ## Conteúdo existente
 
 O catálogo anterior foi mantido em `public/assets/js/curso-data.js` para preservar os cursos atuais. As novas etapas de HTML do módulo 1 já foram extraídas para `public/assets/content/html/modulo-01/` como referência real de implementação. Os próximos conteúdos devem ser adicionados na nova estrutura, não no catálogo legado.
-...
+...git 

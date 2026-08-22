@@ -155,6 +155,43 @@
       border-color: #3385FF;
     }
 
+    .dashboard-fixed-section { position: relative; }
+
+    .indice-layout-dropdown {
+      position: absolute;
+      z-index: 30;
+      top: calc(100% + 5px);
+      left: 0;
+      display: grid;
+      min-width: 148px;
+      padding: 4px;
+      border: 1px solid var(--cl-border, #586e75);
+      border-radius: 6px;
+      background: var(--cl-surface, #073642);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, .28);
+    }
+
+    .indice-layout-dropdown[hidden] { display: none; }
+
+    .indice-layout-dropdown button {
+      border: 0;
+      border-radius: 4px;
+      padding: 7px 9px;
+      color: var(--cl-text, #fdf6e3);
+      background: transparent;
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .indice-layout-dropdown button:hover,
+    .indice-layout-dropdown button:focus-visible {
+      color: var(--cl-primary, #3385FF);
+      background: var(--cl-surface-hover, rgba(51, 133, 255, .12));
+    }
+
     .toggle-theme-btn svg {
       width: 18px;
       height: 18px;
@@ -705,6 +742,35 @@
       height: 19px;
     }
 
+    .backup-option-icon img {
+      display: block;
+      width: 16px;
+      height: 16px;
+      max-width: 16px;
+      max-height: 16px;
+      object-fit: contain;
+    }
+
+    .backup-option input[value="drive"] + .backup-option-icon,
+    .backup-option input[value="onedrive"] + .backup-option-icon {
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 19px 19px;
+    }
+
+    .backup-option input[value="drive"] + .backup-option-icon {
+      background-image: url("../images/icons.svg/logo-google-drive.svg");
+    }
+
+    .backup-option input[value="onedrive"] + .backup-option-icon {
+      background-image: url("../images/icons.svg/logo-onedrive.svg");
+    }
+
+    .backup-option input[value="drive"] + .backup-option-icon svg,
+    .backup-option input[value="onedrive"] + .backup-option-icon svg {
+      display: none;
+    }
+
     .backup-option-icon.backup-google-drive-icon svg {
       fill: currentColor;
       stroke: none;
@@ -1130,6 +1196,53 @@
       color: #6a737d;
       background: #f0f2f5;
     }
+
+    /* Alternador e modo linear do índice de etapas da Platform Learn. */
+    .indice-etapas-layout-controles {
+      display: flex;
+      gap: 4px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--cl-border, #e1e4e8);
+      background: var(--cl-surface, #f0f2f5);
+    }
+
+    .indice-etapas-layout-controle {
+      border: 1px solid transparent;
+      border-radius: 5px;
+      padding: 5px 8px;
+      color: var(--cl-text-muted, #6a737d);
+      background: transparent;
+      font: inherit;
+      font-size: .76rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .indice-etapas-layout-controle:hover,
+    .indice-etapas-layout-controle.is-active {
+      border-color: var(--cl-primary, #3385FF);
+      color: var(--cl-primary, #3385FF);
+      background: color-mix(in srgb, var(--cl-primary, #3385FF) 10%, transparent);
+    }
+
+    .indice-lista--linear {
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      background: var(--cl-bg, #f6f8fa) !important;
+    }
+
+    .indice-etapas-linear { display: grid; gap: 1px; padding: 0; margin: 0; list-style: none; }
+    .indice-etapas-linear__item { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--cl-border, #e1e4e8); }
+    .indice-etapas-linear__icone { color: var(--cl-primary, #3385FF); text-align: center; }
+    .indice-etapas-linear__item--completed .indice-etapas-linear__icone { color: var(--cl-success, #2da44e); }
+    .indice-etapas-linear__item--locked { opacity: .58; }
+    .indice-etapas-linear__item div { min-width: 0; display: grid; gap: 2px; }
+    .indice-etapas-linear__titulo { padding: 0; border: 0; color: var(--cl-text, #24292e); background: transparent; font: inherit; font-size: .86rem; font-weight: 700; text-align: left; overflow-wrap: anywhere; }
+    button.indice-etapas-linear__titulo { cursor: pointer; }
+    button.indice-etapas-linear__titulo:hover, button.indice-etapas-linear__titulo:focus-visible { color: var(--cl-primary, #3385FF); text-decoration: underline; }
+    .indice-etapas-linear__item small { color: var(--cl-text-muted, #6a737d); font-size: .72rem; }
+    .indice-etapas-linear__refazer { border: 0; padding: 4px 6px; color: var(--cl-danger, #cf222e); background: transparent; font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; }
 
     .indice-item-linha {
       display: flex;

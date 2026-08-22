@@ -26,9 +26,9 @@
   /* SVGs locais, sem número de versão. O número do módulo é desenhado
      separadamente por .trilha-node-numero, logo escala para qualquer curso. */
   CL.trilha.LOGOS = {
-    html: 'assets/images/icons/html.svg',
-    css: 'assets/images/icons/css.svg',
-    js: 'assets/images/icons/javascript.svg'
+    html: 'assets/images/icons.svg/logo-html.svg',
+    css: 'assets/images/icons.svg/logo-css.svg',
+    js: 'assets/images/icons.svg/logo-javascript.svg'
   };
 
   function escapeAttr(texto) {
@@ -294,6 +294,10 @@
 
     titulo.innerHTML = '<img src="' + imagemTitulo + '" alt="">';
   }
+
+  // A visão em índice não usa CL.trilha.render(), mas compartilha o mesmo
+  // cabeçalho visual (logo + "From Basic to Advanced") do mapa.
+  CL.trilha.atualizarTituloFixo = atualizarTituloFixo;
 
   /* Redesenha o caminho de TODOS os containers já renderizados
      nesta página (normalmente só existe um por vez — Dashboard OU
