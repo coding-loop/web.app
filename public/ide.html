@@ -233,24 +233,40 @@
                     <div class="backup-dialog-header export-code-dialog-header">
                       <div class="backup-dialog-title">
                         <span class="backup-dialog-title-icon export-code-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM10 16h4V9h4l-6-6-6 6h4v7z"/></svg></span>
-                        <div><h2 id="export-code-title">Exportar Código-Fonte</h2><p>Exporte o código-fonte em:</p></div>
+                        <div><h2 id="export-code-title">Exportar Código-Fonte</h2></div>
                       </div>
                       <button aria-label="Cancelar exportação" class="backup-dialog-close export-code-dialog-cancel" value="cancel" type="submit" title="Fechar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
                     </div>
                     <div class="export-code-dialog-actions" aria-label="Formato da exportação">
                       <button class="cl-btn export-code-option" value="single" type="submit">
-                        <span class="export-code-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h4M9 12l-2 2 2 2m6-4 2 2-2 2m-4 2 2-8"/></svg></span>
-                        <span class="export-code-option-copy"><strong>CSS e JavaScript Internos</strong><small>HTML, CSS e JS em arquivo único</small></span>
+                        <span class="export-code-option-icon" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-js-css-html-dark.svg" data-icon-light="assets/images/icons.svg/file-js-css-html-light.svg" src="assets/images/icons.svg/file-js-css-html-dark.svg"></span>
+                        <span class="export-code-option-copy"><strong>Arquivo único</strong><small>HTML, CSS e JS em um documento</small></span>
                       </button>
                       <button class="cl-btn export-code-option" value="separate" type="submit">
-                        <span class="export-code-option-icon export-code-option-icon--multiple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h4M9 12l-2 2 2 2m6-4 2 2-2 2m-4 2 2-8"/></svg><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h4M9 12l-2 2 2 2m6-4 2 2-2 2m-4 2 2-8"/></svg><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h4M9 12l-2 2 2 2m6-4 2 2-2 2m-4 2 2-8"/></svg></span>
-                        <span class="export-code-option-copy"><strong>CSS e JavaScript Externos</strong><small>HTML, CSS e JS em arquivos separados</small></span>
+                        <span class="export-code-option-icon export-code-option-icon--multiple" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-html-dark.svg" data-icon-light="assets/images/icons.svg/file-html-light.svg" src="assets/images/icons.svg/file-html-dark.svg"><img alt="" data-icon-dark="assets/images/icons.svg/file-css-dark.svg" data-icon-light="assets/images/icons.svg/file-css-light.svg" src="assets/images/icons.svg/file-css-dark.svg"><img alt="" data-icon-dark="assets/images/icons.svg/file-Js-dark.svg" data-icon-light="assets/images/icons.svg/file-Js-light.svg" src="assets/images/icons.svg/file-Js-dark.svg"></span>
+                        <span class="export-code-option-copy"><strong>Três arquivos</strong><small>Um HTML, um CSS e um JavaScript</small></span>
+                      </button>
+                      <button class="cl-btn export-code-option" value="html" type="submit">
+                        <span class="export-code-option-icon" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-html-dark.svg" data-icon-light="assets/images/icons.svg/file-html-light.svg" src="assets/images/icons.svg/file-html-dark.svg"></span>
+                        <span class="export-code-option-copy"><strong>Somente HTML</strong><small>Exporta o conteúdo do editor HTML</small></span>
+                      </button>
+                      <button class="cl-btn export-code-option" value="css" type="submit">
+                        <span class="export-code-option-icon" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-css-dark.svg" data-icon-light="assets/images/icons.svg/file-css-light.svg" src="assets/images/icons.svg/file-css-dark.svg"></span>
+                        <span class="export-code-option-copy"><strong>Somente CSS</strong><small>Exporta o conteúdo do editor CSS</small></span>
+                      </button>
+                      <button class="cl-btn export-code-option" value="js" type="submit">
+                        <span class="export-code-option-icon" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-Js-dark.svg" data-icon-light="assets/images/icons.svg/file-Js-light.svg" src="assets/images/icons.svg/file-Js-dark.svg"></span>
+                        <span class="export-code-option-copy"><strong>Somente JavaScript</strong><small>Exporta o conteúdo do editor JavaScript</small></span>
+                      </button>
+                      <button class="cl-btn export-code-option" value="svg" type="submit">
+                        <span class="export-code-option-icon export-code-option-icon--svg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M8 15l2-3 2 4 2-2 2 3"/></svg></span>
+                        <span class="export-code-option-copy"><strong>Somente SVG</strong><small>Exporta o primeiro SVG do editor HTML</small></span>
                       </button>
                     </div>
                   </form>
                 </dialog>
 
-                <input accept=".html,.htm,.css,.js" class="file-input-hidden" id="input-import-file" type="file"/>
+                <input accept=".html,.htm,.css,.js,.svg" class="file-input-hidden" id="input-import-file" type="file"/>
 
                 <div class="tab-btn code-tab" data-target="html-pane" draggable="true">
                   <input checked="checked" class="editor-toggle-checkbox" id="chk-toggle-html" type="checkbox"/>

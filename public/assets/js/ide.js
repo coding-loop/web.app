@@ -1672,6 +1672,17 @@
           atualizarIndicadoresRolagem();
         }
 
+        function reajustarPaineisParaNovaArea() {
+          // Remove medidas em pixels criadas pelos divisores para que os
+          // painéis ativos usem toda a área disponível no novo tamanho do IDE.
+          limparTamanhosDosPaineis();
+          configurarRedimensionadores();
+
+          requestAnimationFrame(function () {
+            requestAnimationFrame(redimensionarEditores);
+          });
+        }
+
         function atualizarIndicadoresRolagem() {
           if (!tabsScrollWrapper || !dragContainer) return;
           var margem = 2;
@@ -2184,6 +2195,19 @@
           }
         }
 
+        function definirPreviewMaximizado(maximizado) {
+          prefPreviewMaximized = maximizado;
+          contentWrapper.classList.toggle('preview-maximized', maximizado);
+          btnPreviewMaximize.classList.toggle('is-active', maximizado);
+          btnPreviewMaximize.setAttribute('aria-pressed', String(maximizado));
+          alternarIcones(iconPreviewMax, iconPreviewRestore, maximizado);
+        }
+
+        function sincronizarPreviewComAbas(quantidadeAbasAtivas) {
+          if (!chkTogglePreview.checked || !previewContainer.classList.contains('show-preview')) return;
+          definirPreviewMaximizado(quantidadeAbasAtivas === 0);
+        }
+
         function mostrarPreview() {
           abrirJanela();
           chkTogglePreview.checked = true;
@@ -2199,6 +2223,11 @@
           btnPreviewMaximize.classList.toggle('is-active', prefPreviewMaximized);
           btnPreviewMaximize.setAttribute('aria-pressed', String(prefPreviewMaximized));
           alternarIcones(iconPreviewMax, iconPreviewRestore, prefPreviewMaximized);
+
+          // Sem editores visíveis, o preview passa a ocupar toda a área.
+          sincronizarPreviewComAbas([chkToggleHtml, chkToggleCss, chkToggleJs].filter(function (checkbox) {
+            return checkbox.checked;
+          }).length);
 
           renderizarPreview();
           limparTamanhosDosPaineis();
@@ -2267,6 +2296,7 @@
           if (idsAtivos.length === 3) editorsContainer.classList.add('split-3');
 
           contentWrapper.classList.toggle('no-tabs-active', idsAtivos.length === 0);
+          sincronizarPreviewComAbas(idsAtivos.length);
 
           limparTamanhosDosPaineis();
           configurarRedimensionadores();
@@ -2397,6 +2427,33 @@
           mostrarToast('Arquivos separados exportados!');
         }
 
+        function exportarCodigoHtml() {
+          baixarArquivo(htmlEditor.getValue(), 'index.html', 'text/html;charset=utf-8');
+          mostrarToast('Arquivo HTML exportado!');
+        }
+
+        function exportarCodigoCss() {
+          baixarArquivo(cssEditor.getValue(), 'style.css', 'text/css;charset=utf-8');
+          mostrarToast('Arquivo CSS exportado!');
+        }
+
+        function exportarCodigoJs() {
+          baixarArquivo(jsEditor.getValue(), 'script.js', 'text/javascript;charset=utf-8');
+          mostrarToast('Arquivo JavaScript exportado!');
+        }
+
+        function exportarCodigoSvg() {
+          var documento = new DOMParser().parseFromString(htmlEditor.getValue(), 'text/html');
+          var svg = documento.querySelector('svg');
+          if (!svg) {
+            mostrarToast('Nenhum SVG foi encontrado no editor HTML.');
+            return;
+          }
+          if (!svg.hasAttribute('xmlns')) svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          baixarArquivo(svg.outerHTML, 'imagem.svg', 'image/svg+xml;charset=utf-8');
+          mostrarToast('Arquivo SVG exportado!');
+        }
+
         btnExportFile.addEventListener('click', function () {
           if (exportCodeDialog && typeof exportCodeDialog.showModal === 'function') {
             exportCodeDialog.showModal();
@@ -2409,6 +2466,10 @@
           exportCodeDialog.addEventListener('close', function () {
             if (exportCodeDialog.returnValue === 'single') exportarCodigoUnico();
             if (exportCodeDialog.returnValue === 'separate') exportarCodigosSeparados();
+            if (exportCodeDialog.returnValue === 'html') exportarCodigoHtml();
+            if (exportCodeDialog.returnValue === 'css') exportarCodigoCss();
+            if (exportCodeDialog.returnValue === 'js') exportarCodigoJs();
+            if (exportCodeDialog.returnValue === 'svg') exportarCodigoSvg();
           });
         }
 
@@ -2433,7 +2494,7 @@
             document.body.classList.remove('ide-fullscreen-lock');
           }
           alternarIcones(iconMaximize, iconMinimize, telaCheia);
-          setTimeout(redimensionarEditores, 150);
+          reajustarPaineisParaNovaArea();
         });
 
         window.addEventListener('resize', function () {
@@ -2460,11 +2521,7 @@
 
         btnPreviewMaximize.addEventListener('click', function () {
           abrirJanela();
-          var maximizado = contentWrapper.classList.toggle('preview-maximized');
-          prefPreviewMaximized = maximizado;
-          btnPreviewMaximize.classList.toggle('is-active', maximizado);
-          btnPreviewMaximize.setAttribute('aria-pressed', String(maximizado));
-          alternarIcones(iconPreviewMax, iconPreviewRestore, maximizado);
+          definirPreviewMaximizado(!contentWrapper.classList.contains('preview-maximized'));
 
           limparTamanhosDosPaineis();
           configurarRedimensionadores();

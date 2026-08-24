@@ -293,13 +293,16 @@
       color: var(--cl-primary);
     }
 
-    #export-code-dialog .export-code-option:first-child .export-code-option-icon {
-      margin-right: 14px;
+    #export-code-dialog .export-code-option-icon img {
+      display: block;
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
     }
 
-    #export-code-dialog .export-code-option-icon svg {
-      width: 21px;
-      height: 21px;
+    #export-code-dialog .export-code-option-icon--svg svg {
+      width: 28px;
+      height: 28px;
       fill: none;
       stroke: currentColor;
       stroke-width: 1.8;
@@ -313,13 +316,13 @@
       gap: 2px;
     }
 
-    #export-code-dialog .export-code-option-icon--multiple svg {
+    #export-code-dialog .export-code-option-icon--multiple img {
       width: 20px;
       height: 26px;
       flex: 0 0 20px;
     }
 
-    #export-code-dialog .export-code-option-icon--multiple svg + svg {
+    #export-code-dialog .export-code-option-icon--multiple img + img {
       margin-left: 0;
     }
 

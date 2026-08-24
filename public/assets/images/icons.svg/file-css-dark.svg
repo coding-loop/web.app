@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="800px" height="800px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<title>document-css-altura-real</title>
+<g transform="translate(-5.5 0)">
+  <path fill="#002b36" d="M12,28H8V4h8v6a2.0058,2.0058,0,0,0,2,2h6v4h2V10a.9092.9092,0,0,0-.3-.7l-7-7A.9087.9087,0,0,0,18,2H8A2.0058,2.0058,0,0,0,6,4V28a2.0058,2.0058,0,0,0,2,2h4ZM18,4.4,23.6,10H18Z"/>
+  <g transform="translate(9.6 25.5) scale(1 1.5) translate(-9.6 -25.5)">
+    <text x="9.6" y="25.5" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="5.5" fill="#002b36" letter-spacing="0.4">CSS</text>
+  </g>
+</g>
+</svg>
