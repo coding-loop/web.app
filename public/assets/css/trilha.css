@@ -82,8 +82,14 @@ body:has(#cl-app[data-page="course"]) {
     url("../images/trilha-bg-html.png");
 }
 
-/* Título decorativo fixo no topo da página do curso HTML. Fica acima da
-   trilha, mas não recebe eventos de mouse ou toque. */
+.trilha-container[data-curso="programming-logic"] {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .55)),
+    url("../images/trilha-bg-logprog.png");
+}
+
+/* Título decorativo fixo no topo da página do curso. Fica acima da trilha
+   e dos módulos, mas não recebe eventos de mouse ou toque. */
 #cl-page-course {
   position: relative;
 }
@@ -283,11 +289,13 @@ body:has(#cl-app[data-page="course"]) {
 .trilha-caminho--vinte-um .trilha-item--vinte-um {
   position: absolute;
   top: calc(var(--trilha-pagina-y) + var(--trilha-linha-y));
-  left: var(--trilha-x);
+  /* trilha.js define --trilha-x-visivel somente quando a largura do
+     painel diminui. Sem esse ajuste, conserva as coordenadas originais. */
+  left: var(--trilha-x-visivel, var(--trilha-x));
   /* A posição final é controlada somente pelas coordenadas manuais. */
   transform: translateX(-50%) translate(
-    var(--trilha-ajuste-x, 0px),
-    var(--trilha-ajuste-y, 0px)
+    var(--trilha-transform-x, var(--trilha-ajuste-x, 0px)),
+    calc(var(--trilha-ajuste-y, 0px) + var(--trilha-auto-deslocamento-y, 0px))
   );
 }
 
@@ -343,16 +351,40 @@ body:has(#cl-app[data-page="course"]) {
   background: var(--cl-primary, #268bd2);
 }
 
-/* Índice LMS: cada módulo é expansível, mostra seu estado e lista as
-   atividades sem substituir a trilha lúdica que já existia. */
+/* Índice LMS: cada módulo é expansível. Mantém o pano de fundo próprio do
+   curso, exatamente como no modo trilha. */
 .trilha-container--indice {
   -webkit-mask-image: none;
   mask-image: none;
-  background-image: none !important;
-  background: var(--cl-bg, #002b36);
+  background-color: var(--cl-bg, #002b36);
   /* Reserva espaço para o mesmo banner Code Path do layout trilha. */
   padding: clamp(8rem, 14vw, 12rem) clamp(1rem, 5vw, 4rem) 3rem;
   box-sizing: border-box;
+}
+
+/* Trilhas 7H:3V: cada módulo ocupa o fim de um segmento unitário. O motor
+   usa sequências próprias por curso, com blocos equilibrados e sem subidas. */
+.trilha-caminho--logprog {
+  position: relative;
+  /* A largura sempre acompanha o painel. A geometria responsiva do motor
+     transforma trechos laterais sem espaço em descidas, sem comprimir nós. */
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.trilha-container[data-curso="programming-logic"] {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.trilha-caminho--logprog .trilha-item--logprog {
+  position: absolute;
+  left: var(--trilha-x);
+  top: var(--trilha-y);
+  transform: translate(-50%, -50%);
 }
 
 .curso-indice {
@@ -378,7 +410,7 @@ body:has(#cl-app[data-page="course"]) {
 .curso-indice__lista { display: grid; gap: .8rem; counter-reset: modulos; }
 .curso-indice__item { border: 1px solid var(--cl-border, #586e75); border-left: 4px solid var(--cl-border, #586e75); border-radius: .75rem; background: var(--cl-surface, #073642); overflow: hidden; }
 .curso-indice__item--completed { border-left-color: var(--cl-success, #859900); }
-.curso-indice__item--current { border-left-color: var(--cl-primary, #268bd2); box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent); }
+.curso-indice__item--current { border-left-color: var(--cl-primary, #268bd2); box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent); opacity: .7; }
 .curso-indice__item--locked { opacity: .7; }
 .curso-indice__item summary { display: grid; grid-template-columns: 2.5rem 1fr auto; gap: .8rem; align-items: center; padding: 1rem 1.1rem; cursor: pointer; list-style: none; }
 .curso-indice__item summary::-webkit-details-marker { display: none; }
@@ -462,11 +494,25 @@ body:has(#cl-app[data-page="course"]) {
 }
 
 .trilha-node-col {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--cl-space-1, .25rem);
   width: 96px;
+}
+
+.trilha-node-surface {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  z-index: 4;
+  transition: transform var(--cl-transition-fast, .15s ease);
+}
+
+.trilha-node-surface:hover {
+  transform: translateY(-4px) scale(1.05);
 }
 
 .trilha-node {
@@ -487,7 +533,6 @@ body:has(#cl-app[data-page="course"]) {
 }
 
 .trilha-node:hover {
-  transform: translateY(-4px) scale(1.05);
   border-color: var(--cl-primary, #268bd2);
 }
 
@@ -548,6 +593,9 @@ body:has(#cl-app[data-page="course"]) {
 .trilha-node--current {
   border-color: var(--cl-primary, #268bd2);
   box-shadow: 0 0 0 4px rgba(38, 139, 210, .22);
+  /* O módulo atual mantém o indicador azul, mas usa a mesma transparência
+     visual dos demais cards ainda não concluídos. */
+  opacity: .5;
 }
 
 .trilha-node--current .trilha-node-numero {
@@ -561,6 +609,27 @@ body:has(#cl-app[data-page="course"]) {
 .trilha-node--locked {
   opacity: .5;
   filter: grayscale(.4);
+  cursor: not-allowed;
+}
+
+/* Os três controles periféricos pertencem ao mesmo sistema visual.
+   A forma circular é explícita para não ser sobrescrita por estilos
+   globais de button nem depender das variáveis do tema. */
+.trilha-node-numero,
+.trilha-node-check,
+.trilha-node-reset {
+  box-sizing: border-box;
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.trilha-node--locked:hover {
+  border-color: var(--cl-border, #586e75);
+}
+
+.trilha-node-surface--locked:hover {
+  transform: none;
 }
 
 .trilha-node.is-destacado {
@@ -579,33 +648,47 @@ body:has(#cl-app[data-page="course"]) {
 }
 
 .trilha-node-reset {
-  align-self: center;
-  width: 26px;
-  height: 26px;
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  z-index: 4;
+  top: -8px;
+  left: -8px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--cl-radius-round, 9999px);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--cl-text-muted, #93a1a1);
+  border: 2px solid var(--cl-bg, #002b36);
+  background: var(--cl-surface-2, #0b3b46);
+  color: var(--cl-text, #fdf6e3);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-inline: var(--cl-space-1, .25rem);
+  margin: 0;
   transition: background var(--cl-transition-fast, .15s ease), color var(--cl-transition-fast, .15s ease);
 }
 
 .trilha-node-reset:hover {
-  background: var(--cl-surface-hover, #124652);
-  color: var(--cl-danger, #dc322f);
+  background: var(--cl-danger, #dc322f);
+  color: var(--cl-on-primary, #fdf6e3);
+}
+
+.trilha-node-reset:focus-visible {
+  background: var(--cl-danger, #dc322f);
+  color: var(--cl-on-primary, #fdf6e3);
+  outline: 2px solid color-mix(in srgb, var(--cl-danger, #dc322f) 55%, white);
+  outline-offset: 2px;
 }
 
 .trilha-node-reset svg {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   fill: currentColor;
 }
 
 .trilha-node-titulo {
+  position: relative;
+  z-index: 3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

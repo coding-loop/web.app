@@ -129,7 +129,7 @@
         if (!fbUser) {
             return null;
         }
-        const providerId = fbUser.providerData && fbUser.providerData[0] && fbUser.providerData[0].providerId;
+        const providers = (fbUser.providerData || []).map(function (provider) { return provider.providerId; });
         const providerMap = {
             "password": "email",
             "google.com": "google",
@@ -142,7 +142,11 @@
             name: fbUser.displayName || "",
             email: fbUser.email || "",
             avatar: fbUser.photoURL || "",
-            provider: providerMap[providerId] || "email"
+            // Prefere um provider social conhecido ao password quando a conta
+            // possui credenciais vinculadas; a posição no array do SDK não é
+            // uma garantia de qual provider deve ser exibido.
+            provider: providerMap[providers.find(function (providerId) { return providerId !== "password" && providerMap[providerId]; })] ||
+                providerMap[providers.find(function (providerId) { return providerMap[providerId]; })] || "email"
         };
     };
 
@@ -160,6 +164,9 @@
         } catch (error) {
             if (CL.config.debug) {
                 console.error("[CL.auth] falha ao sincronizar perfil:", error);
+            }
+            if (CL.ui && typeof CL.ui.showToast === "function") {
+                CL.ui.showToast("Não foi possível sincronizar seu perfil agora. Tentaremos novamente ao sair.", "warning", 5000);
             }
         }
     };
@@ -233,10 +240,7 @@
             return true;
         } catch (error) {
 
-            const popupBlocked = error && (
-                error.code === "auth/popup-blocked" ||
-                error.code === "auth/cancelled-popup-request"
-            );
+            const popupBlocked = error && error.code === "auth/popup-blocked";
 
             if (popupBlocked) {
                 await CL.firebase.auth.signInWithRedirect(provider);
@@ -307,12 +311,47 @@
         }
     };
 
-    /* A remoção da conta no Firebase pode exigir login recente. Nesse caso
-       preservamos a conta e mostramos ao usuário como concluir a ação. */
+    CL.auth.reauthenticateForSensitiveAction = async function (firebaseUser) {
+        const providerIds = (firebaseUser.providerData || []).map(function (provider) { return provider.providerId; });
+        const providerKeys = {
+            "google.com": "google",
+            "facebook.com": "facebook",
+            "github.com": "github",
+            "microsoft.com": "microsoft"
+        };
+        const providerId = providerIds.find(function (id) { return providerKeys[id]; });
+
+        if (providerId) {
+            const provider = CL.firebase.providers && CL.firebase.providers[providerKeys[providerId]];
+            if (!provider) throw new Error("Provedor de reautenticação indisponível.");
+            await firebaseUser.reauthenticateWithPopup(provider);
+            return true;
+        }
+
+        if (providerIds.includes("password")) {
+            const password = window.prompt("Por segurança, informe sua senha atual para excluir a conta:");
+            if (password === null) {
+                const cancelled = new Error("Reautenticação cancelada.");
+                cancelled.code = "auth/popup-closed-by-user";
+                throw cancelled;
+            }
+            const credential = firebase.auth.EmailAuthProvider.credential(firebaseUser.email, password);
+            await firebaseUser.reauthenticateWithCredential(credential);
+            return true;
+        }
+
+        const error = new Error("Não foi possível determinar o método de reautenticação.");
+        error.code = "auth/requires-recent-login";
+        throw error;
+    };
+
+    /* A exclusão exige uma reautenticação explícita antes de remover dados.
+       Isso reduz a janela de inconsistência do fluxo somente no cliente. */
     CL.auth.deleteAccount = async function () {
         const firebaseUser = CL.firebase.auth.currentUser;
         if (!firebaseUser || !CL.auth.isAuthenticated()) return false;
         try {
+            await CL.auth.reauthenticateForSensitiveAction(firebaseUser);
             await CL.api.deleteAllUserData();
             await firebaseUser.delete();
             return true;

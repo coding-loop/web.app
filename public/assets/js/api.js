@@ -201,7 +201,8 @@
             draft.exercises[exerciseId] = {
                 html: code.html || "",
                 css: code.css || "",
-                js: code.js || ""
+                js: code.js || "",
+                files: Array.isArray(code.files) ? code.files : []
             };
             draft.deletedExercises = draft.deletedExercises.filter(function (id) { return id !== exerciseId; });
             CL.api._saveDraft(draft);
@@ -463,7 +464,12 @@
     CL.api.saveExercise = async function (exerciseId, code) {
         exerciseId = CL.api._documentId(exerciseId, "exerciseId");
         code = code || {};
-        localStorage.setItem(CL.api._exerciseKey(exerciseId), JSON.stringify({ html: code.html || "", css: code.css || "", js: code.js || "" }));
+        localStorage.setItem(CL.api._exerciseKey(exerciseId), JSON.stringify({
+            html: code.html || "",
+            css: code.css || "",
+            js: code.js || "",
+            files: Array.isArray(code.files) ? code.files : []
+        }));
         const index = CL.api._studyIndex();
         index.savedExercises[exerciseId] = true;
         CL.api._saveStudyIndex(index);

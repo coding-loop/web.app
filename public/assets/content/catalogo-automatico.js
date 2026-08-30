@@ -1,4 +1,4 @@
-/* Arquivo gerado por scripts/gerar-manifest-conteudo.ps1. Não edite manualmente. */
+﻿/* Arquivo gerado por scripts/gerar-manifest-conteudo.ps1. NÃ£o edite manualmente. */
 window.CL_CONTEUDO_MANIFEST_AUTOMATICO = [
   'assets/content/css/curso.js',
   'assets/content/css/modulo-01/00-modulo-01.js',
@@ -18,4 +18,8 @@ window.CL_CONTEUDO_MANIFEST_AUTOMATICO = [
   'assets/content/js/modulo-01/etapa-01.js',
   'assets/content/js/modulos-planejamento.js',
   'assets/content/js/posicoes-trilha.js',
+  'assets/content/programming-logic/curso.js',
+  'assets/content/programming-logic/modulo-01/00-modulo-01.js',
+  'assets/content/programming-logic/modulo-01/etapa-01.js',
+  'assets/content/programming-logic/modulos-planejamento.js',
 ];

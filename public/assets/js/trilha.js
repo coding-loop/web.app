@@ -26,6 +26,7 @@
   /* SVGs locais, sem número de versão. O número do módulo é desenhado
      separadamente por .trilha-node-numero, logo escala para qualquer curso. */
   CL.trilha.LOGOS = {
+    'programming-logic': 'assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4',
     html: 'assets/images/icons.svg/logo-html.svg',
     css: 'assets/images/icons.svg/logo-css.svg',
     js: 'assets/images/icons.svg/logo-javascript.svg'
@@ -82,14 +83,94 @@
     return { x: 0, y: 167 };
   }
 
+  /* Motor comum das trilhas dos cursos. Cada bloco possui 10 segmentos:
+     7 horizontais em três grupos de 1 a 3 unidades e três descidas D1.
+     Cada curso usa uma sequência própria; os blocos são equilibrados aos
+     pares para compensar os desvios à direita e à esquerda do centro. */
+  var CICLOS_TRILHA = {
+    'programming-logic': [
+      ['R', [2, 3, 2]], ['L', [3, 3, 1]], ['R', [2, 2, 3]], ['L', [3, 2, 2]],
+      ['R', [1, 3, 3]], ['L', [2, 3, 2]], ['R', [3, 3, 1]], ['L', [1, 3, 3]],
+      ['R', [3, 2, 2]], ['L', [2, 2, 3]], ['R', [2, 3, 2]], ['L', [3, 3, 1]]
+    ],
+    html: [
+      ['R', [3, 3, 1]], ['L', [2, 3, 2]], ['R', [3, 2, 2]], ['L', [2, 2, 3]],
+      ['R', [2, 3, 2]], ['L', [1, 3, 3]], ['R', [1, 3, 3]], ['L', [3, 3, 1]],
+      ['R', [2, 2, 3]], ['L', [3, 2, 2]], ['R', [3, 3, 1]], ['L', [2, 3, 2]]
+    ],
+    css: [
+      ['R', [1, 3, 3]], ['L', [3, 3, 1]], ['R', [2, 3, 2]], ['L', [1, 3, 3]],
+      ['R', [3, 2, 2]], ['L', [2, 2, 3]], ['R', [3, 3, 1]], ['L', [2, 3, 2]],
+      ['R', [2, 2, 3]], ['L', [3, 2, 2]], ['R', [1, 3, 3]], ['L', [3, 3, 1]]
+    ],
+    js: [
+      ['R', [2, 2, 3]], ['L', [3, 2, 2]], ['R', [3, 3, 1]], ['L', [1, 3, 3]],
+      ['R', [2, 3, 2]], ['L', [3, 3, 1]], ['R', [1, 3, 3]], ['L', [2, 3, 2]],
+      ['R', [3, 2, 2]], ['L', [2, 2, 3]], ['R', [3, 3, 1]], ['L', [1, 3, 3]]
+    ]
+  };
+
+  /* Distância fixa entre módulos de LogProg. Quando não há largura para
+     acomodar um passo lateral, aquele passo é encaminhado para baixo em vez
+     de aproximar os módulos ou criar rolagem horizontal. */
+  var PASSO_HORIZONTAL_LOGPROG = 255;
+  var PASSO_VERTICAL_LOGPROG = 170;
+  var MARGEM_LATERAL_LOGPROG = 40;
+  var MARGEM_SUPERIOR_TRILHA = 240;
+
+  function limiteLateralLogProg(largura) {
+    var espacoDeUmLado = (Number(largura) || 0) / 2 - MARGEM_LATERAL_LOGPROG;
+    return Math.max(0, Math.min(3, Math.floor(espacoDeUmLado / PASSO_HORIZONTAL_LOGPROG)));
+  }
+
+  function pontoLogProg(indice, limiteLateral, cursoId) {
+    var ponto = { x: 0, y: 0 };
+    var segmentosGerados = 0;
+    var ciclo = 0;
+    limiteLateral = Math.max(0, Number(limiteLateral) || 0);
+    var ciclos = CICLOS_TRILHA[cursoId] || CICLOS_TRILHA['programming-logic'];
+
+    while (segmentosGerados <= indice) {
+      var definicao = ciclos[ciclo % ciclos.length];
+      var sentidoInicial = definicao[0] === 'R' ? 1 : -1;
+      var grupos = definicao[1].map(function (tamanho, indiceGrupo) {
+        return {
+          tamanho: tamanho,
+          direcao: indiceGrupo % 2 === 0 ? sentidoInicial : -sentidoInicial
+        };
+      });
+
+      for (var grupo = 0; grupo < grupos.length; grupo++) {
+        for (var passo = 0; passo < grupos[grupo].tamanho; passo++) {
+          var proximoX = ponto.x + grupos[grupo].direcao;
+          /* Em painéis estreitos, a trilha dobra o trecho horizontal para
+             baixo. Assim o espaçamento se mantém e todos os módulos seguem
+             conectados por um único caminho ortogonal. */
+          if (Math.abs(proximoX) <= limiteLateral) ponto.x = proximoX;
+          else ponto.y += 1;
+          if (segmentosGerados === indice) return { x: ponto.x, y: ponto.y };
+          segmentosGerados += 1;
+        }
+        // Cada bloco horizontal termina com uma única descida.
+        ponto.y += 1;
+        if (segmentosGerados === indice) return { x: ponto.x, y: ponto.y };
+        segmentosGerados += 1;
+      }
+      ciclo += 1;
+    }
+  }
+
   function nodeHTML(node, index, options) {
     var logoUrl = CL.trilha.LOGOS[node.linguagem] || '';
     var statusClass = 'trilha-node--' + (node.status || 'available');
+    var status = node.status || 'available';
+    var bloqueado = status === 'locked';
     var gradeTriangular = options && options.layout === 'triangular';
     var trilhaSerpente = options && options.layout === 'serpente';
     var trilhaRio = options && options.layout === 'rio';
     var trilhaQuatroColunas = options && options.layout === 'quatro-colunas';
     var trilhaVinteUm = options && options.layout === 'vinte-um-por-tela';
+    var trilhaLogProg = options && options.layout === 'logprog-ziguezague';
     var colunas = Math.max(1, Number(options && options.columns) || 10);
     var indiceLinha = Math.floor(index / colunas);
     var linha = indiceLinha + 1;
@@ -127,7 +208,7 @@
     }
 
     if (trilhaVinteUm) {
-      colunas = 7;
+      colunas = 10;
       var pagina = Math.floor(index / 21);
       var indiceNaPagina = index % 21;
       indiceLinha = Math.floor(indiceNaPagina / colunas);
@@ -136,31 +217,41 @@
       coluna = indiceLinha % 2 === 0 ? posicaoNaLinha + 1 : colunas - posicaoNaLinha;
     }
 
+    if (trilhaLogProg) {
+      var pontoDaLogica = pontoLogProg(index, options.logprogLimiteLateral, options.cursoId);
+      colunas = 13;
+      coluna = pontoDaLogica.x + 7;
+      linha = pontoDaLogica.y + 1;
+      indiceLinha = pontoDaLogica.y;
+    }
+
     /* Zigue-zague: alterna pra cima/baixo por CLASSE (não por
        nth-child), porque o SVG do caminho (ver desenharCaminho())
        também é filho de .trilha-caminho — se dependesse de
        nth-child, o SVG bagunçaria a contagem par/ímpar. */
     var onda = (index % 2 === 0) ? 'trilha-item--sobe' : 'trilha-item--desce';
-    var classePosicao = trilhaVinteUm
-      ? 'trilha-item--vinte-um'
-      : (trilhaQuatroColunas
-      ? 'trilha-item--quatro-colunas'
-      : (trilhaRio
-      ? 'trilha-item--rio'
-      : (trilhaSerpente
-      ? 'trilha-item--serpente'
-      : (gradeTriangular ? 'trilha-item--triangular' : onda))));
-    var estiloPosicao = trilhaVinteUm
-      ? ' style="--trilha-pagina-y:' + (pagina * 100) + 'vh;--trilha-linha-y:' + (100 + (indiceLinha * 136)) + 'px;--trilha-x:' + (6 + ((coluna - 1) * (88 / 6))).toFixed(4) + '%"'
-      : (trilhaQuatroColunas
-      ? ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + '"'
-      : (trilhaRio
-      ? ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + ';--trilha-deslocamento:' + (indiceLinha % 2 === 1 ? 'var(--trilha-meio-passo)' : '0px') + '"'
-      : (trilhaSerpente
-      ? ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + ';--trilha-deslocamento:' + (indiceLinha % 2 === 1 ? 'var(--trilha-meio-passo)' : '0px') + '"'
-      : (gradeTriangular
-      ? ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + ';--trilha-deslocamento:' + (indiceLinha % 2 === 1 ? 60 : 0) + 'px"'
-      : ''))));
+    var classePosicao = onda;
+    var estiloPosicao = '';
+    if (gradeTriangular) {
+      classePosicao = 'trilha-item--triangular';
+      estiloPosicao = ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + ';--trilha-deslocamento:' + (indiceLinha % 2 === 1 ? 60 : 0) + 'px"';
+    }
+    if (trilhaSerpente || trilhaRio) {
+      classePosicao = trilhaSerpente ? 'trilha-item--serpente' : 'trilha-item--rio';
+      estiloPosicao = ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + ';--trilha-deslocamento:' + (indiceLinha % 2 === 1 ? 'var(--trilha-meio-passo)' : '0px') + '"';
+    }
+    if (trilhaQuatroColunas) {
+      classePosicao = 'trilha-item--quatro-colunas';
+      estiloPosicao = ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + '"';
+    }
+    if (trilhaVinteUm) {
+      classePosicao = 'trilha-item--vinte-um';
+      estiloPosicao = ' style="--trilha-pagina-y:' + (pagina * 100) + 'vh;--trilha-linha-y:' + (100 + (indiceLinha * 136)) + 'px;--trilha-x:' + (6 + ((coluna - 1) * (88 / 6))).toFixed(4) + '%"';
+    }
+    if (trilhaLogProg) {
+      classePosicao = 'trilha-item--logprog';
+      estiloPosicao = ' style="--trilha-x:calc(50% + ' + (pontoDaLogica.x * PASSO_HORIZONTAL_LOGPROG) + 'px);--trilha-y:' + (MARGEM_SUPERIOR_TRILHA + (pontoDaLogica.y * PASSO_VERTICAL_LOGPROG)) + 'px"';
+    }
 
     var posicoesDoCurso = CL.trilha.POSICOES && CL.trilha.POSICOES[options && options.cursoId];
     var ajuste = posicoesDoCurso && posicoesDoCurso[index];
@@ -179,8 +270,9 @@
       ? '<span class="trilha-node-percentual">' + node.percentual + '%</span>'
       : '';
 
+    var rotuloRefazer = node.resetLabel || 'Refazer nível';
     var resetBtn = node.showReset
-      ? '<button type="button" class="trilha-node-reset" data-trilha-reset data-id="' + escapeAttr(node.id) + '" title="Refazer" aria-label="Refazer nível">' +
+      ? '<button type="button" class="trilha-node-reset" data-trilha-reset data-id="' + escapeAttr(node.id) + '" title="' + escapeAttr(rotuloRefazer) + '" aria-label="' + escapeAttr(rotuloRefazer) + '">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.958 7.958 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4l-2.35 2.35z"/></svg>' +
         '</button>'
       : '';
@@ -188,13 +280,16 @@
     return (
       '<div class="trilha-item ' + classePosicao + '" data-trilha-item data-index="' + index + '"' + estiloPosicao + '>' +
         '<div class="trilha-node-col">' +
-          '<button type="button" class="trilha-node ' + statusClass + '" data-trilha-node data-id="' + escapeAttr(node.id) + '" title="' + escapeAttr(node.titulo) + '">' +
-            (logoUrl ? '<img class="trilha-node-logo" src="' + logoUrl + '" alt="" aria-hidden="true"/>' : '') +
-            '<span class="trilha-node-numero">' + node.numero + '</span>' +
-            check +
-          '</button>' +
+          '<div class="trilha-node-surface trilha-node-surface--' + escapeAttr(status) + '">' +
+            resetBtn +
+            '<button type="button" class="trilha-node ' + statusClass + '" data-trilha-node data-id="' + escapeAttr(node.id) + '" data-status="' + escapeAttr(status) + '"' + (bloqueado ? ' aria-disabled="true" title="Bloqueado: conclua o nível anterior"' : ' title="' + escapeAttr(node.titulo) + '"') + '>' +
+              (logoUrl ? '<img class="trilha-node-logo" src="' + logoUrl + '" alt="" aria-hidden="true"/>' : '') +
+              '<span class="trilha-node-numero">' + node.numero + '</span>' +
+              check +
+            '</button>' +
+          '</div>' +
           '<span class="trilha-node-titulo">' + node.titulo + '</span>' +
-          '<div class="trilha-node-footer">' + percentual + resetBtn + '</div>' +
+          '<div class="trilha-node-footer">' + percentual + '</div>' +
         '</div>' +
       '</div>'
     );
@@ -242,12 +337,15 @@
       var a = pontos[i - 1];
       var b = pontos[i];
 
-      // Curva em "S" suave passando pelo ponto médio, em vez de
-      // linha reta — fica com cara de trilha sinuosa de verdade.
+      // LogProg usa os segmentos retos da grade de referência. Os
+      // demais cursos mantêm as curvas em S do mapa original.
+      var usaSegmentosRetos = caminho.classList.contains('trilha-caminho--logprog');
       var mx = (a.x + b.x) / 2;
-      var d = 'M ' + a.x + ' ' + a.y +
-              ' Q ' + mx + ' ' + a.y + ' ' + mx + ' ' + ((a.y + b.y) / 2) +
-              ' Q ' + mx + ' ' + b.y + ' ' + b.x + ' ' + b.y;
+      var d = usaSegmentosRetos
+        ? 'M ' + a.x + ' ' + a.y + ' L ' + b.x + ' ' + b.y
+        : 'M ' + a.x + ' ' + a.y +
+          ' Q ' + mx + ' ' + a.y + ' ' + mx + ' ' + ((a.y + b.y) / 2) +
+          ' Q ' + mx + ' ' + b.y + ' ' + b.x + ' ' + b.y;
 
       // O trecho fica "andado" (preenchido) se o nó de CHEGADA já
       // estiver concluído ou for o nó atual — mesmo critério que o
@@ -268,12 +366,120 @@
     svg.appendChild(fragmento);
   }
 
+  /* As coordenadas manuais da visão de 21 módulos foram criadas para uma
+     tela larga. Quando uma IA integrada reduz a largura da página, elas
+     podem levar nós para fora da área visível. Em vez de limitar cada nó
+     isoladamente (o que deformaria o caminho), aplicamos a mesma escala
+     horizontal a todos: o desenho inteiro é comprimido para uma faixa
+     segura e o SVG é redesenhado em seguida usando as novas posições. */
+  function ajustarTrilhaNaLarguraDisponivel(container) {
+    var caminho = container.querySelector('.trilha-caminho--vinte-um');
+    if (!caminho) return false;
+
+    var itens = Array.prototype.slice.call(caminho.querySelectorAll('[data-trilha-item]'));
+    var area = caminho.getBoundingClientRect();
+    if (!area.width || !itens.length) return false;
+
+    var pontos = itens.map(function (item) {
+      var rect = item.getBoundingClientRect();
+      return {
+        item: item,
+        x: rect.left + (rect.width / 2) - area.left,
+        y: rect.top + (rect.height / 2) - area.top
+      };
+    });
+    var menorX = Math.min.apply(null, pontos.map(function (ponto) { return ponto.x; }));
+    var maiorX = Math.max.apply(null, pontos.map(function (ponto) { return ponto.x; }));
+    var margemSegura = Math.min(64, Math.max(48, area.width * 0.09));
+    var inicioSeguro = margemSegura;
+    var fimSeguro = Math.max(inicioSeguro, area.width - margemSegura);
+
+    // Já cabe: preserva exatamente a composição original.
+    if (menorX >= inicioSeguro && maiorX <= fimSeguro) return false;
+
+    var intervaloOriginal = Math.max(1, maiorX - menorX);
+    var escala = Math.min(1, (fimSeguro - inicioSeguro) / intervaloOriginal);
+    /* Ao perder largura, a trilha ganha altura. Assim os módulos não são
+       apenas apertados lateralmente: eles seguem o percurso em uma coluna
+       verticalmente mais espaçada, como ocorre no mapa de etapas. */
+    var menorY = Math.min.apply(null, pontos.map(function (ponto) { return ponto.y; }));
+    var escalaVertical = 1 + ((1 - escala) * 1.35);
+    var pontosAjustados = [];
+    var distanciaMinimaEntreModulos = 112;
+    pontos.forEach(function (ponto, indice) {
+      var destino = {
+        x: inicioSeguro + ((ponto.x - menorX) * escala),
+        y: menorY + ((ponto.y - menorY) * escalaVertical)
+      };
+
+      /* Cada módulo anterior vira uma referência espacial. Se o novo nó
+         entrar no raio mínimo de qualquer um deles, avança pelo sentido do
+         próprio percurso; assim a trilha ganha espaço em todas as direções
+         sem desmontar a ordem dos módulos. */
+      for (var tentativa = 0; tentativa < 16; tentativa++) {
+        var referencia = null;
+        var menorDistancia = Infinity;
+        pontosAjustados.forEach(function (anterior) {
+          var dxReferencia = destino.x - anterior.x;
+          var dyReferencia = destino.y - anterior.y;
+          var distanciaReferencia = Math.sqrt((dxReferencia * dxReferencia) + (dyReferencia * dyReferencia));
+          if (distanciaReferencia < menorDistancia) {
+            menorDistancia = distanciaReferencia;
+            referencia = anterior;
+          }
+        });
+        if (!referencia || menorDistancia >= distanciaMinimaEntreModulos) break;
+
+        var anteriorNoPercurso = pontosAjustados[indice - 1] || referencia;
+        var dx = destino.x - anteriorNoPercurso.x;
+        var dy = destino.y - anteriorNoPercurso.y;
+        var distancia = Math.sqrt((dx * dx) + (dy * dy));
+        if (distancia < 1) {
+          dx = destino.x - referencia.x;
+          dy = destino.y - referencia.y;
+          distancia = Math.sqrt((dx * dx) + (dy * dy));
+        }
+        /* Se o sentido do percurso apontar de volta para a referência que
+           causou o conflito, usa o vetor que afasta os dois nós. */
+        var afastamentoX = destino.x - referencia.x;
+        var afastamentoY = destino.y - referencia.y;
+        if ((dx * afastamentoX) + (dy * afastamentoY) <= 0) {
+          dx = afastamentoX;
+          dy = afastamentoY;
+          distancia = Math.sqrt((dx * dx) + (dy * dy));
+        }
+        if (distancia < 1) {
+          dx = indice % 2 ? 0.6 : -0.6;
+          dy = 0.8;
+          distancia = 1;
+        }
+        var avanco = distanciaMinimaEntreModulos - menorDistancia + 8;
+        destino.x += (dx / distancia) * avanco;
+        destino.y += (dy / distancia) * avanco;
+        destino.x = Math.max(inicioSeguro, Math.min(fimSeguro, destino.x));
+      }
+
+      pontosAjustados.push(destino);
+      ponto.item.style.setProperty('--trilha-x-visivel', destino.x.toFixed(2) + 'px');
+      // xAjustado já considera o deslocamento manual original.
+      ponto.item.style.setProperty('--trilha-transform-x', '0px');
+      ponto.item.style.setProperty('--trilha-auto-deslocamento-y', (destino.y - ponto.y).toFixed(2) + 'px');
+    });
+    /* O container acompanha a nova extensão vertical para que os últimos
+       módulos e seus conectores continuem dentro da área rolável. */
+    var maiorYAjustado = Math.max.apply(null, pontosAjustados.map(function (ponto) { return ponto.y; }));
+    var alturaNecessaria = Math.ceil(maiorYAjustado + 112);
+    if (alturaNecessaria > caminho.clientHeight) caminho.style.height = alturaNecessaria + 'px';
+    return true;
+  }
+
   function atualizarTituloFixo(container, options) {
     var pagina = container.closest('#cl-page-course');
     if (!pagina) return;
 
     var titulo = pagina.querySelector('.trilha-titulo-fixo');
     var imagensTitulo = {
+      'programming-logic': 'assets/images/trilha-titulo-bg-logprog.png',
       html: 'assets/images/trilha-titulo-bg-html.png',
       css: 'assets/images/trilha-titulo-bg-css.png',
       js: 'assets/images/trilha-titulo-bg-js.png'
@@ -330,7 +536,8 @@
     resizeTimer = setTimeout(function () {
       containersAtivos.forEach(function (container) {
         if (container.isConnected) {
-          if (container._trilhaAutoColunas && container._trilhaSourceOptions) {
+          var usaMapaComAjusteResponsivo = container.querySelector('.trilha-caminho--vinte-um, .trilha-caminho--logprog');
+          if ((container._trilhaAutoColunas || usaMapaComAjusteResponsivo) && container._trilhaSourceOptions) {
             CL.trilha.render(container, container._trilhaSourceOptions);
           } else {
             desenharCaminho(container);
@@ -394,29 +601,38 @@
 
     var nodes = options.nodes || [];
 
-    var classeLayout = options.layout === 'vinte-um-por-tela'
-      ? ' trilha-caminho--vinte-um'
-      : (options.layout === 'quatro-colunas'
-      ? ' trilha-caminho--quatro-colunas'
-      : (options.layout === 'rio'
-      ? ' trilha-caminho--rio'
-      : (options.layout === 'serpente'
-      ? ' trilha-caminho--serpente'
-      : (options.layout === 'triangular' ? ' trilha-caminho--triangular' : ''))));
-    var estiloLayout = options.layout === 'vinte-um-por-tela'
-      ? ' style="height:' + (Math.max(1, Math.ceil(nodes.length / 21)) * 100) + 'vh"'
-      : (options.layout === 'quatro-colunas'
-      ? ' style="--trilha-colunas:4"'
-      : (options.layout === 'rio'
-      ? ' style="--trilha-colunas:3"'
-      : (options.layout === 'serpente'
-      ? ' style="--trilha-colunas:' + (Math.max(2, Number(options.columns) || 4)) +
+    var classeLayout = '';
+    var estiloLayout = '';
+    if (options.layout === 'triangular') {
+      classeLayout = ' trilha-caminho--triangular';
+      estiloLayout = ' style="--trilha-colunas:' + (Math.max(1, Number(options.columns) || 10)) + '"';
+    }
+    if (options.layout === 'serpente') {
+      classeLayout = ' trilha-caminho--serpente';
+      estiloLayout = ' style="--trilha-colunas:' + (Math.max(2, Number(options.columns) || 4)) +
         ';--trilha-passo-x:' + (Number(options.passoX) || 168) + 'px' +
         ';--trilha-meio-passo:' + (Number(options.meioPasso) || 84) + 'px' +
-        ';--trilha-passo-y:' + (Number(options.passoY) || 145.49) + 'px"'
-      : (options.layout === 'triangular'
-      ? ' style="--trilha-colunas:' + (Math.max(1, Number(options.columns) || 10)) + '"'
-      : ''))));
+        ';--trilha-passo-y:' + (Number(options.passoY) || 145.49) + 'px"';
+    }
+    if (options.layout === 'rio') {
+      classeLayout = ' trilha-caminho--rio';
+      estiloLayout = ' style="--trilha-colunas:3"';
+    }
+    if (options.layout === 'quatro-colunas') {
+      classeLayout = ' trilha-caminho--quatro-colunas';
+      estiloLayout = ' style="--trilha-colunas:4"';
+    }
+    if (options.layout === 'vinte-um-por-tela') {
+      classeLayout = ' trilha-caminho--vinte-um';
+      estiloLayout = ' style="height:' + (Math.max(1, Math.ceil(nodes.length / 21)) * 100) + 'vh"';
+    }
+    if (options.layout === 'logprog-ziguezague') {
+      options = Object.assign({}, options, {
+        logprogLimiteLateral: limiteLateralLogProg(container.clientWidth)
+      });
+      classeLayout = ' trilha-caminho--logprog';
+      estiloLayout = ' style="height:' + (Math.max(1, pontoLogProg(Math.max(0, nodes.length - 1), options.logprogLimiteLateral, options.cursoId).y) * PASSO_VERTICAL_LOGPROG + 360) + 'px"';
+    }
 
     container.innerHTML = '<div class="trilha-caminho' + classeLayout + '"' + estiloLayout + '>' +
       '<svg class="trilha-path-svg" aria-hidden="true"></svg>' +
@@ -436,9 +652,19 @@
     // layout (posição/tamanho reais das bolinhas) antes de medir.
     if (typeof window !== 'undefined' && window.requestAnimationFrame) {
       window.requestAnimationFrame(function () {
+        var caminhoLogProg = container.querySelector('.trilha-caminho--logprog');
+        if (caminhoLogProg) {
+          container.scrollLeft = Math.max(0, (caminhoLogProg.scrollWidth - container.clientWidth) / 2);
+        }
+        ajustarTrilhaNaLarguraDisponivel(container);
         desenharCaminho(container);
       });
     } else {
+      var caminhoLogProgSemAnimacao = container.querySelector('.trilha-caminho--logprog');
+      if (caminhoLogProgSemAnimacao) {
+        container.scrollLeft = Math.max(0, (caminhoLogProgSemAnimacao.scrollWidth - container.clientWidth) / 2);
+      }
+      ajustarTrilhaNaLarguraDisponivel(container);
       desenharCaminho(container);
     }
 
@@ -457,6 +683,13 @@
 
         var node = e.target.closest('[data-trilha-node]');
         if (node && typeof opts.onSelect === 'function') {
+          if (node.getAttribute('data-status') === 'locked') {
+            e.preventDefault();
+            if (CL.ui && typeof CL.ui.showToast === 'function') {
+              CL.ui.showToast('Conclua o nível anterior para liberar este conteúdo.', 'warning');
+            }
+            return;
+          }
           opts.onSelect(node.getAttribute('data-id'));
         }
       });
@@ -609,7 +842,10 @@
     // horizontal; calculamos somente a rolagem vertical do seu container.
     var area = container.getBoundingClientRect();
     var alvoRect = alvo.getBoundingClientRect();
-    container.scrollLeft = 0;
+    var caminhoLogProg = container.querySelector('.trilha-caminho--logprog');
+    container.scrollLeft = caminhoLogProg
+      ? Math.max(0, (caminhoLogProg.scrollWidth - container.clientWidth) / 2)
+      : 0;
     container.scrollTo({
       top: Math.max(0, container.scrollTop + alvoRect.top - area.top -
         ((container.clientHeight - alvoRect.height) / 2)),

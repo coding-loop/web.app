@@ -30,6 +30,7 @@
     .learning-platform-root[data-curso="html"] { --course-accent: #e44d26; }
     .learning-platform-root[data-curso="css"] { --course-accent: #264de4; }
     .learning-platform-root[data-curso="js"] { --course-accent: #f7df1e; }
+    .learning-platform-root[data-curso="programming-logic"] { --course-accent: #2aa198; }
 
     /* Painel Esquerdo: Teoria e Etapas */
     .theory-pane {
@@ -251,6 +252,33 @@
     }
 
     .export-code-dialog-actions { display: grid; gap: 6px; }
+
+    .new-file-options { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:6px; }
+    .new-file-options button { min-height:34px; border:1px solid var(--cl-border); border-radius:6px; background:var(--cl-surface); color:var(--cl-text); font:inherit; font-size:.78rem; cursor:pointer; }
+    .new-file-options button:hover, .new-file-options button:focus-visible { border-color:var(--cl-primary); color:var(--cl-primary); background:color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface)); outline:none; }
+
+    .new-file-menu {
+      position: fixed;
+      z-index: 10020;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(96px, 1fr));
+      gap: 4px;
+      width: 226px;
+      padding: 7px;
+      border: 1px solid var(--cl-border);
+      border-radius: 7px;
+      background: var(--cl-surface);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .28);
+    }
+
+    .new-file-menu[hidden] { display: none; }
+    .new-file-menu button { min-height: 30px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--cl-text); font: inherit; font-size: .75rem; text-align: left; padding: 0 8px; cursor: pointer; }
+    .new-file-menu button:hover, .new-file-menu button:focus-visible { border-color: var(--cl-primary); background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface)); color: var(--cl-primary); outline: none; }
+
+    .export-extension-options { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:7px; padding:2px 0 10px; }
+    .export-extension-options label { display:flex; align-items:center; gap:7px; min-height:32px; padding:0 8px; border:1px solid var(--cl-border); border-radius:5px; color:var(--cl-text); font-size:.78rem; cursor:pointer; }
+    .export-extension-options label:hover { border-color:var(--cl-primary); }
+    .export-extension-options input { accent-color:var(--cl-primary); }
     .export-code-dialog-actions .cl-btn {
       display: flex;
       align-items: center;
@@ -538,11 +566,12 @@
 
     /* Painel visual de configuração de backup. */
     #backup-settings-dialog {
-      width: min(var(--backup-dialog-width, 33.3333vw), calc(100vw - 32px));
-      height: min(var(--backup-dialog-height, 100vh), 100vh);
+      width: 509px;
+      min-width: min(509px, calc(100vw - 32px));
       max-width: calc(100vw - 32px);
       box-sizing: border-box;
-      max-height: 100vh;
+      height: auto;
+      max-height: calc(100vh - 32px);
       padding: 0;
       overflow: auto;
     }
@@ -941,6 +970,13 @@
       border-color: var(--cl-primary);
       background: var(--cl-primary);
       color: #fff;
+    }
+
+    #backup-settings-dialog .backup-dialog-actions .backup-configure-later {
+      margin-right: auto;
+      border-color: transparent;
+      background: transparent;
+      color: var(--cl-text-muted);
     }
 
     #backup-settings-dialog .backup-dialog-actions .backup-save-button svg,
@@ -1652,6 +1688,8 @@
     }
 
     .browser-tabs {
+      position: relative;
+      z-index: 10;
       display: flex;
       width: 100%;
       height: 28px;
@@ -1663,6 +1701,11 @@
       border-bottom: 2px solid #30363d;
       border-radius: 6px 6px 0 0;
     }
+
+    /* O menu de novos arquivos pertence à barra. Quando aberto, a barra
+       precisa superar a camada do editor para que o menu não fique oculto. */
+    .browser-tabs.is-new-file-menu-open,
+    .browser-tabs:has(#btn-new-file[aria-expanded="true"]) { z-index: 200; }
 
     .browser-tabs-left,
     .browser-tabs-fixed-right {
@@ -1823,6 +1866,9 @@
 
     .code-tab {
       position: relative;
+      gap: 0;
+      padding-left: 5px;
+      padding-right: 3px;
     }
 
     .code-tab .tab-text {
@@ -1841,6 +1887,7 @@
 
     .code-tab.erro-warning .tab-text::before { color: #e0a030; }
     .code-tab.erro-info .tab-text::before { color: #4ab5f7; }
+    .code-tab.erro-hint .tab-text::before { color: #8aa1b1; }
 
     .code-tab.tem-erro .tab-text::after {
       content: attr(data-diagnostic-count);
@@ -1858,7 +1905,8 @@
     }
 
     .tab-text {
-      margin-left: 4px;
+      margin-left: 0;
+      margin-right: 2px;
     }
 
     .code-tab-logo {
@@ -1866,38 +1914,6 @@
       width: 18px;
       height: 18px;
       object-fit: contain;
-    }
-
-    .ace-erro-ondulado {
-      position: absolute;
-      pointer-events: none;
-      z-index: 20;
-      background-repeat: repeat-x;
-      background-position: left bottom, 4px bottom;
-      background-size: 8px 4px, 8px 4px;
-    }
-
-    .ace_marker-layer .ace-erro-ondulado {
-      background-color: transparent;
-      border-radius: 1px;
-    }
-
-    .ace-erro-ondulado.erro-tipo-error {
-      background-image:
-        linear-gradient(45deg, transparent 33%, #ff5c5c 33%, #ff5c5c 66%, transparent 66%),
-        linear-gradient(-45deg, transparent 33%, #ff5c5c 33%, #ff5c5c 66%, transparent 66%);
-    }
-
-    .ace-erro-ondulado.erro-tipo-warning {
-      background-image:
-        linear-gradient(45deg, transparent 33%, #e0a030 33%, #e0a030 66%, transparent 66%),
-        linear-gradient(-45deg, transparent 33%, #e0a030 33%, #e0a030 66%, transparent 66%);
-    }
-
-    .ace-erro-ondulado.erro-tipo-info {
-      background-image:
-        linear-gradient(45deg, transparent 33%, #4ab5f7 33%, #4ab5f7 66%, transparent 66%),
-        linear-gradient(-45deg, transparent 33%, #4ab5f7 33%, #4ab5f7 66%, transparent 66%);
     }
 
     .maximize-btn,
@@ -1951,9 +1967,9 @@
     }
 
     .tab-action-btn {
-      width: 22px;
-      height: 22px;
-      margin-left: 4px;
+      width: 20px;
+      height: 20px;
+      margin-left: 0;
       border: 1px solid transparent;
       border-radius: 4px;
       color: #f97316;
@@ -2017,6 +2033,8 @@
     }
 
     .window-content {
+      position: relative;
+      z-index: 20;
       display: flex;
       width: 100%;
       height: calc(100% - 28px);
@@ -2034,6 +2052,8 @@
     }
 
     .editors-area {
+      position: relative;
+      z-index: 1;
       display: flex;
       width: 100%;
       height: 100%;
@@ -2052,17 +2072,28 @@
 
     .tab-pane {
       position: relative;
+      z-index: 1;
       display: none;
       width: 100%;
       height: 100%;
       min-width: 0;
-      overflow: hidden;
+      overflow: visible;
       background: #161b22;
     }
 
     .tab-pane.show-pane {
       display: block;
       flex: 1 1 0;
+    }
+
+    .tab-pane:focus-within,
+    .tab-pane:has(.monaco-hover:not(.hidden)) { z-index: 10001; }
+
+    /* O hover pertence ao editor que o originou, mas pode ultrapassar os
+       limites do painel para permanecer legível sobre editores e Preview. */
+    .editors-area:has(.monaco-hover:not(.hidden)) {
+      z-index: 10000;
+      overflow: visible;
     }
 
     .editor-split-resizer,
@@ -2144,9 +2175,119 @@
       outline: none;
     }
 
-    .ace-container {
+    .code-editor-container {
       width: 100%;
       height: 100%;
+    }
+
+    .file-clear-icon {
+      width: 16px;
+      height: 16px;
+      filter: invert(62%) sepia(8%) saturate(870%) hue-rotate(169deg) brightness(87%) contrast(87%);
+      pointer-events: none;
+    }
+
+    .file-clear-btn:hover .file-clear-icon,
+    .file-clear-btn:focus .file-clear-icon {
+      filter: invert(64%) sepia(58%) saturate(531%) hue-rotate(163deg) brightness(101%) contrast(93%);
+    }
+
+    .file-tab-actions {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .file-action-icon {
+      width: 17px;
+      height: 17px;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    /* Compatibilidade com exercícios legados; não cria abas no IDE. */
+    .legacy-editor-state { display: none; }
+
+    /* Mantém o tooltip de diagnóstico dentro do painel que o originou. Em
+       layouts divididos, sem esse recorte ele pode atravessar para a aba ou
+       para o Preview ao lado. */
+    .tab-pane .monaco-editor,
+    .tab-pane .monaco-editor .overflow-guard { overflow: visible !important; }
+    .tab-pane .monaco-editor .overflowingContentWidgets {
+      z-index: 10002 !important;
+      overflow: visible !important;
+    }
+    .tab-pane .monaco-editor .monaco-hover {
+      z-index: 10003 !important;
+      max-width: calc(100% - 12px) !important;
+      max-height: calc(100% - 12px) !important;
+      overflow: auto !important;
+      border-width: 2px !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .48) !important;
+    }
+    .tab-pane .monaco-editor .monaco-hover .hover-contents,
+    .tab-pane .monaco-editor .monaco-hover .markdown-hover { overflow-wrap: anywhere; }
+
+    /* O Command Palette (F1) pertence à IDE inteira, não somente ao painel
+       estreito do editor focado. Ele fica centralizado na janela e mantém
+       cada comando em uma linha própria da lista vertical do Monaco. */
+    .tab-pane .monaco-editor .quick-input-widget {
+      position: fixed !important;
+      z-index: 10020 !important;
+      top: clamp(72px, 10vh, 120px) !important;
+      left: 50vw !important;
+      width: min(450px, calc(100vw - 32px)) !important;
+      min-width: min(300px, calc(100vw - 32px)) !important;
+      max-width: calc(100vw - 32px) !important;
+      transform: translateX(-50%) !important;
+      border: 1px solid var(--cl-border, #586e75) !important;
+      border-radius: 10px !important;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .48) !important;
+      overflow: hidden !important;
+    }
+
+    .tab-pane .monaco-editor .quick-input-widget .quick-input-header {
+      padding: 12px 12px 8px !important;
+    }
+
+    .tab-pane .monaco-editor .quick-input-widget .quick-input-list {
+      max-height: min(62vh, 560px) !important;
+    }
+
+    .tab-pane .monaco-editor .quick-input-widget .quick-input-list .monaco-list-row,
+    .tab-pane .monaco-editor .quick-input-widget .quick-input-list-entry {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    .tab-pane .monaco-editor .quick-input-widget .quick-input-list-entry {
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    .tab-pane .monaco-editor .quick-input-widget .quick-input-list-label,
+    .tab-pane .monaco-editor .quick-input-widget .monaco-highlighted-label {
+      min-width: 0 !important;
+      flex: 1 1 auto !important;
+    }
+
+    @media (max-width: 640px) {
+      .tab-pane .monaco-editor .quick-input-widget {
+        top: 64px !important;
+        width: calc(100vw - 16px) !important;
+        min-width: 0 !important;
+        max-width: calc(100vw - 16px) !important;
+      }
+    }
+
+    /* Mantém uma única decoração nativa do Monaco, porém aumenta a altura
+       visual da onda para Error, Warning, Info e Hint. */
+    .monaco-editor .squiggly-error,
+    .monaco-editor .squiggly-warning,
+    .monaco-editor .squiggly-info,
+    .monaco-editor .squiggly-hint {
+      background-size: auto 4px !important;
+      background-position: left bottom !important;
     }
 
     .preview-area {

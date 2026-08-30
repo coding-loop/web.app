@@ -14,7 +14,7 @@
      - users/{uid}/exercises/{moduloId:step}        -> {html, css, js} salvos
 
    Depende de (carregados ANTES deste arquivo, em ide.html):
-     firebase-init.js, auth.js, api.js, e o SDK do Ace.
+   firebase-init.js, auth.js, api.js e o SDK do Monaco.
    ===================================================== */
 (function () {
   'use strict';
@@ -78,22 +78,27 @@
     if (themeToggleBtn) {
       themeToggleBtn.addEventListener('click', function () {
         aplicarTema(CL.state.theme === 'solarized-dark' ? 'solarized-light' : 'solarized-dark');
+        atualizarIconeRetornoTrilha();
       });
     }
 
     // O botão de retorno identifica visualmente a trilha aberta na IDE.
     // A página inicia com HTML no markup para evitar ícone vazio antes do
-    // carregamento; aqui aplicamos CSS ou JavaScript quando for o caso.
+    // carregamento; aqui aplicamos o ícone do curso efetivamente aberto.
     const courseDashboardIcon = document.getElementById('course-dashboard-icon');
     const courseIcons = {
+      'programming-logic': 'assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4',
       html: 'assets/images/icons.svg/logo-html.svg',
       css: 'assets/images/icons.svg/logo-css.svg',
       js: 'assets/images/icons.svg/logo-javascript.svg'
     };
-    if (courseDashboardIcon) {
-      courseDashboardIcon.src = courseIcons[cursoAtualId] || courseIcons.html;
-      courseDashboardIcon.alt = CL.curso.CURSOS[cursoAtualId].nome || 'HTML';
+    function atualizarIconeRetornoTrilha() {
+      if (!courseDashboardIcon) return;
+      const icone = courseIcons[cursoAtualId] || courseIcons.html;
+      courseDashboardIcon.src = icone;
+      courseDashboardIcon.alt = (CL.curso.CURSOS[cursoAtualId] || {}).nome || 'HTML';
     }
+    atualizarIconeRetornoTrilha();
 
     // ==========================================================
     // MOTOR DE RENDERIZAÇÃO E NAVEGAÇÃO
@@ -831,10 +836,9 @@
 
     function atualizarEstadoBotaoSalvarBackup() {
       if (!btnSaveBackupSettings) return;
-      const pronto = configuracaoBackupEstaCompleta();
-      btnSaveBackupSettings.disabled = !pronto;
-      btnSaveBackupSettings.setAttribute('aria-disabled', String(!pronto));
-      btnSaveBackupSettings.title = pronto ? 'Salvar Configurações' : 'Conclua as Opções Obrigatórias';
+      btnSaveBackupSettings.disabled = false;
+      btnSaveBackupSettings.setAttribute('aria-disabled', 'false');
+      btnSaveBackupSettings.title = 'Salvar configurações';
     }
 
     async function atualizarAcoesDestino() {
@@ -1067,17 +1071,6 @@
 
     if (btnBackupSettings && backupSettingsDialog) btnBackupSettings.addEventListener('click', function () {
       fecharMenuBackup();
-      const theoryPane = document.querySelector('.theory-pane');
-      if (theoryPane) {
-        const larguraDisponivel = Math.max(0, window.innerWidth - 32);
-        const dimensoesPainel = theoryPane.getBoundingClientRect();
-        const plataforma = document.querySelector('.learning-platform-root');
-        const alturaPlataforma = plataforma ? plataforma.getBoundingClientRect().height : window.innerHeight;
-        const larguraPainel = Math.min(dimensoesPainel.width, larguraDisponivel);
-        const alturaPainel = Math.min(alturaPlataforma, window.innerHeight);
-        backupSettingsDialog.style.setProperty('--backup-dialog-width', larguraPainel + 'px');
-        backupSettingsDialog.style.setProperty('--backup-dialog-height', alturaPainel + 'px');
-      }
       const settings = CL.api.getBackupSettings();
       Object.keys(settings).forEach(function (key) {
         const field = backupSettingsForm.querySelector('[name="' + key + '"][value="' + settings[key] + '"]');
@@ -1093,22 +1086,9 @@
     });
 
     if (backupSettingsForm) backupSettingsForm.addEventListener('submit', function (event) {
-      const valor = event.submitter && event.submitter.value;
-      const settings = CL.api.getBackupSettings();
-      if (valor !== 'cancel' && !validarConfiguracaoBackup()) {
+      const fecharSemSalvar = event.submitter && event.submitter.classList.contains('backup-dialog-close');
+      if (fecharSemSalvar && !window.confirm('Tem certeza que deseja sair sem configurar o backup?')) {
         event.preventDefault();
-        return;
-      }
-      if (valor === 'cancel' && !settings.configurationCompleted) {
-        event.preventDefault();
-        mostrarErroConfiguracaoBackup('Conclua e salve as opções obrigatórias antes de sair.');
-      }
-    });
-
-    if (backupSettingsDialog) backupSettingsDialog.addEventListener('cancel', function (event) {
-      if (!CL.api.getBackupSettings().configurationCompleted) {
-        event.preventDefault();
-        mostrarErroConfiguracaoBackup('Conclua e salve as opções obrigatórias antes de sair.');
       }
     });
 
@@ -1117,7 +1097,6 @@
       const formData = new FormData(backupSettingsForm);
       const destinations = formData.getAll('destinations');
       if (!destinations.includes('local')) destinations.push('local');
-      if (!destinations.length) return window.alert('Escolha ao menos um local para o backup.');
       CL.api.saveBackupSettings({ destinations: destinations, schedule: formData.get('schedule'), mode: formData.get('mode'), retentionCount: Number(formData.get('retentionCount')) || 1, configurationCompleted: true });
       atualizarStatusBackup();
     });
@@ -1215,14 +1194,14 @@
       const chave = chaveEtapa(getModuloAtual().id, currentStep);
       const salvo = exerciciosCache[chave];
 
-      if (salvo && (salvo.html || salvo.css || salvo.js)) {
+      if (salvo && (salvo.html || salvo.css || salvo.js || (Array.isArray(salvo.files) && salvo.files.length))) {
         return salvo;
       }
 
       const salvoLocal = CL.api && typeof CL.api.getExerciseLocal === 'function'
         ? CL.api.getExerciseLocal(chave)
         : null;
-      if (salvoLocal && (salvoLocal.html || salvoLocal.css || salvoLocal.js)) {
+      if (salvoLocal && (salvoLocal.html || salvoLocal.css || salvoLocal.js || (Array.isArray(salvoLocal.files) && salvoLocal.files.length))) {
         exerciciosCache[chave] = salvoLocal;
         return salvoLocal;
       }
@@ -1278,19 +1257,23 @@
     }
     setTimeout(abrirAvisoBackupSeNecessario, 350);
   } // fim de iniciarTeoria
-  // Chamada pelo bootIde() (rodapé deste arquivo) só depois que o Ace
-  // (window.ace) estiver carregado E os dados do Firestore já tiverem
+  // Chamada pelo bootIde() (rodapé deste arquivo) só depois que o Monaco
+  // estiver carregado E os dados do Firestore já tiverem
   // chegado (iniciarTeoria já rodou, então window.getCodigoInicialParaEditor
   // já reflete o código salvo do aluno, se houver).
   function iniciarEditorDeCodigo() {
-      // Fixa o basePath do Ace explicitamente. Sem isso, o Ace tenta
-      // "adivinhar" de onde ele foi carregado (olhando o próprio
-      // <script> tag) toda vez que precisa buscar o worker (ex.: o
-      // worker-javascript.js, que é o mais pesado dos três e o que
-      // mais demora). Fixando aqui, ele vai direto na URL certa.
-      if (typeof ace !== 'undefined' && ace.config && typeof ace.config.set === 'function') {
-        ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.36.2/');
+      if (!window.require) {
+        window.setTimeout(iniciarEditorDeCodigo, 50);
+        return;
       }
+      window.MonacoEnvironment = {
+        getWorkerUrl: function () {
+          var codigoWorker = "self.MonacoEnvironment={baseUrl:'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/'};importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/base/worker/workerMain.js');";
+          return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(codigoWorker);
+        }
+      };
+      window.require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs' } });
+      window.require(['vs/editor/editor.main'], iniciar);
 
       function iniciar() {
         var htmlEditor, cssEditor, jsEditor, debounceTimeout, itemArrastado = null;
@@ -1313,9 +1296,18 @@
         var btnImportFile = document.getElementById('btn-import-file');
         var btnExportFile = document.getElementById('btn-export-file');
         var exportCodeDialog = document.getElementById('export-code-dialog');
+        var exportTypesDialog = document.getElementById('export-types-dialog');
+        var exportCodeTitle = document.getElementById('export-code-title');
+        var exportInternalTitle = document.getElementById('export-internal-title');
+        var exportInternalDescription = document.getElementById('export-internal-description');
+        var exportExternalTitle = document.getElementById('export-external-title');
+        var exportExternalDescription = document.getElementById('export-external-description');
+        var btnNewFile = document.getElementById('btn-new-file');
+        var newFileMenu = document.getElementById('new-file-menu');
         var saveProgressDot = document.getElementById('save-progress-dot');
         var saveToastEl = document.getElementById('save-toast');
         var inputImportFile = document.getElementById('input-import-file');
+        var arquivoDeExportacaoPendente = null;
         var btnIdeCollapse = document.getElementById('btn-ide-collapse');
         var btnMaximizeToggle = document.getElementById('btn-maximize-toggle');
         var iconMaximize = document.getElementById('icon-maximize');
@@ -1371,7 +1363,25 @@
           if (prefPreviewMaximized) return;
           paineis.forEach(function (painel, indice) {
             var divisor = divisores[indice];
-            if (!divisor) return;
+            if (!divisor) {
+              divisor = document.createElement('div');
+              divisor.className = 'editor-split-resizer';
+              divisor.setAttribute('aria-label', 'Redimensionar painéis');
+              divisor.setAttribute('aria-orientation', 'vertical');
+              divisor.setAttribute('aria-valuemin', '0');
+              divisor.setAttribute('aria-valuemax', '100');
+              divisor.setAttribute('aria-valuenow', '50');
+              divisor.setAttribute('role', 'separator');
+              divisor.tabIndex = -1;
+              divisor.addEventListener('pointerdown', function (evento) {
+                var paineisDoDivisor = elementosDoDivisor(divisor);
+                iniciarRedimensionamento(divisor, paineisDoDivisor.antes, paineisDoDivisor.depois, 'x', evento);
+              });
+              divisor.addEventListener('keydown', function (evento) { controlarDivisorPeloTeclado(divisor, evento); });
+              divisor.addEventListener('dblclick', function () { restaurarDivisor(divisor); });
+              editorsContainer.appendChild(divisor);
+              divisores.push(divisor);
+            }
             var proximoPainel = paineis[indice + 1] || (modoLateral && comPreview ? previewContainer : null);
             if (!proximoPainel) return;
             painel.after(divisor);
@@ -1498,29 +1508,700 @@
           document.documentElement.style.setProperty('--ide-vh', altura + 'px');
         }
 
-        function criarEditor(id, modo, valorInicial) {
-          var editor = ace.edit(id);
-          editor.setTheme(document.documentElement.getAttribute('data-theme') === 'solarized-light'
-            ? 'ace/theme/solarized_light'
-            : 'ace/theme/solarized_dark');
-          editor.setOption('useWorker', true);
-          editor.session.setMode(modo);
-          editor.setShowPrintMargin(false);
-          editor.setOption('wrap', true);
-          editor.setFontSize('14px');
-          editor.setValue(valorInicial, -1);
-          return editor;
+        monaco.editor.defineTheme('coding-loop-solarized-dark', {
+          base: 'vs-dark', inherit: true, rules: [],
+          colors: {
+            'editor.background': '#002b36',
+            'editor.foreground': '#fdf6e3',
+            'editorLineNumber.foreground': '#586e75',
+            'editorError.foreground': '#ff4d5e',
+            'editorError.border': '#ff4d5e',
+            'editorWarning.foreground': '#ffc247',
+            'editorWarning.border': '#ffc247',
+            'editorInfo.foreground': '#4fc3ff',
+            'editorInfo.border': '#4fc3ff',
+            'editorHint.foreground': '#c59cff',
+            'editorHint.border': '#c59cff',
+            'editorOverviewRuler.errorForeground': '#ff4d5ecc',
+            'editorOverviewRuler.warningForeground': '#ffc247cc',
+            'editorOverviewRuler.infoForeground': '#4fc3ffcc'
+          }
+        });
+        monaco.editor.defineTheme('coding-loop-solarized-light', {
+          base: 'vs', inherit: true, rules: [],
+          colors: {
+            'editor.background': '#fdf6e3',
+            'editor.foreground': '#002b36',
+            'editorLineNumber.foreground': '#657b83',
+            'editorError.foreground': '#d7193f',
+            'editorError.border': '#d7193f',
+            'editorWarning.foreground': '#a86500',
+            'editorWarning.border': '#a86500',
+            'editorInfo.foreground': '#006fba',
+            'editorInfo.border': '#006fba',
+            'editorHint.foreground': '#7651a8',
+            'editorHint.border': '#7651a8',
+            'editorOverviewRuler.errorForeground': '#d7193fcc',
+            'editorOverviewRuler.warningForeground': '#a86500cc',
+            'editorOverviewRuler.infoForeground': '#006fbacc'
+          }
+        });
+
+        function aplicarTemaMonaco(theme) {
+          monaco.editor.setTheme(theme === 'solarized-light'
+            ? 'coding-loop-solarized-light'
+            : 'coding-loop-solarized-dark');
         }
 
+        // O worker TypeScript do Monaco sempre emite as mensagens em inglês.
+        // O dicionário oficial usa o código estável do diagnóstico (TS1005,
+        // TS2304 etc.), evitando depender de uma comparação frágil por texto.
+        function construirComparadorDeTemplate(templateEn) {
+          var indices = [];
+          var regexEscapado = templateEn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          regexEscapado = regexEscapado.replace(/\\\{(\d+)\\\}/g, function (_, indice) {
+            indices.push(Number(indice));
+            return '([\\s\\S]+?)';
+          });
+          return { regex: new RegExp('^' + regexEscapado + '$'), indices: indices };
+        }
+
+        function preencherTemplatePt(templatePt, valoresPorIndice) {
+          return templatePt.replace(/\{(\d+)\}/g, function (correspondencia, indice) {
+            var valor = valoresPorIndice[Number(indice)];
+            return valor !== undefined ? valor : correspondencia;
+          });
+        }
+
+        var cacheComparadoresTs = {};
+        function traduzirPorCodigoOficial(codigo, mensagemOriginal) {
+          if (!codigo || !window.CL_TS_DIAGNOSTICOS) return null;
+          var par = window.CL_TS_DIAGNOSTICOS[codigo];
+          if (!par) return null;
+
+          var templateEn = par[0];
+          var templatePt = par[1];
+          if (templateEn === mensagemOriginal) return templatePt;
+
+          if (!cacheComparadoresTs[codigo]) {
+            cacheComparadoresTs[codigo] = construirComparadorDeTemplate(templateEn);
+          }
+          var comparador = cacheComparadoresTs[codigo];
+          var resultado = mensagemOriginal.match(comparador.regex);
+          if (!resultado) return null;
+
+          var valores = {};
+          comparador.indices.forEach(function (indicePlaceholder, posicao) {
+            valores[indicePlaceholder] = resultado[posicao + 1];
+          });
+          return preencherTemplatePt(templatePt, valores);
+        }
+
+        function traduzirDiagnosticoMonaco(mensagem, codigo) {
+          var texto = String(mensagem || '');
+          var traduzidaPorCodigo = traduzirPorCodigoOficial(codigo, texto);
+          if (traduzidaPorCodigo !== null) return traduzidaPorCodigo;
+          var traducoesExatas = {
+            'Expression expected.': 'Era esperada uma expressão.',
+            'Declaration or statement expected.': 'Era esperada uma declaração ou instrução.',
+            'Unexpected token.': 'Símbolo inesperado.',
+            'Identifier expected.': 'Era esperado um identificador.',
+            'Property assignment expected.': 'Era esperada uma atribuição de propriedade.',
+            'Property value expected.': 'Era esperado um valor para a propriedade.',
+            'Comma expected.': 'Era esperada uma vírgula.',
+            'Colon expected.': 'Eram esperados dois-pontos.',
+            '"}" expected.': 'Era esperado "}".',
+            '";" expected.': 'Era esperado ";".',
+            'End of file expected.': 'Era esperado o fim do arquivo.',
+            'Unreachable code detected.': 'Código inacessível detectado.',
+            'Variable declaration expected.': 'Era esperada uma declaração de variável.'
+          };
+          if (traducoesExatas[texto]) return traducoesExatas[texto];
+          return texto
+            .replace(/^Cannot find name ('[^']+').$/, 'Não foi possível encontrar o nome $1.')
+            .replace(/^Cannot find namespace ('[^']+').$/, 'Não foi possível encontrar o namespace $1.')
+            .replace(/^Cannot redeclare block-scoped variable ('[^']+').$/, 'Não é possível redeclarar a variável de bloco $1.')
+            .replace(/^('.*?') was also declared here\.$/, '$1 também foi declarado(a) aqui.')
+            .replace(/^Cannot assign to ('[^']+') because it is a constant.$/, 'Não é possível atribuir a $1 porque ela é uma constante.')
+            .replace(/^Variable ('[^']+') is used before being assigned.$/, 'A variável $1 é usada antes de receber um valor.')
+            .replace(/^Variable ('[^']+') implicitly has type 'any' in some locations where its type cannot be determined.$/, 'A variável $1 possui tipo implícito "any" em locais onde seu tipo não pode ser determinado.')
+            .replace(/^'([^']+)' is declared but its value is never read.$/, '$1 foi declarado(a), mas seu valor nunca é usado.')
+            .replace(/^'([^']+)' is declared but never used.$/, '$1 foi declarado(a), mas nunca é usado(a).')
+            .replace(/^Parameter ('[^']+') implicitly has an 'any' type.$/, 'O parâmetro $1 possui tipo implícito "any".')
+            .replace(/^Parameter ('[^']+') is declared but its value is never read.$/, 'O parâmetro $1 foi declarado, mas seu valor nunca é usado.')
+            .replace(/^Type (.+) is not assignable to type (.+).$/, 'O tipo $1 não pode ser atribuído ao tipo $2.')
+            .replace(/^Property ('[^']+') does not exist on type (.+).$/, 'A propriedade $1 não existe no tipo $2.')
+            .replace(/^Expected (\d+) arguments?, but got (\d+).$/, 'Eram esperados $1 argumento(s), mas foram recebidos $2.')
+            .replace(/^Expected at least (\d+) arguments?, but got (\d+).$/, 'Eram esperados pelo menos $1 argumento(s), mas foram recebidos $2.')
+            .replace(/^Object is possibly 'null'\.$/, 'O objeto pode ser "null".')
+            .replace(/^Object is possibly 'undefined'\.$/, 'O objeto pode ser "undefined".')
+            .replace(/^Cannot read properties of undefined/i, 'Não é possível ler propriedades de "undefined"')
+            .replace(/^Cannot read properties of null/i, 'Não é possível ler propriedades de "null"')
+            .replace(/^At-rule or selector expected\.$/i, 'Era esperada uma regra CSS ou um seletor.')
+            .replace(/^Identifier or variable expected\.$/i, 'Era esperado um identificador ou uma variável.')
+            .replace(/^Expected a declaration\.$/i, 'Era esperada uma declaração.')
+            .replace(/^Expected a property name\.$/i, 'Era esperado o nome de uma propriedade.')
+            .replace(/^Expected a value\.$/i, 'Era esperado um valor.')
+            .replace(/^Expected a comma or closing (?:brace|bracket)\.$/i, 'Era esperada uma vírgula ou o fechamento da estrutura.')
+            .replace(/^Unexpected end of JSON input\.$/i, 'Fim inesperado do conteúdo JSON.')
+            .replace(/^Expected (?:a )?property name or ['"]}['"]\.?$/i, 'Era esperado o nome de uma propriedade ou o fechamento "}".')
+            .replace(/^Expected (?:a )?property name\.?$/i, 'Era esperado o nome de uma propriedade.')
+            .replace(/^Expected (?:a )?value\.?$/i, 'Era esperado um valor.')
+            .replace(/^Expected (?:a )?colon\.?$/i, 'Eram esperados dois-pontos.')
+            .replace(/^Expected (?:a )?comma\.?$/i, 'Era esperada uma vírgula.')
+            .replace(/^Expected (?:a )?semicolon\.?$/i, 'Era esperado ponto e vírgula.')
+            .replace(/^Expected (?:a )?closing (?:brace|bracket|parenthesis|parentheses)\.?$/i, 'Era esperado o fechamento da estrutura.')
+            .replace(/^Expected (?:a )?['"]}['"]\.?$/i, 'Era esperado "}".')
+            .replace(/^Expected (?:a )?['"]\]['"]\.?$/i, 'Era esperado "]".')
+            .replace(/^Expected (?:a )?['"]\)['"]\.?$/i, 'Era esperado ")".')
+            .replace(/^Trailing comma\.?$/i, 'Vírgula final não é permitida aqui.')
+            .replace(/^Comments are not permitted in JSON\.?$/i, 'Comentários não são permitidos em JSON.')
+            .replace(/^Duplicate object key\.?$/i, 'Esta propriedade foi declarada mais de uma vez.')
+            .replace(/^Property (.+) is not allowed\.?$/i, 'A propriedade $1 não é permitida.')
+            .replace(/^Property (.+) is not expected here\.?$/i, 'A propriedade $1 não é esperada aqui.')
+            .replace(/^Missing required property (.+)\.?$/i, 'Está faltando a propriedade obrigatória $1.')
+            .replace(/^Missing property (.+)\.?$/i, 'Está faltando a propriedade obrigatória $1.')
+            .replace(/^Incorrect type\. Expected (.+) but found (.+)\.?$/i, 'Tipo incorreto. Era esperado $1, mas foi encontrado $2.')
+            .replace(/^Incorrect type\. Expected (.+)\.?$/i, 'Tipo incorreto. Era esperado $1.')
+            .replace(/^Value is not accepted\. Valid values: (.+)\.?$/i, 'O valor não é aceito. Valores válidos: $1.')
+            .replace(/^Value is not accepted\.?$/i, 'O valor não é aceito.')
+            .replace(/^The value is not accepted\.?$/i, 'O valor não é aceito.')
+            .replace(/^Array has too few items\. Expected (\d+) or more\.?$/i, 'A lista possui poucos itens. Eram esperados $1 ou mais.')
+            .replace(/^Array has too many items\. Expected (\d+) or fewer\.?$/i, 'A lista possui itens demais. Eram esperados no máximo $1.')
+            .replace(/^String is shorter than the minimum length of (\d+)\.?$/i, 'O texto é menor que o tamanho mínimo de $1 caractere(s).')
+            .replace(/^String is longer than the maximum length of (\d+)\.?$/i, 'O texto excede o tamanho máximo de $1 caractere(s).')
+            .replace(/^Does not match the pattern of (.+)\.?$/i, 'O valor não corresponde ao padrão exigido: $1.')
+            .replace(/^Unknown property: (.+)\.?$/i, 'Propriedade desconhecida: $1.')
+            .replace(/^Unknown at rule (.+)\.?$/i, 'Regra CSS desconhecida: $1.')
+            .replace(/^Unknown property (.+)\.?$/i, 'Propriedade CSS desconhecida: $1.')
+            .replace(/^Invalid property value\.?$/i, 'Valor inválido para esta propriedade CSS.')
+            .replace(/^Property value expected\.?$/i, 'Era esperado um valor para a propriedade.')
+            .replace(/^Selector expected\.?$/i, 'Era esperado um seletor CSS.')
+            .replace(/^Rule or selector expected\.?$/i, 'Era esperada uma regra CSS ou um seletor.')
+            .replace(/^Property (.+) is not allowed\.$/, 'A propriedade $1 não é permitida.')
+            .replace(/^Missing property (.+)\.$/, 'Está faltando a propriedade obrigatória $1.')
+            .replace(/^Incorrect type\. Expected (.+)\.$/, 'Tipo incorreto. Era esperado $1.')
+            .replace(/^Value is not accepted\. Valid values: (.+)\.$/, 'O valor não é aceito. Valores válidos: $1.')
+            .replace(/^Unknown property: (.+)\.$/, 'Propriedade desconhecida: $1.')
+            .replace(/^Do you mean (.+)\?$/, 'Você quis dizer $1?');
+        }
+
+        var diagnosticosSemTraducaoAvisados = {};
+        function modoDiagnosticoDaIdeAtivo() {
+          try {
+            return Boolean(window.CL && CL.config && CL.config.debug) ||
+              new URLSearchParams(window.location.search).get('ideDebug') === '1' ||
+              window.localStorage.getItem('cl.ide.debug') === '1';
+          } catch (erro) {
+            return Boolean(window.CL && CL.config && CL.config.debug);
+          }
+        }
+
+        function registrarDiagnosticoSemTraducao(mensagem) {
+          if (!modoDiagnosticoDaIdeAtivo()) return;
+          if (!/\b(?:cannot|expected|property|variable|parameter|argument|type|unexpected|unknown|missing|unreachable)\b/i.test(mensagem)) return;
+          if (diagnosticosSemTraducaoAvisados[mensagem]) return;
+          diagnosticosSemTraducaoAvisados[mensagem] = true;
+          console.warn('[CL.ide] diagnóstico do Monaco sem tradução:', mensagem);
+        }
+
+        function criarEditor(id, linguagem, valorInicial, nomeDoArquivo) {
+          // Os workers de linguagem do Monaco (principalmente o TypeScript)
+          // reconhecem e relacionam arquivos de forma mais confiável com URIs
+          // `file:` e extensões reais, como .js e .ts.
+          var extensoesPorLinguagem = { html: 'html', css: 'css', scss: 'scss', javascript: 'js', typescript: 'ts', javascriptreact: 'jsx', json: 'json', xml: 'xml', svg: 'svg', markdown: 'md' };
+          var extensao = extensoesPorLinguagem[linguagem] || 'txt';
+          var caminhoDoArquivo = String(nomeDoArquivo || (id + '.' + extensao)).split('/').map(encodeURIComponent).join('/');
+          var linguagemMonaco = linguagem === 'javascriptreact' ? 'javascript' : (linguagem === 'svg' ? 'xml' : linguagem);
+          // Todos os arquivos reais compartilham a mesma raiz virtual para
+          // que imports relativos resolvam para o modelo aberto correto.
+          // Os três modelos de compatibilidade continuam isolados.
+          var raizVirtual = nomeDoArquivo ? 'file:///coding-loop/projeto/' : ('file:///coding-loop/estado-legado/' + encodeURIComponent(id) + '/');
+          var model = monaco.editor.createModel(valorInicial, linguagemMonaco, monaco.Uri.parse(raizVirtual + caminhoDoArquivo));
+          var editorMonaco = monaco.editor.create(document.getElementById(id), {
+            model: model,
+            automaticLayout: true,
+            fontSize: 14,
+            minimap: { enabled: false },
+            lineNumbersMinChars: 2,
+            lineDecorationsWidth: 4,
+            glyphMargin: false,
+            folding: false,
+            wordWrap: 'on',
+            scrollBeyondLastLine: false,
+            renderWhitespace: 'selection',
+            renderValidationDecorations: 'on',
+            overviewRulerLanes: 3,
+            hideCursorInOverviewRuler: false
+          });
+
+          // O Monaco anuncia esses atalhos no widget da lâmpada, mas alguns
+          // layouts de teclado/navegadores não encaminham as combinações
+          // nativas no editor standalone. Registrá-las no editor garante o
+          // mesmo comportamento em todos os arquivos, inclusive os extras.
+          editorMonaco.addAction({
+            id: 'coding-loop.aplicar-correcao-preferencial',
+            label: 'Aplicar correção rápida preferencial',
+            keybindings: [monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.Period],
+            run: function (editor) {
+              var acao = editor.getAction('editor.action.autoFix');
+              return acao ? acao.run() : undefined;
+            }
+          });
+          editorMonaco.addAction({
+            id: 'coding-loop.mostrar-correcoes-rapidas',
+            label: 'Mostrar correções rápidas',
+            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Period],
+            run: function (editor) {
+              var acao = editor.getAction('editor.action.quickFix');
+              return acao ? acao.run() : undefined;
+            }
+          });
+
+          // O Monaco normalmente fecha tags HTML. Como isso pode depender do
+          // carregamento do worker, mantemos um fallback, mas só depois de dar
+          // ao próprio Monaco a chance de inserir o fechamento. Sem essa
+          // espera, os dois mecanismos podiam produzir `</h1></h1>` e o
+          // validador corretamente marcava o segundo fechamento como erro.
+          if (linguagem === 'html') {
+            var inserindoFechamentoHtml = false;
+            var tagsSemFechamento = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+            model.onDidChangeContent(function (evento) {
+              if (inserindoFechamentoHtml || evento.changes.length !== 1) return;
+              var alteracao = evento.changes[0];
+              if (alteracao.text !== '>') return;
+              var numeroLinha = alteracao.range.startLineNumber;
+              var linha = model.getLineContent(numeroLinha);
+              var coluna = alteracao.range.startColumn + 1;
+              var antes = linha.slice(0, coluna - 1);
+              var depois = linha.slice(coluna - 1);
+              var encontrada = antes.match(/<([a-z][\w:-]*)(?:\s[^<>]*)?>$/i);
+              if (!encontrada) return;
+              var tag = encontrada[1].toLowerCase();
+              if (tagsSemFechamento.indexOf(tag) >= 0 || /\/\s*>$/.test(antes) || new RegExp('^\\s*</' + tag + '\\s*>', 'i').test(depois)) return;
+              window.setTimeout(function () {
+                var linhaAtual = model.getLineContent(numeroLinha);
+                var depoisAtual = linhaAtual.slice(coluna - 1);
+                if (new RegExp('^\\s*</' + tag + '\\s*>', 'i').test(depoisAtual)) return;
+                inserindoFechamentoHtml = true;
+                editorMonaco.executeEdits('coding-loop-auto-close-tag', [{
+                  range: new monaco.Range(numeroLinha, coluna, numeroLinha, coluna),
+                  text: '</' + tag + '>',
+                  forceMoveMarkers: true
+                }]);
+                editorMonaco.setPosition({ lineNumber: numeroLinha, column: coluna });
+                inserindoFechamentoHtml = false;
+              }, 0);
+            });
+          }
+          var anotacoes = [];
+          var listenersDeAnotacao = [];
+          var editorDescartado = false;
+
+          function avisarAlteracaoDeAnotacoes() {
+            listenersDeAnotacao.forEach(function (listener) { listener(); });
+          }
+
+          var session = {
+            on: function (evento, listener) {
+              if (evento === 'change') return model.onDidChangeContent(listener);
+              if (evento === 'changeAnnotation') listenersDeAnotacao.push(listener);
+            },
+            getUndoManager: function () {
+              return {
+                // O Monaco não expõe a consulta pública da pilha. Seus
+                // comandos são no-op seguros quando ela está vazia, portanto
+                // mantemos os controles disponíveis em vez de travar Refazer.
+                hasUndo: function () { return true; },
+                hasRedo: function () { return true; }
+              };
+            },
+            getAnnotations: function () { return anotacoes.slice(); },
+            setAnnotations: function (novasAnotacoes) {
+              var chavesVistas = {};
+              anotacoes = novasAnotacoes.filter(function (anotacao) {
+                var chave = [anotacao.row, anotacao.column, anotacao.__fimColuna, anotacao.code, anotacao.type, anotacao.text].join('|');
+                if (chavesVistas[chave]) return false;
+                chavesVistas[chave] = true;
+                return true;
+              });
+              monaco.editor.setModelMarkers(model, 'coding-loop', anotacoes.map(function (anotacao) {
+                var linha = Math.max(1, Math.min(model.getLineCount(), (anotacao.row || 0) + 1));
+                var colunaMaxima = model.getLineMaxColumn(linha);
+                var colunaInicial = Math.max(1, Math.min(colunaMaxima, (anotacao.column || 0) + 1));
+                var semLocalizacaoExata = anotacao.__semLinha || anotacao.__semLocalizacao;
+                if (!semLocalizacaoExata && colunaMaxima > 1 && colunaInicial === colunaMaxima) colunaInicial--;
+                var colunaFinalDesejada = typeof anotacao.__fimColuna === 'number' ? anotacao.__fimColuna + 1 : colunaInicial + 1;
+                var colunaFinal = semLocalizacaoExata
+                  ? colunaInicial
+                  : Math.max(colunaInicial + (colunaMaxima > colunaInicial ? 1 : 0), Math.min(colunaMaxima, colunaFinalDesejada));
+                return {
+                  startLineNumber: linha,
+                  startColumn: colunaInicial,
+                  endLineNumber: linha,
+                  endColumn: colunaFinal,
+                  message: anotacao.text || '',
+                  code: anotacao.code,
+                  severity: anotacao.type === 'warning' ? monaco.MarkerSeverity.Warning : (anotacao.type === 'hint' ? monaco.MarkerSeverity.Hint : (anotacao.type === 'info' ? monaco.MarkerSeverity.Info : monaco.MarkerSeverity.Error))
+                };
+              }));
+              avisarAlteracaoDeAnotacoes();
+            },
+            getLine: function (linha) { return model.getLineContent(linha + 1); },
+            getLength: function () { return model.getLineCount(); }
+          };
+
+          var editorAdaptado = {
+            session: session,
+            getValue: function () { return model.getValue(); },
+            setValue: function (valor, cursorPos) {
+              model.setValue(valor);
+              if (cursorPos === -1) {
+                editorMonaco.setPosition({ lineNumber: 1, column: 1 });
+                editorMonaco.revealLine(1);
+              }
+            },
+            resize: function () { editorMonaco.layout(); },
+            focus: function () { editorMonaco.focus(); },
+            undo: function () { editorMonaco.trigger('coding-loop', 'undo'); },
+            redo: function () { editorMonaco.trigger('coding-loop', 'redo'); },
+            getNativeAnnotations: function () {
+              return monaco.editor.getModelMarkers({ resource: model.uri }).filter(function (marker) {
+                return marker.owner !== 'coding-loop';
+              }).map(function (marker) {
+                return {
+                  row: marker.startLineNumber - 1,
+                  column: marker.startColumn - 1,
+                  __fimColuna: Math.max(marker.startColumn, marker.endColumn) - 1,
+                  text: traduzirDiagnosticoMonaco(marker.message || 'Diagnóstico do editor.', marker.code && (marker.code.value || marker.code)),
+                  type: marker.severity === monaco.MarkerSeverity.Warning ? 'warning' : (marker.severity === monaco.MarkerSeverity.Hint ? 'hint' : (marker.severity === monaco.MarkerSeverity.Info ? 'info' : 'error')),
+                  code: marker.code && (marker.code.value || marker.code)
+                };
+              });
+            },
+            getModelUri: function () { return model.uri.toString(); },
+            localizarMarcadoresNativos: function () {
+              var porOwner = {};
+              monaco.editor.getModelMarkers({ resource: model.uri }).forEach(function (marker) {
+                if (marker.owner === 'coding-loop') return;
+                var mensagemTraduzida = traduzirDiagnosticoMonaco(marker.message, marker.code && (marker.code.value || marker.code));
+                if (mensagemTraduzida === marker.message) registrarDiagnosticoSemTraducao(marker.message);
+                if (mensagemTraduzida === marker.message) return;
+                if (!porOwner[marker.owner]) porOwner[marker.owner] = [];
+                porOwner[marker.owner].push(marker);
+              });
+              Object.keys(porOwner).forEach(function (owner) {
+                var marcadoresDoOwner = monaco.editor.getModelMarkers({ resource: model.uri, owner: owner });
+                monaco.editor.setModelMarkers(model, owner, marcadoresDoOwner.map(function (marker) {
+                  var informacoesRelacionadas = marker.relatedInformation && marker.relatedInformation.map(function (informacao) {
+                    return Object.assign({}, informacao, { message: traduzirDiagnosticoMonaco(informacao.message) });
+                  });
+                  return Object.assign({}, marker, {
+                    message: traduzirDiagnosticoMonaco(marker.message, marker.code && (marker.code.value || marker.code)),
+                    relatedInformation: informacoesRelacionadas
+                  });
+                }));
+              });
+            },
+            dispose: function () {
+              if (editorDescartado) return;
+              editorDescartado = true;
+              if (editorAdaptado.ouvinteMarcadoresNativos) editorAdaptado.ouvinteMarcadoresNativos.dispose();
+              listenersDeAnotacao = [];
+              anotacoes = [];
+              editorMonaco.dispose();
+              model.dispose();
+            },
+            on: function (evento, listener) {
+              if (evento === 'change') return model.onDidChangeContent(listener);
+              if (evento === 'focus') return editorMonaco.onDidFocusEditorText(listener);
+            }
+          };
+          // Todo editor criado — principal ou adicional — recebe a mesma
+          // conexão de localização dos markers nativos do Monaco.
+          editorAdaptado.ouvinteMarcadoresNativos = conectarTraducaoDeMarcadores(editorAdaptado);
+          return editorAdaptado;
+        }
+
+        function conectarTraducaoDeMarcadores(editor, aoAtualizar) {
+          return monaco.editor.onDidChangeMarkers(function (recursos) {
+            var esteEditorMudou = recursos.some(function (recurso) { return recurso.toString() === editor.getModelUri(); });
+            if (!esteEditorMudou) return;
+            // setModelMarkers também dispara este evento. Ignoramos essa
+            // segunda passagem para não redesenhar os mesmos diagnósticos nem
+            // registrar uma mensagem já localizada como se estivesse em inglês.
+            if (editor.localizandoMarcadores) return;
+            editor.localizandoMarcadores = true;
+            try {
+              editor.localizarMarcadoresNativos();
+            } finally {
+              editor.localizandoMarcadores = false;
+            }
+            if (aoAtualizar) aoAtualizar(editor);
+            else if (editor.aoAtualizarMarcadores) editor.aoAtualizarMarcadores(editor);
+          });
+        }
+
+        var carregandoCodigoDaEtapa = true;
         var codigoInicial = (window.getCodigoInicialParaEditor && window.getCodigoInicialParaEditor()) || {};
 
-        htmlEditor = criarEditor('html-editor', 'ace/mode/html', codigoInicial.html || '');
-        cssEditor = criarEditor('css-editor', 'ace/mode/css', codigoInicial.css || '');
-        jsEditor = criarEditor('js-editor', 'ace/mode/javascript', codigoInicial.js || '');
+        // Estes modelos preservam a interface dos exercícios antigos e recebem
+        // apenas anotações manuais. Como não ficam visíveis, plaintext evita
+        // que os workers validem uma segunda cópia do mesmo HTML/CSS/JS.
+        htmlEditor = criarEditor('html-editor', 'plaintext', codigoInicial.html || '');
+        cssEditor = criarEditor('css-editor', 'plaintext', codigoInicial.css || '');
+        jsEditor = criarEditor('js-editor', 'plaintext', codigoInicial.js || '');
+        [htmlEditor, cssEditor, jsEditor].forEach(function (editor) { editor.localizarMarcadoresNativos(); });
+        var arquivosExtras = [];
+
+        function obterConteudoDosArquivos(linguagens) {
+          return arquivosExtras.filter(function (arquivo) {
+            return linguagens.indexOf(arquivo.linguagem) >= 0;
+          }).map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n');
+        }
+
+        function registrarAutocompleteDoProjeto() {
+          var tipos = monaco.languages.CompletionItemKind;
+          var alcance = function (model, position) {
+            var palavra = model.getWordUntilPosition(position);
+            return new monaco.Range(position.lineNumber, palavra.startColumn, position.lineNumber, palavra.endColumn);
+          };
+          var sugestoesDoProjeto = function (linguagem) {
+            var html = obterConteudoDosArquivos(['html']);
+            var css = obterConteudoDosArquivos(['css', 'scss']);
+            var js = obterConteudoDosArquivos(['javascript', 'typescript', 'javascriptreact']);
+            var itens = [];
+            var adicionar = function (rotulo, detalhe, tipo, inserir) {
+              if (!rotulo) return;
+              itens.push({ label: rotulo, kind: tipo, detail: detalhe, insertText: inserir || rotulo, range: null });
+            };
+            if (linguagem === 'html') {
+              Array.from(new Set((html.match(/\bid\s*=\s*["']([^"']+)/gi) || []).map(function (texto) { return texto.replace(/^.*?["']/, '').trim(); }))).forEach(function (id) { adicionar('#' + id, 'ID do projeto', tipos.Reference); });
+              Array.from(new Set((html.match(/\bclass\s*=\s*["']([^"']+)/gi) || []).flatMap(function (texto) { return (texto.replace(/^.*?["']/, '').match(/[^\s"']+/g) || []); }))).forEach(function (classe) { adicionar('.' + classe, 'Classe do projeto', tipos.Reference); });
+              itens.push(
+                { label: 'Estrutura HTML', kind: tipos.Snippet, detail: 'Snippet', insertText: '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${1:Minha página}</title>\n</head>\n<body>\n  ${0}\n</body>\n</html>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range: null },
+                { label: 'Imagem acessível', kind: tipos.Snippet, detail: 'Snippet', insertText: '<img src="${1:imagem.jpg}" alt="${2:Descrição da imagem}">', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range: null }
+              );
+            }
+            if (linguagem === 'css' || linguagem === 'scss') {
+              Array.from(new Set((html.match(/\bclass\s*=\s*["']([^"']+)/gi) || []).flatMap(function (texto) { return (texto.replace(/^.*?["']/, '').match(/[^\s"']+/g) || []); }))).forEach(function (classe) { adicionar('.' + classe, 'Classe encontrada no HTML', tipos.Class); });
+              Array.from(new Set((html.match(/\bid\s*=\s*["']([^"']+)/gi) || []).map(function (texto) { return texto.replace(/^.*?["']/, '').trim(); }))).forEach(function (id) { adicionar('#' + id, 'ID encontrado no HTML', tipos.Reference); });
+              itens.push({ label: 'Flex centralizado', kind: tipos.Snippet, detail: 'Snippet', insertText: 'display: flex;\njustify-content: center;\nalign-items: center;', range: null });
+            }
+            if (linguagem === 'javascript' || linguagem === 'typescript' || linguagem === 'javascriptreact') {
+              Array.from(new Set((js.match(/\b(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/g) || []).map(function (texto) { return texto.match(/([A-Za-z_$][\w$]*)$/)[1]; }))).forEach(function (nome) { adicionar(nome, 'Símbolo do projeto', tipos.Variable); });
+              arquivosExtras.forEach(function (arquivo) { adicionar(arquivo.nome, 'Arquivo do projeto', tipos.File); });
+              itens.push({ label: 'Evento click', kind: tipos.Snippet, detail: 'Snippet', insertText: "${1:elemento}.addEventListener('click', () => {\n  ${0}\n});", insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range: null });
+            }
+            return itens;
+          };
+          ['html', 'css', 'scss', 'javascript', 'typescript', 'javascriptreact'].forEach(function (linguagem) {
+            monaco.languages.registerCompletionItemProvider(linguagem, {
+              triggerCharacters: ['.', '#', '<', '"', "'"],
+              provideCompletionItems: function (model, position) {
+                return { suggestions: sugestoesDoProjeto(linguagem).map(function (item) { item.range = alcance(model, position); return item; }) };
+              }
+            });
+          });
+          var opcoesDeDiagnostico = { noSemanticValidation: false, noSyntaxValidation: false, noSuggestionDiagnostics: false };
+          var opcoesDeCompilacao = {
+            target: monaco.languages.typescript.ScriptTarget.ES2020,
+            allowNonTsExtensions: true,
+            allowJs: true,
+            checkJs: true,
+            strict: true,
+            strictNullChecks: true,
+            noImplicitAny: true,
+            noImplicitReturns: true,
+            noUnusedLocals: true,
+            noUnusedParameters: true,
+            allowUnreachableCode: false,
+            allowUnusedLabels: false
+          };
+          if (monaco.languages.typescript.JsxEmit) {
+            opcoesDeCompilacao.jsx = monaco.languages.typescript.JsxEmit.ReactJSX;
+          }
+          monaco.languages.typescript.javascriptDefaults.setCompilerOptions(opcoesDeCompilacao);
+          monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions(opcoesDeDiagnostico);
+          monaco.languages.typescript.typescriptDefaults.setCompilerOptions(opcoesDeCompilacao);
+          monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(opcoesDeDiagnostico);
+          if (monaco.languages.json && monaco.languages.json.jsonDefaults) {
+            monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+              validate: true,
+              allowComments: true,
+              trailingCommas: 'warning',
+              schemas: [{
+                uri: 'file:///coding-loop/schemas/package.json',
+                fileMatch: ['**/package.json'],
+                schema: {
+                  type: 'object',
+                  required: ['name', 'version'],
+                  properties: {
+                    name: { type: 'string', minLength: 1 },
+                    version: { type: 'string', pattern: '^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$' },
+                    private: { type: 'boolean' },
+                    scripts: { type: 'object', additionalProperties: { type: 'string' } },
+                    dependencies: { type: 'object', additionalProperties: { type: 'string' } },
+                    devDependencies: { type: 'object', additionalProperties: { type: 'string' } }
+                  },
+                  additionalProperties: true
+                }
+              }]
+            });
+          }
+          if (monaco.languages.css && monaco.languages.css.cssDefaults) {
+            monaco.languages.css.cssDefaults.setDiagnosticsOptions({ validate: true });
+          }
+          if (monaco.languages.css && monaco.languages.css.scssDefaults) {
+            monaco.languages.css.scssDefaults.setDiagnosticsOptions({ validate: true });
+          }
+
+          // Ações rápidas só são oferecidas quando a alteração é inequívoca.
+          // Não removemos automaticamente variáveis não usadas, pois o valor
+          // inicial delas pode provocar efeitos colaterais importantes.
+          var corrigirPontoEVirgula = {
+            provideCodeActions: function (model, range, context) {
+              var acoes = context.markers.filter(function (marker) {
+                return marker.code && (marker.code.value || marker.code) === 'coding-loop:semicolon';
+              }).map(function (marker) {
+                return {
+                  title: 'Adicionar ponto e vírgula',
+                  kind: 'quickfix',
+                  diagnostics: [marker],
+                  isPreferred: true,
+                  edit: {
+                    edits: [{
+                      resource: model.uri,
+                      textEdit: {
+                        range: new monaco.Range(marker.endLineNumber, marker.endColumn, marker.endLineNumber, marker.endColumn),
+                        text: ';'
+                      }
+                    }]
+                  }
+                };
+              });
+              return { actions: acoes, dispose: function () {} };
+            }
+          };
+          monaco.languages.registerCodeActionProvider('css', corrigirPontoEVirgula);
+          monaco.languages.registerCodeActionProvider('scss', corrigirPontoEVirgula);
+
+          var corrigirDelimitadorEsperado = {
+            provideCodeActions: function (model, range, context) {
+              var acoes = [];
+              context.markers.forEach(function (marker) {
+                var codigo = marker.code && (marker.code.value || marker.code);
+                var mensagem = String(marker.message || '');
+                if (String(codigo) !== '1005' && !/(?:expected|esperad[oa])/i.test(mensagem)) return;
+                var correspondencia = mensagem.match(/["']([;,:}\])])["']/) ||
+                  mensagem.match(/(?:expected|esperad[oa])\s+(?:um |uma )?(ponto e vírgula|vírgula|dois-pontos)/i);
+                if (!correspondencia) return;
+                var nomes = { 'ponto e vírgula': ';', 'vírgula': ',', 'dois-pontos': ':' };
+                var delimitador = nomes[String(correspondencia[1]).toLowerCase()] || correspondencia[1];
+                if ([';', ',', ':', '}', ']', ')'].indexOf(delimitador) < 0) return;
+                acoes.push({
+                  title: 'Inserir "' + delimitador + '" esperado',
+                  kind: 'quickfix',
+                  diagnostics: [marker],
+                  isPreferred: true,
+                  edit: {
+                    edits: [{
+                      resource: model.uri,
+                      textEdit: {
+                        range: new monaco.Range(marker.startLineNumber, marker.startColumn, marker.startLineNumber, marker.startColumn),
+                        text: delimitador
+                      }
+                    }]
+                  }
+                });
+              });
+              return { actions: acoes, dispose: function () {} };
+            }
+          };
+          ['javascript', 'typescript', 'json'].forEach(function (linguagem) {
+            monaco.languages.registerCodeActionProvider(linguagem, corrigirDelimitadorEsperado);
+          });
+
+          monaco.languages.registerCodeActionProvider('html', {
+            provideCodeActions: function (model, range, context) {
+              var acoes = [];
+              context.markers.forEach(function (marker) {
+                var codigo = String(marker.code && (marker.code.value || marker.code) || '');
+                var tag;
+                var alcanceDaEdicao;
+                var textoDaEdicao;
+                var tituloDaAcao;
+                if (codigo.indexOf('coding-loop:html-transformar-fechamento:') === 0) {
+                  tag = codigo.slice('coding-loop:html-transformar-fechamento:'.length);
+                  if (!tag) return;
+                  alcanceDaEdicao = new monaco.Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn);
+                  textoDaEdicao = '</' + tag + '>';
+                  tituloDaAcao = 'Transformar em </' + tag + '>';
+                } else if (codigo.indexOf('coding-loop:html-fechar-antes:') === 0) {
+                  var partes = codigo.slice('coding-loop:html-fechar-antes:'.length).split(':');
+                  tag = partes[0];
+                  var tagDeFechamento = partes[1];
+                  if (!tag || !tagDeFechamento) return;
+                  var offsetInicial = model.getOffsetAt({ lineNumber: marker.startLineNumber, column: marker.startColumn });
+                  var indiceFechamento = model.getValue().toLowerCase().indexOf('</' + tagDeFechamento.toLowerCase(), offsetInicial);
+                  if (indiceFechamento < 0) return;
+                  var posicaoFechamento = model.getPositionAt(indiceFechamento);
+                  alcanceDaEdicao = new monaco.Range(posicaoFechamento.lineNumber, posicaoFechamento.column, posicaoFechamento.lineNumber, posicaoFechamento.column);
+                  textoDaEdicao = '</' + tag + '>\n';
+                  tituloDaAcao = 'Adicionar </' + tag + '>';
+                } else if (codigo.indexOf('coding-loop:html-fechar:') === 0) {
+                  tag = codigo.slice('coding-loop:html-fechar:'.length);
+                  var ultimaLinha = model.getLineCount();
+                  var ultimaColuna = model.getLineMaxColumn(ultimaLinha);
+                  alcanceDaEdicao = new monaco.Range(ultimaLinha, ultimaColuna, ultimaLinha, ultimaColuna);
+                  textoDaEdicao = (model.getValue().endsWith('\n') ? '' : '\n') + '</' + tag + '>';
+                  tituloDaAcao = 'Adicionar </' + tag + '>';
+                } else if (codigo === 'coding-loop:html-completar-tag') {
+                  tag = 'tag';
+                  var linhaDaTag = marker.startLineNumber;
+                  var fimDaTag = model.getLineMaxColumn(linhaDaTag);
+                  alcanceDaEdicao = new monaco.Range(linhaDaTag, fimDaTag, linhaDaTag, fimDaTag);
+                  textoDaEdicao = '>';
+                  tituloDaAcao = 'Adicionar ">"';
+                } else {
+                  return;
+                }
+                acoes.push({
+                  title: tituloDaAcao,
+                  kind: 'quickfix',
+                  diagnostics: [marker],
+                  isPreferred: true,
+                  edit: {
+                    edits: [{
+                      resource: model.uri,
+                      textEdit: {
+                        range: alcanceDaEdicao,
+                        text: textoDaEdicao
+                      }
+                    }]
+                  }
+                });
+              });
+              return { actions: acoes, dispose: function () {} };
+            }
+          });
+        }
+        registrarAutocompleteDoProjeto();
+        aplicarTemaMonaco(document.documentElement.getAttribute('data-theme'));
+        (codigoInicial.files || []).forEach(function (arquivo) {
+          if (arquivo && arquivo.linguagem && arquivo.nome) criarArquivoExtra(arquivo.linguagem, arquivo.nome, arquivo.conteudo || '');
+        });
+        // Migra automaticamente o conteúdo salvo no formato antigo para arquivos reais.
+        if (!(codigoInicial.files || []).length) {
+          if (codigoInicial.html) criarArquivoExtra('html', 'index.html', codigoInicial.html);
+          if (codigoInicial.css) criarArquivoExtra('css', 'style.css', codigoInicial.css);
+          if (codigoInicial.js) criarArquivoExtra('javascript', 'script.js', codigoInicial.js);
+        }
+        carregandoCodigoDaEtapa = false;
 
         // Os controles agem sobre o último editor que recebeu foco. Assim,
         // continuam previsíveis mesmo quando mais de uma aba está visível.
-        var editorAtivoParaHistorico = htmlEditor;
+        var editorAtivoParaHistorico = arquivosExtras.length ? arquivosExtras[0].editor : htmlEditor;
         function atualizarControlesHistorico() {
           if (!editorAtivoParaHistorico) return;
           var historico = editorAtivoParaHistorico.session.getUndoManager();
@@ -1557,18 +2238,38 @@
         atualizarControlesHistorico();
 
         window.addEventListener('theme:mudou', function (event) {
-          var themeAce = event.detail === 'solarized-light' ? 'ace/theme/solarized_light' : 'ace/theme/solarized_dark';
-          [htmlEditor, cssEditor, jsEditor].forEach(function (editor) { editor.setTheme(themeAce); });
+          aplicarTemaMonaco(event.detail);
         });
 
-        var carregandoCodigoDaEtapa = false;
+        function removerArquivosExtras() {
+          arquivosExtras.forEach(function (arquivo) {
+            var aba = dragContainer.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
+            var painel = document.getElementById(arquivo.idPane);
+            if (arquivo.ouvinteMarcadoresNativos) arquivo.ouvinteMarcadoresNativos.dispose();
+            if (aba) aba.remove();
+            if (painel) painel.remove();
+          });
+          arquivosExtras = [];
+        }
+
         function carregarCodigoDaEtapa() {
           var codigo = (window.getCodigoInicialParaEditor && window.getCodigoInicialParaEditor()) || {};
           carregandoCodigoDaEtapa = true;
           if (codigo.html !== undefined) htmlEditor.setValue(codigo.html, -1);
           if (codigo.css !== undefined) cssEditor.setValue(codigo.css, -1);
           if (codigo.js !== undefined) jsEditor.setValue(codigo.js, -1);
+          removerArquivosExtras();
+          (codigo.files || []).forEach(function (arquivo) {
+            if (arquivo && arquivo.linguagem && arquivo.nome) criarArquivoExtra(arquivo.linguagem, arquivo.nome, arquivo.conteudo || '');
+          });
+          if (!(codigo.files || []).length) {
+            if (codigo.html) criarArquivoExtra('html', 'index.html', codigo.html);
+            if (codigo.css) criarArquivoExtra('css', 'style.css', codigo.css);
+            if (codigo.js) criarArquivoExtra('javascript', 'script.js', codigo.js);
+          }
+          sincronizarArquivosPrincipais();
           carregandoCodigoDaEtapa = false;
+          atualizarLayoutAbas();
         }
 
         // Usado pelo índice para calcular o percentual de acerto de cada
@@ -1577,7 +2278,10 @@
           return {
             html: htmlEditor.getValue(),
             css: cssEditor.getValue(),
-            js: jsEditor.getValue()
+            js: jsEditor.getValue(),
+            files: arquivosExtras.map(function (arquivo) {
+              return { nome: arquivo.nome, linguagem: arquivo.linguagem, conteudo: arquivo.editor.getValue() };
+            })
           };
         };
 
@@ -1609,7 +2313,10 @@
           var resultado = window.salvarCodigoDoAluno({
             html: htmlEditor.getValue(),
             css: cssEditor.getValue(),
-            js: jsEditor.getValue()
+            js: jsEditor.getValue(),
+            files: arquivosExtras.map(function (arquivo) {
+              return { nome: arquivo.nome, linguagem: arquivo.linguagem, conteudo: arquivo.editor.getValue() };
+            })
           });
           return Promise.resolve(resultado);
         }
@@ -1666,7 +2373,9 @@
         window.addEventListener('ide:estado-alterado', marcarComoNaoSalvo);
 
         function redimensionarEditores() {
-          [htmlEditor, cssEditor, jsEditor].forEach(function (editor) {
+          [htmlEditor, cssEditor, jsEditor].concat(arquivosExtras.map(function (arquivo) {
+            return arquivo.editor;
+          })).forEach(function (editor) {
             if (editor) editor.resize();
           });
           atualizarIndicadoresRolagem();
@@ -1733,20 +2442,29 @@
                 if (pilha[i].nome === nome) { indiceCorrespondente = i; break; }
               }
               if (indiceCorrespondente === -1) {
-                anotacoes.push({
-                  row: linhaDoIndice(codigo, match.index),
-                  column: 0,
-                  text: TAGS_VAZIAS.indexOf(nome) !== -1 ? '</' + nome + '> não é permitido: <' + nome + '> não possui fechamento.' : 'Tag de fechamento inesperada: </' + nome + '>',
-                  type: 'error'
-                });
+                var anotacaoFechamentoInesperado = anotacaoPorIndice(codigo, match.index, TAGS_VAZIAS.indexOf(nome) !== -1 ? '</' + nome + '> não é permitido: <' + nome + '> não possui fechamento.' : 'Tag de fechamento inesperada: </' + nome + '>');
+                anotacaoFechamentoInesperado.__fimColuna = anotacaoFechamentoInesperado.column + match[0].length;
+                anotacoes.push(anotacaoFechamentoInesperado);
               } else {
                 for (var j = pilha.length - 1; j > indiceCorrespondente; j--) {
-                  anotacoes.push({
-                    row: linhaDoIndice(codigo, pilha[j].indice),
-                    column: 0,
-                    text: 'A tag <' + pilha[j].nome + '> deve ser fechada antes de </' + nome + '>.',
-                    type: 'error'
-                  });
+                  var itemNaoFechado = pilha[j];
+                  var itemAnterior = pilha[j - 1];
+                  var conteudoEntreTags = itemAnterior && codigo.slice(itemAnterior.indice + itemAnterior.comprimento, itemNaoFechado.indice);
+                  var pareceFechamentoSemBarra = itemAnterior && j - 1 > indiceCorrespondente &&
+                    itemAnterior.nome === itemNaoFechado.nome &&
+                    conteudoEntreTags && !/<|>/.test(conteudoEntreTags) && /\S/.test(conteudoEntreTags);
+                  if (pareceFechamentoSemBarra) {
+                    var anotacaoBarraAusente = anotacaoPorIndice(codigo, itemNaoFechado.indice, 'Esta tag parece ser um fechamento de <' + itemNaoFechado.nome + '>, mas está faltando "/".');
+                    anotacaoBarraAusente.__fimColuna = anotacaoBarraAusente.column + itemNaoFechado.comprimento;
+                    anotacaoBarraAusente.code = 'coding-loop:html-transformar-fechamento:' + itemNaoFechado.nome;
+                    anotacoes.push(anotacaoBarraAusente);
+                    j--;
+                    continue;
+                  }
+                  var anotacaoFechamento = anotacaoPorIndice(codigo, pilha[j].indice, 'A tag <' + pilha[j].nome + '> deve ser fechada antes de </' + nome + '>.');
+                  anotacaoFechamento.__fimColuna = anotacaoFechamento.column + pilha[j].nome.length + 2;
+                  anotacaoFechamento.code = 'coding-loop:html-fechar-antes:' + pilha[j].nome + ':' + nome;
+                  anotacoes.push(anotacaoFechamento);
                 }
                 pilha.length = indiceCorrespondente;
               }
@@ -1754,24 +2472,36 @@
             } else if (!autoFechada) {
               var pai = pilha.length ? pilha[pilha.length - 1].nome : null;
               if (pai && ANINHAMENTO_PROIBIDO[pai] && ANINHAMENTO_PROIBIDO[pai].indexOf(nome) !== -1) {
-                anotacoes.push({
-                  row: linhaDoIndice(codigo, match.index),
-                  column: 0,
-                  text: '<' + nome + '> não pode ficar dentro de <' + pai + '>.',
-                  type: 'error'
-                });
+                var anotacaoAninhamento = anotacaoPorIndice(codigo, match.index, '<' + nome + '> não pode ficar dentro de <' + pai + '>.');
+                anotacaoAninhamento.__fimColuna = anotacaoAninhamento.column + match[0].length;
+                anotacoes.push(anotacaoAninhamento);
               }
-              pilha.push({ nome: nome, indice: match.index });
+              pilha.push({ nome: nome, indice: match.index, comprimento: match[0].length });
             }
           }
 
-          pilha.forEach(function (item) {
-            anotacoes.push({
-              row: linhaDoIndice(codigo, item.indice),
-              column: 0,
-              text: 'A tag <' + item.nome + '> foi aberta mas não foi fechada.',
-              type: 'error'
-            });
+          var itensResolvidosComoBarraAusente = {};
+          for (var indicePilha = pilha.length - 1; indicePilha > 0; indicePilha--) {
+            var itemFinal = pilha[indicePilha];
+            var itemFinalAnterior = pilha[indicePilha - 1];
+            var textoEntreFinais = codigo.slice(itemFinalAnterior.indice + itemFinalAnterior.comprimento, itemFinal.indice);
+            if (itemFinal.nome === itemFinalAnterior.nome && !/<|>/.test(textoEntreFinais) && /\S/.test(textoEntreFinais)) {
+              var anotacaoBarraFinal = anotacaoPorIndice(codigo, itemFinal.indice, 'Esta tag parece ser um fechamento de <' + itemFinal.nome + '>, mas está faltando "/".');
+              anotacaoBarraFinal.__fimColuna = anotacaoBarraFinal.column + itemFinal.comprimento;
+              anotacaoBarraFinal.code = 'coding-loop:html-transformar-fechamento:' + itemFinal.nome;
+              anotacoes.push(anotacaoBarraFinal);
+              itensResolvidosComoBarraAusente[indicePilha] = true;
+              itensResolvidosComoBarraAusente[indicePilha - 1] = true;
+              indicePilha--;
+            }
+          }
+
+          pilha.forEach(function (item, indiceItem) {
+            if (itensResolvidosComoBarraAusente[indiceItem]) return;
+            var anotacaoAberta = anotacaoPorIndice(codigo, item.indice, 'A tag <' + item.nome + '> foi aberta mas não foi fechada.');
+            anotacaoAberta.__fimColuna = anotacaoAberta.column + item.nome.length + 2;
+            anotacaoAberta.code = 'coding-loop:html-fechar:' + item.nome;
+            anotacoes.push(anotacaoAberta);
           });
 
           var idsVistos = {};
@@ -1779,260 +2509,241 @@
           while ((match = regexId.exec(codigo)) !== null) {
             var idAtual = match[1];
             if (idsVistos[idAtual] !== undefined) {
-              anotacoes.push({
-                row: linhaDoIndice(codigo, match.index),
-                column: 0,
-                text: 'id="' + idAtual + '" já foi usado antes — ids devem ser únicos.',
-                type: 'warning'
-              });
+              var anotacaoIdDuplicado = anotacaoPorIndice(codigo, match.index, 'id="' + idAtual + '" já foi usado antes — ids devem ser únicos.', 'warning');
+              anotacaoIdDuplicado.__fimColuna = anotacaoIdDuplicado.column + match[0].length;
+              anotacoes.push(anotacaoIdDuplicado);
             } else {
               idsVistos[idAtual] = match.index;
             }
+          }
+
+          // A expressão principal só encontra tags que já possuem ">". Este
+          // segundo passe cobre tags interrompidas no fim da linha/arquivo.
+          var codigoSemTagsCompletas = codigo.replace(regexTag, function (tagCompleta) {
+            return tagCompleta.replace(/[^\n]/g, ' ');
+          });
+          var tagIncompleta = /<\/?([a-zA-Z][\w:-]*)[^<>\n]*$/gm;
+          while ((match = tagIncompleta.exec(codigoSemTagsCompletas)) !== null) {
+            var trechoIncompleto = codigoOriginal.slice(match.index, match.index + match[0].length);
+            var aspasDuplas = (trechoIncompleto.match(/"/g) || []).length;
+            var aspasSimples = (trechoIncompleto.match(/'/g) || []).length;
+            var aspasAbertas = aspasDuplas % 2 !== 0 || aspasSimples % 2 !== 0;
+            var anotacaoIncompleta = anotacaoPorIndice(
+              codigoOriginal,
+              match.index,
+              aspasAbertas ? 'Há uma aspa de atributo HTML sem fechamento.' : 'Tag HTML incompleta: está faltando ">".'
+            );
+            anotacaoIncompleta.__fimColuna = anotacaoIncompleta.column + Math.max(1, match[0].length);
+            if (!aspasAbertas) anotacaoIncompleta.code = 'coding-loop:html-completar-tag';
+            anotacoes.push(anotacaoIncompleta);
           }
 
           return anotacoes;
         }
 
         function tipoDaAnotacao(a) {
-          return a.type === 'warning' ? 'warning' : (a.type === 'info' ? 'info' : 'error');
-        }
-
-        function redesenharMarcadoresErro(editor) {
-          var session = editor.session;
-          (session.__marcadoresOndulados || []).forEach(function (id) { session.removeMarker(id); });
-          session.__marcadoresOndulados = [];
-
-          var Range = ace.require('ace/range').Range;
-          session.getAnnotations().forEach(function (a) {
-            if (a.__semLinha) return;
-            var linha = session.getLine(a.row) || '';
-            if (!linha.trim()) return;
-            var colInicio = (typeof a.column === 'number' && a.column >= 0 && a.column < linha.length) ? a.column : 0;
-            while (colInicio < linha.length && /\s/.test(linha.charAt(colInicio))) colInicio++;
-            if (colInicio >= linha.length) return;
-            var colFim = (typeof a.__fimColuna === 'number') ? a.__fimColuna : colInicio + 1;
-            while (colFim < linha.length && !/[\s;{}(),]/.test(linha.charAt(colFim))) colFim++;
-            colFim = Math.max(colInicio + 1, Math.min(colFim, linha.length));
-            var range = new Range(a.row, colInicio, a.row, colFim);
-            var id = session.addMarker(range, 'ace-erro-ondulado erro-tipo-' + tipoDaAnotacao(a), 'text');
-            session.__marcadoresOndulados.push(id);
-          });
+          return a.type === 'warning' ? 'warning' : (a.type === 'hint' ? 'hint' : (a.type === 'info' ? 'info' : 'error'));
         }
 
         function atualizarBadge(tipo, anotacoes) {
-          var aba = document.querySelector('.code-tab[data-target="' + tipo + '-pane"]');
+          var linguagensPorTipo = { html: ['html'], css: ['css'], js: ['javascript'] };
+          var arquivo = arquivosExtras.find(function (item) {
+            return (linguagensPorTipo[tipo] || []).indexOf(item.linguagem) >= 0;
+          });
+          var aba = arquivo
+            ? document.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]')
+            : document.querySelector('.code-tab[data-target="' + tipo + '-pane"]');
           if (!aba) return;
           var erros = anotacoes.filter(function (a) { return tipoDaAnotacao(a) === 'error'; }).length;
           var avisos = anotacoes.filter(function (a) { return tipoDaAnotacao(a) === 'warning'; }).length;
-          var infos = anotacoes.length - erros - avisos;
+          var infos = anotacoes.filter(function (a) { return tipoDaAnotacao(a) === 'info'; }).length;
+          var dicas = anotacoes.filter(function (a) { return tipoDaAnotacao(a) === 'hint'; }).length;
           var total = anotacoes.length;
-          var severidade = erros ? 'error' : (avisos ? 'warning' : 'info');
+          var severidade = erros ? 'error' : (avisos ? 'warning' : (infos ? 'info' : 'hint'));
           aba.classList.toggle('tem-erro', total > 0);
           aba.classList.toggle('erro-warning', total > 0 && severidade === 'warning');
           aba.classList.toggle('erro-info', total > 0 && severidade === 'info');
-          var texto = total ? total + ' diagnóstico' + (total === 1 ? '' : 's') + ': ' + erros + ' erro(s), ' + avisos + ' aviso(s)' : 'Sem diagnósticos';
+          aba.classList.toggle('erro-hint', total > 0 && severidade === 'hint');
+          var texto = total ? total + ' diagnóstico' + (total === 1 ? '' : 's') + ': ' + erros + ' erro(s), ' + avisos + ' aviso(s), ' + infos + ' informação(ões), ' + dicas + ' dica(s)' : 'Sem diagnósticos';
           var rotulo = aba.querySelector('.tab-text');
           if (rotulo) rotulo.setAttribute('data-diagnostic-count', total ? String(total) : '');
           aba.setAttribute('title', texto);
           aba.setAttribute('aria-label', tipo.toUpperCase() + '. ' + texto);
         }
 
-        function ligarIndicadorSimples(editor, tipo) {
-          editor.session.on('changeAnnotation', function () {
-            var anotacoes = editor.session.getAnnotations();
-            atualizarBadge(tipo, anotacoes);
-            redesenharMarcadoresErro(editor);
-          });
+        function atualizarBadgeDoArquivo(arquivo, anotacoes) {
+          var aba = document.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
+          if (!aba) return;
+          var erros = anotacoes.filter(function (item) { return tipoDaAnotacao(item) === 'error'; }).length;
+          var avisos = anotacoes.filter(function (item) { return tipoDaAnotacao(item) === 'warning'; }).length;
+          var total = anotacoes.length;
+          var infos = anotacoes.filter(function (item) { return tipoDaAnotacao(item) === 'info'; }).length;
+          var dicas = anotacoes.filter(function (item) { return tipoDaAnotacao(item) === 'hint'; }).length;
+          var severidade = erros ? 'error' : (avisos ? 'warning' : (infos ? 'info' : 'hint'));
+          aba.classList.toggle('tem-erro', total > 0);
+          aba.classList.toggle('erro-warning', total > 0 && severidade === 'warning');
+          aba.classList.toggle('erro-info', total > 0 && severidade === 'info');
+          aba.classList.toggle('erro-hint', total > 0 && severidade === 'hint');
+          var rotulo = aba.querySelector('.tab-text');
+          if (rotulo) rotulo.setAttribute('data-diagnostic-count', total ? String(total) : '');
+          var texto = total ? total + ' diagnóstico' + (total === 1 ? '' : 's') : 'Sem diagnósticos';
+          aba.setAttribute('title', texto);
+          aba.setAttribute('aria-label', arquivo.nome + '. ' + texto);
         }
 
-        var anotacoesEstruturaisHTML = [];
-        var mesclandoAnotacoesHTML = false;
-        function finalizarAtualizacaoHTML() {
-          var anotacoes = htmlEditor.session.getAnnotations();
-          atualizarBadge('html', anotacoes);
-          redesenharMarcadoresErro(htmlEditor);
+        function anotacaoPorIndice(codigo, indice, texto, tipo) {
+          var antes = codigo.slice(0, Math.max(0, indice));
+          return { row: antes.split('\n').length - 1, column: antes.length - (antes.lastIndexOf('\n') + 1), text: texto, type: tipo || 'error' };
         }
-        function mesclarAnotacoesHTML() {
-          var doWorker = htmlEditor.session.getAnnotations().filter(function (a) { return !a.__htmlEstrutural; });
-          mesclandoAnotacoesHTML = true;
-          htmlEditor.session.setAnnotations(doWorker.concat(anotacoesEstruturaisHTML));
-          mesclandoAnotacoesHTML = false;
-        }
-        function executarVerificacaoHTML() {
-          anotacoesEstruturaisHTML = verificarErrosHTML(htmlEditor.getValue()).map(function (anotacao) {
-            anotacao.__htmlEstrutural = true;
-            return anotacao;
-          });
-          mesclarAnotacoesHTML();
-          finalizarAtualizacaoHTML();
-        }
-        function agendarVerificacaoHTML() {
-          clearTimeout(htmlEditor.$verifTimeout);
-          htmlEditor.$verifTimeout = setTimeout(executarVerificacaoHTML, 400);
-        }
-        htmlEditor.on('change', agendarVerificacaoHTML);
-        htmlEditor.session.on('changeAnnotation', function () {
-          if (mesclandoAnotacoesHTML) return;
-          if (anotacoesEstruturaisHTML.length && !htmlEditor.session.getAnnotations().some(function (a) { return a.__htmlEstrutural; })) mesclarAnotacoesHTML();
-          finalizarAtualizacaoHTML();
-        });
-        executarVerificacaoHTML();
 
-        function removerComentariosCSS(codigo) {
-          return codigo.replace(/\/\*[\s\S]*?\*\//g, function (comentario) {
+        function indicePorLinhaEColuna(codigo, linha, coluna) {
+          var linhas = codigo.split('\n');
+          var numeroDaLinha = Math.max(1, Number(linha) || 1);
+          var numeroDaColuna = Math.max(1, Number(coluna) || 1);
+          var indice = 0;
+          for (var i = 1; i < numeroDaLinha && i <= linhas.length; i++) indice += linhas[i - 1].length + 1;
+          return Math.min(codigo.length, indice + Math.min(numeroDaColuna - 1, (linhas[numeroDaLinha - 1] || '').length));
+        }
+
+        function indiceDoErroXml(codigo, mensagemDeErro) {
+          var texto = String(mensagemDeErro || '');
+          var coordenadas = texto.match(/(?:line|linha|line number)\s*[:#]?\s*(\d+)\s*(?:(?:,|:|\s)+|(?:\s+at\s+))(?:column|coluna)\s*[:#]?\s*(\d+)/i)
+            || texto.match(/(?:at|em)\s+(?:line|linha)?\s*(\d+)\s*[:;,]\s*(\d+)/i)
+            || texto.match(/(\d+)\s*:\s*(\d+)/);
+          if (coordenadas) return indicePorLinhaEColuna(codigo, coordenadas[1], coordenadas[2]);
+          return -1;
+        }
+
+        // O último ponto e vírgula de um bloco é opcional para o CSS, mas
+        // exigimos essa convenção na IDE para deixar os exercícios uniformes
+        // e evitar erros quando uma nova declaração for acrescentada depois.
+        function verificarPontoEVirgulaFinalCSS(codigo) {
+          var anotacoes = [];
+          var semComentarios = codigo.replace(/\/\*[\s\S]*?\*\//g, function (comentario) {
             return comentario.replace(/[^\n]/g, ' ');
           });
-        }
-
-        function anotacaoCSS(codigo, indice, texto, tipo) {
-          var antes = codigo.slice(0, indice);
-          var quebra = antes.lastIndexOf('\n');
-          var coluna = indice - quebra - 1;
-          return {
-            row: antes.split('\n').length - 1,
-            column: coluna,
-            __fimColuna: coluna + 1,
-            text: texto,
-            type: tipo || 'error',
-            __cssEstrutural: true
-          };
-        }
-
-        function verificarErrosCSS(codigoOriginal) {
-          var codigo = removerComentariosCSS(codigoOriginal);
-          var anotacoes = [];
-          var pilha = [];
-          var pares = { '}': '{', ')': '(', ']': '[' };
-          var nomes = { '{': 'chave', '(': 'parêntese', '[': 'colchete' };
-          var aspas = null;
-          for (var i = 0; i < codigo.length; i++) {
-            var caractere = codigo.charAt(i);
-            if (aspas) {
-              if (caractere === '\\') { i++; continue; }
-              if (caractere === aspas) aspas = null;
-              continue;
-            }
-            if (caractere === '"' || caractere === "'") { aspas = caractere; continue; }
-            if (caractere === '.' && pilha.length === 0 && !/[A-Za-z_-]/.test(codigo.charAt(i + 1))) {
-              anotacoes.push(anotacaoCSS(codigo, i, 'Após "." informe o nome da classe, por exemplo: .botao { ... }.'));
-            }
-            if (caractere === ';' && pilha.length === 0) {
-              var inicioLinha = Math.max(codigo.lastIndexOf('\n', i - 1), codigo.lastIndexOf(';', i - 1)) + 1;
-              var comando = codigo.slice(inicioLinha, i).trim();
-              if (!/^@(import|charset|namespace|layer)\b/i.test(comando)) {
-                anotacoes.push(anotacaoCSS(codigo, i, 'Ponto e vírgula não fecha seletor. Use "{" para abrir as regras da classe ou elemento.'));
-              }
-            }
-            if (caractere === '{' || caractere === '(' || caractere === '[') pilha.push({ caractere: caractere, indice: i });
-            else if (pares[caractere]) {
-              if (!pilha.length || pilha[pilha.length - 1].caractere !== pares[caractere]) {
-                anotacoes.push(anotacaoCSS(codigo, i, 'Fechamento "' + caractere + '" sem abertura correspondente.'));
-              } else pilha.pop();
-            }
-          }
-          pilha.forEach(function (abertura) {
-            anotacoes.push(anotacaoCSS(codigo, abertura.indice, 'A ' + nomes[abertura.caractere] + ' "' + abertura.caractere + '" não foi fechada.'));
-          });
-
-          var semStrings = codigo.replace(/(['"])(?:\\.|(?!\1)[^\\\n])*\1/g, function (trecho) {
-            return trecho.replace(/[^\n]/g, ' ');
-          });
-          var regexDeclaracao = /(?:^|[;{]\s*)([-\w]+)\s*:\s*([^;{}]*)/gm;
-          var declaracao;
-          while ((declaracao = regexDeclaracao.exec(semStrings)) !== null) {
-            var proxima = /\s+[-\w]+\s*:/g.exec(declaracao[2]);
-            if (proxima) {
-              var indiceErro = declaracao.index + declaracao[0].length - declaracao[2].length + proxima.index;
-              anotacoes.push(anotacaoCSS(codigo, indiceErro, 'Provável ponto e vírgula ausente antes desta propriedade.'));
-            }
-          }
-
-          var classesHTML = {};
-          var regexClasseHTML = /\bclass\s*=\s*["']([^"']+)["']/gi;
-          var classeHTML;
-          while ((classeHTML = regexClasseHTML.exec(htmlEditor.getValue())) !== null) {
-            classeHTML[1].trim().split(/\s+/).forEach(function (nome) { if (nome) classesHTML[nome] = true; });
-          }
-          var regexSeletor = /(?:^|})\s*([^{}]+)\{/gm;
-          var seletor;
-          while ((seletor = regexSeletor.exec(semStrings)) !== null) {
-            var inicioSeletor = seletor.index + seletor[0].indexOf(seletor[1]);
-            seletor[1].split(',').forEach(function (parte) {
-              var nome = parte.trim();
-              if (classesHTML[nome]) {
-                var deslocamento = seletor[1].indexOf(parte);
-                anotacoes.push(anotacaoCSS(codigo, inicioSeletor + deslocamento, '"' + nome + '" é uma classe no HTML. Use .' + nome + ' para selecioná-la.', 'warning'));
-              }
-            });
-          }
-
-          var regexBloco = /\{([^{}]*)\}/g;
           var bloco;
-          while ((bloco = regexBloco.exec(semStrings)) !== null) {
+          var regexBloco = /\{([^{}]*)\}/g;
+          while ((bloco = regexBloco.exec(semComentarios)) !== null) {
             var conteudo = bloco[1].trim();
-            if (conteudo && /[-\w]+\s*:/.test(conteudo) && !/;\s*$/.test(conteudo)) {
-              anotacoes.push(anotacaoCSS(codigo, bloco.index + bloco[0].length - 1, 'Adicione ";" ao fim da última declaração para manter o padrão do exercício.', 'warning'));
+            if (conteudo && /(?:^|\s)[-\w]+\s*:/.test(conteudo) && !/;\s*$/.test(conteudo)) {
+              var inicioConteudo = bloco.index + 1;
+              var fimConteudo = inicioConteudo + bloco[1].length;
+              var ultimoCaractere = fimConteudo - 1;
+              while (ultimoCaractere >= inicioConteudo && /\s/.test(codigo.charAt(ultimoCaractere))) ultimoCaractere--;
+              var anotacao = anotacaoPorIndice(codigo, Math.max(inicioConteudo, ultimoCaractere), 'Finalize a declaração CSS com ";" antes de fechar o bloco.');
+              anotacao.__fimColuna = anotacao.column + 1;
+              anotacao.code = 'coding-loop:semicolon';
+              anotacoes.push(anotacao);
             }
           }
           return anotacoes;
         }
 
-        var anotacoesEstruturaisCSS = [];
-        var mesclandoAnotacoesCSS = false;
-        function finalizarAtualizacaoCSS() {
-          var anotacoes = cssEditor.session.getAnnotations();
-          atualizarBadge('css', anotacoes);
-          redesenharMarcadoresErro(cssEditor);
+        function validarArquivoDinamico(arquivo) {
+          var codigo = arquivo.editor.getValue();
+          var anotacoes = [];
+          if (arquivo.linguagem === 'html') anotacoes = verificarErrosHTML(codigo);
+          else if (arquivo.linguagem === 'css' || arquivo.linguagem === 'scss') anotacoes = verificarPontoEVirgulaFinalCSS(codigo);
+          else if ((arquivo.linguagem === 'xml' || arquivo.linguagem === 'svg') && codigo.trim()) {
+            var documento = new DOMParser().parseFromString(codigo, 'application/xml');
+            var erroXml = documento.querySelector('parsererror');
+            if (erroXml) {
+              var mensagemXmlOriginal = erroXml.textContent || '';
+              var textoErroXml = mensagemXmlOriginal.replace(/\s+/g, ' ').trim();
+              var indiceErroXml = indiceDoErroXml(codigo, mensagemXmlOriginal);
+              var anotacaoXml = anotacaoPorIndice(codigo, Math.max(0, indiceErroXml), 'XML/SVG inválido: ' + textoErroXml + (indiceErroXml < 0 ? ' O analisador não informou a posição exata.' : ''));
+              if (indiceErroXml < 0) anotacaoXml.__semLocalizacao = true;
+              anotacoes.push(anotacaoXml);
+            }
+          } else if (arquivo.linguagem === 'markdown') {
+            var linkIncompleto = /\[[^\]\n]*\](?!\s*\()/g;
+            var linkEncontrado;
+            while ((linkEncontrado = linkIncompleto.exec(codigo)) !== null) {
+              var anotacaoLink = anotacaoPorIndice(codigo, linkEncontrado.index, 'Link Markdown incompleto. Use [texto](endereço).', 'warning');
+              anotacaoLink.__fimColuna = anotacaoLink.column + linkEncontrado[0].length;
+              anotacoes.push(anotacaoLink);
+            }
+            var destinoIncompleto = /!?\[[^\]\n]*\]\([^)\n]*$/gm;
+            while ((linkEncontrado = destinoIncompleto.exec(codigo)) !== null) {
+              var anotacaoDestino = anotacaoPorIndice(codigo, linkEncontrado.index, 'O endereço do link ou imagem Markdown precisa terminar com ")".', 'warning');
+              anotacaoDestino.__fimColuna = anotacaoDestino.column + linkEncontrado[0].length;
+              anotacoes.push(anotacaoDestino);
+            }
+            var rotuloIncompleto = /!?\[[^\]\n]*$/gm;
+            while ((linkEncontrado = rotuloIncompleto.exec(codigo)) !== null) {
+              var anotacaoRotulo = anotacaoPorIndice(codigo, linkEncontrado.index, 'O texto do link ou imagem Markdown precisa terminar com "]".', 'warning');
+              anotacaoRotulo.__fimColuna = anotacaoRotulo.column + linkEncontrado[0].length;
+              anotacoes.push(anotacaoRotulo);
+            }
+            var inicioDaLinha = 0;
+            codigo.split('\n').forEach(function (linhaMarkdown) {
+              var linhaSemCercaDeCodigo = linhaMarkdown.replace(/\`\`\`/g, '');
+              var crases = (linhaSemCercaDeCodigo.match(/\`/g) || []).length;
+              if (crases % 2 !== 0) {
+                var anotacaoCrase = anotacaoPorIndice(codigo, inicioDaLinha + linhaMarkdown.lastIndexOf('\`'), 'Trecho de código Markdown sem crase de fechamento.', 'warning');
+                anotacaoCrase.__fimColuna = anotacaoCrase.column + 1;
+                anotacoes.push(anotacaoCrase);
+              }
+              var marcadoresNegrito = (linhaMarkdown.match(/\*\*/g) || []).length;
+              if (marcadoresNegrito % 2 !== 0) {
+                var anotacaoNegrito = anotacaoPorIndice(codigo, inicioDaLinha + linhaMarkdown.lastIndexOf('**'), 'Texto em negrito Markdown sem fechamento "**".', 'warning');
+                anotacaoNegrito.__fimColuna = anotacaoNegrito.column + 2;
+                anotacoes.push(anotacaoNegrito);
+              }
+              inicioDaLinha += linhaMarkdown.length + 1;
+            });
+          }
+          // Erros do preview pertencem ao arquivo JavaScript visível e não
+          // podem ser apagados pela validação normal do arquivo.
+          var anotacoesDeExecucao = arquivo.linguagem === 'javascript'
+            ? arquivo.editor.session.getAnnotations().filter(function (anotacao) { return anotacao.__execucao; })
+            : [];
+          var anotacoesDoArquivo = anotacoes.concat(anotacoesDeExecucao);
+          arquivo.editor.session.setAnnotations(anotacoesDoArquivo);
+          var anotacoesCompletas = anotacoesDoArquivo.concat(arquivo.editor.getNativeAnnotations());
+          atualizarBadgeDoArquivo(arquivo, anotacoesCompletas);
         }
-        function mesclarAnotacoesCSS() {
-          var doWorker = cssEditor.session.getAnnotations().filter(function (a) { return !a.__cssEstrutural; });
-          mesclandoAnotacoesCSS = true;
-          cssEditor.session.setAnnotations(doWorker.concat(anotacoesEstruturaisCSS));
-          mesclandoAnotacoesCSS = false;
+
+        function agendarValidacaoArquivo(arquivo) {
+          clearTimeout(arquivo.validacaoTimeout);
+          arquivo.validacaoTimeout = setTimeout(function () { validarArquivoDinamico(arquivo); }, 250);
         }
-        function executarVerificacaoCSS() {
-          anotacoesEstruturaisCSS = verificarErrosCSS(cssEditor.getValue());
-          mesclarAnotacoesCSS();
-          finalizarAtualizacaoCSS();
+
+        function editorVisivelDoTipo(tipo) {
+          var linguagensPorTipo = { html: ['html'], css: ['css'], js: ['javascript'] };
+          var arquivo = arquivosExtras.find(function (item) {
+            return (linguagensPorTipo[tipo] || []).indexOf(item.linguagem) >= 0;
+          });
+          return arquivo ? arquivo.editor : null;
         }
-        function agendarVerificacaoCSS() {
-          clearTimeout(cssEditor.$verifTimeout);
-          cssEditor.$verifTimeout = setTimeout(executarVerificacaoCSS, 250);
-        }
-        cssEditor.session.on('changeAnnotation', function () {
-          if (mesclandoAnotacoesCSS) return;
-          if (anotacoesEstruturaisCSS.length && !cssEditor.session.getAnnotations().some(function (a) { return a.__cssEstrutural; })) mesclarAnotacoesCSS();
-          finalizarAtualizacaoCSS();
-        });
-        cssEditor.on('change', agendarVerificacaoCSS);
-        htmlEditor.on('change', agendarVerificacaoCSS);
-        executarVerificacaoCSS();
+
+        // HTML, CSS, JSON e os avisos manuais são validados diretamente no
+        // arquivo visível. Os modelos ocultos permanecem só para preservar o
+        // formato de compatibilidade dos exercícios antigos.
 
         var anotacoesExecucaoJS = [];
-        var mesclandoAnotacoesJS = false;
+        function arquivoVisivelDoTipo(tipo) {
+          var linguagensPorTipo = { html: ['html'], css: ['css'], js: ['javascript'] };
+          return arquivosExtras.find(function (arquivo) {
+            return (linguagensPorTipo[tipo] || []).indexOf(arquivo.linguagem) >= 0;
+          }) || null;
+        }
 
         function mesclarAnotacoesExecucaoJS() {
-          var estaticas = jsEditor.session.getAnnotations().filter(function (a) { return !a.__execucao; });
-          mesclandoAnotacoesJS = true;
-          jsEditor.session.setAnnotations(estaticas.concat(anotacoesExecucaoJS));
-          mesclandoAnotacoesJS = false;
+          obterArquivosPorLinguagem(['javascript']).forEach(function (arquivo) {
+            var estaticas = arquivo.editor.session.getAnnotations().filter(function (a) { return !a.__execucao; });
+            var execucaoDesteArquivo = anotacoesExecucaoJS.filter(function (a) { return a.__idPane === arquivo.idPane; });
+            arquivo.editor.session.setAnnotations(estaticas.concat(execucaoDesteArquivo));
+          });
         }
 
         function finalizarAtualizacaoJS() {
-          var anotacoes = jsEditor.session.getAnnotations();
-          atualizarBadge('js', anotacoes);
-          redesenharMarcadoresErro(jsEditor);
+          obterArquivosPorLinguagem(['javascript']).forEach(function (arquivo) {
+            var anotacoes = arquivo.editor.session.getAnnotations().concat(arquivo.editor.getNativeAnnotations());
+            atualizarBadgeDoArquivo(arquivo, anotacoes);
+          });
         }
-
-        jsEditor.session.on('changeAnnotation', function () {
-          if (mesclandoAnotacoesJS) return;
-          var atuais = jsEditor.session.getAnnotations();
-          var jaTemExecucao = atuais.some(function (a) { return a.__execucao; });
-          if (anotacoesExecucaoJS.length && !jaTemExecucao) {
-            mesclarAnotacoesExecucaoJS();
-          }
-          finalizarAtualizacaoJS();
-        });
 
         window.addEventListener('ide:resize', function () {
           redimensionarEditores();
@@ -2053,14 +2764,58 @@
         }
 
         var offsetLinhaJSNoPreview = 0;
+        var mapaLinhasJsPreview = [];
+
+        function escaparHtmlParaPreview(texto) {
+          return String(texto || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function renderizarMarkdownBasico(markdown) {
+          var html = escaparHtmlParaPreview(markdown);
+          html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>').replace(/^##\s+(.+)$/gm, '<h2>$1</h2>').replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+          html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/`(.+?)`/g, '<code>$1</code>');
+          html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+          return html.split(/\n{2,}/).map(function (bloco) {
+            return /^<h[1-3]>|^<ul>/.test(bloco) ? bloco : '<p>' + bloco.replace(/\n/g, '<br>') + '</p>';
+          }).join('\n');
+        }
+
+        function obterArquivosPorLinguagem(linguagens) {
+          var ordemDasAbas = obterAbasOrdenadas().map(function (aba) { return aba.getAttribute('data-target'); });
+          return arquivosExtras.filter(function (arquivo) {
+            return linguagens.indexOf(arquivo.linguagem) >= 0;
+          }).sort(function (a, b) {
+            return ordemDasAbas.indexOf(a.idPane) - ordemDasAbas.indexOf(b.idPane);
+          });
+        }
 
         function montarCodigoPreview() {
-          var html = htmlEditor.getValue();
-          var css = cssEditor.getValue();
-          var js = escaparFechamentoScript(jsEditor.getValue());
+          var arquivosHtml = obterArquivosPorLinguagem(['html']);
+          var arquivosCss = obterArquivosPorLinguagem(['css']);
+          var arquivosJs = obterArquivosPorLinguagem(['javascript']);
+          var arquivosMarkdown = obterArquivosPorLinguagem(['markdown']);
+          var arquivosSvg = obterArquivosPorLinguagem(['svg']);
+          var html = arquivosHtml.length ? arquivosHtml[0].editor.getValue() : htmlEditor.getValue();
+          var css = (arquivosCss.length ? arquivosCss.map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n\n') : cssEditor.getValue());
+          var linhaAcumuladaJs = 0;
+          mapaLinhasJsPreview = [];
+          var partesJs = arquivosJs.map(function (arquivo) {
+            var conteudo = escaparFechamentoScript(arquivo.editor.getValue());
+            var quantidadeLinhas = conteudo.split('\n').length;
+            mapaLinhasJsPreview.push({
+              arquivo: arquivo,
+              inicio: linhaAcumuladaJs,
+              fim: linhaAcumuladaJs + quantidadeLinhas - 1
+            });
+            linhaAcumuladaJs += quantidadeLinhas + 2;
+            return conteudo;
+          });
+          var js = arquivosJs.length ? partesJs.join('\n\n') : escaparFechamentoScript(jsEditor.getValue());
+          if (!html.trim() && arquivosMarkdown.length) html = '<main class="markdown-preview">' + renderizarMarkdownBasico(arquivosMarkdown[0].editor.getValue()) + '</main>';
+          if (!html.trim() && arquivosSvg.length) html = arquivosSvg[0].editor.getValue();
           var estiloTemaPreview = previewTemaEscuro
-            ? 'html, body { min-height: 100%; background-color: #002b36 !important; color: #fdf6e3 !important; color-scheme: dark; } body > * { background-color: #002b36 !important; color: #fdf6e3 !important; }'
-            : 'html, body { min-height: 100%; background-color: #ffffff !important; color: #1f2933 !important; color-scheme: light; } body > * { background-color: #ffffff !important; color: #1f2933 !important; }';
+            ? 'html, body { min-height: 100%; background-color: #002b36; color: #fdf6e3; color-scheme: dark; }'
+            : 'html, body { min-height: 100%; background-color: #ffffff; color: #1f2933; color-scheme: light; }';
 
           var handlerErros =
             'window.addEventListener("error", function (e) {\n' +
@@ -2073,7 +2828,7 @@
             '  } catch (err) {}\n' +
             '});\n';
 
-          var prefixo = '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<style>\n' + css + '\nbody { margin: 0 !important; padding: 0 0 0 6px !important; }\n' + estiloTemaPreview + '\n</style>\n</head>\n<body>\n' + html + '\n<script>\n' + handlerErros;
+          var prefixo = '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<style>\n' + estiloTemaPreview + '\nbody { margin: 0; padding: 0 0 0 6px; }\n.markdown-preview { max-width: 860px; margin: 28px auto; padding: 0 20px; line-height: 1.55; } .markdown-preview code { padding: 2px 4px; border-radius: 3px; background: rgba(128,128,128,.18); }\n/* O CSS do projeto vem por último para ter precedência total. */\n' + css + '\n</style>\n</head>\n<body>\n' + html + '\n<script>\n' + handlerErros;
 
           offsetLinhaJSNoPreview = prefixo.split('\n').length - 1;
 
@@ -2118,13 +2873,23 @@
           filaErrosExecucao.forEach(function (dado) {
             var linha = 0;
             var semLinha = true;
+            var arquivoDoErro = null;
             if (typeof dado.linha === 'number' && dado.linha > 0) {
-              linha = Math.max(0, dado.linha - 1 - offsetLinhaJSNoPreview);
-              linha = Math.min(linha, Math.max(0, jsEditor.session.getLength() - 1));
-              semLinha = false;
+              var linhaNoCodigoConcatenado = Math.max(0, dado.linha - 1 - offsetLinhaJSNoPreview);
+              var trecho = mapaLinhasJsPreview.find(function (item) {
+                return linhaNoCodigoConcatenado >= item.inicio && linhaNoCodigoConcatenado <= item.fim;
+              });
+              if (trecho) {
+                arquivoDoErro = trecho.arquivo;
+                linha = linhaNoCodigoConcatenado - trecho.inicio;
+                linha = Math.min(linha, Math.max(0, arquivoDoErro.editor.session.getLength() - 1));
+                semLinha = false;
+              }
             }
+            if (!arquivoDoErro) arquivoDoErro = arquivoVisivelDoTipo('js');
+            if (!arquivoDoErro) return;
 
-            var chave = (semLinha ? 'sem-linha' : linha) + '|' + dado.mensagem;
+            var chave = arquivoDoErro.idPane + '|' + (semLinha ? 'sem-linha' : linha) + '|' + dado.mensagem;
             var existente = anotacoesExecucaoJS.some(function (a) { return a.__chave === chave; });
 
             if (existente) return;
@@ -2138,7 +2903,8 @@
               type: 'error',
               __execucao: true,
               __semLinha: semLinha,
-              __chave: chave
+              __chave: chave,
+              __idPane: arquivoDoErro.idPane
             });
           });
 
@@ -2225,8 +2991,8 @@
           alternarIcones(iconPreviewMax, iconPreviewRestore, prefPreviewMaximized);
 
           // Sem editores visíveis, o preview passa a ocupar toda a área.
-          sincronizarPreviewComAbas([chkToggleHtml, chkToggleCss, chkToggleJs].filter(function (checkbox) {
-            return checkbox.checked;
+          sincronizarPreviewComAbas(obterAbasOrdenadas().filter(function (aba) {
+            return aba.querySelector('.editor-toggle-checkbox').checked;
           }).length);
 
           renderizarPreview();
@@ -2265,9 +3031,193 @@
         }
 
         function abaEstaAtiva(idPane) {
-          return (idPane === 'html-pane' && chkToggleHtml.checked) ||
-            (idPane === 'css-pane' && chkToggleCss.checked) ||
-            (idPane === 'js-pane' && chkToggleJs.checked);
+          var aba = dragContainer.querySelector('.code-tab[data-target="' + idPane + '"]');
+          var checkbox = aba && aba.querySelector('.editor-toggle-checkbox');
+          return Boolean(checkbox && checkbox.checked);
+        }
+
+        function registrarAbaDeArquivo(aba, checkbox, botaoFechar) {
+          checkbox.addEventListener('change', function () {
+            abrirJanela();
+            atualizarLayoutAbas();
+          });
+          aba.addEventListener('click', function (e) {
+            if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+          });
+          if (botaoFechar) {
+            botaoFechar.addEventListener('click', function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              var idPane = aba.getAttribute('data-target');
+              var indice = arquivosExtras.findIndex(function (arquivo) { return arquivo.idPane === idPane; });
+              if (indice >= 0) {
+                var arquivoFechado = arquivosExtras[indice];
+                clearTimeout(arquivoFechado.validacaoTimeout);
+                if (arquivoFechado.layoutFrame) cancelAnimationFrame(arquivoFechado.layoutFrame);
+                arquivoFechado.editor.dispose();
+                arquivosExtras.splice(indice, 1);
+                anotacoesExecucaoJS = anotacoesExecucaoJS.filter(function (anotacao) { return anotacao.__idPane !== arquivoFechado.idPane; });
+                mapaLinhasJsPreview = mapaLinhasJsPreview.filter(function (trecho) { return trecho.arquivo !== arquivoFechado; });
+                if (editorAtivoParaHistorico === arquivoFechado.editor) {
+                  editorAtivoParaHistorico = arquivosExtras.length ? arquivosExtras[Math.min(indice, arquivosExtras.length - 1)].editor : htmlEditor;
+                  atualizarControlesHistorico();
+                }
+              }
+              var painel = document.getElementById(idPane);
+              if (painel) painel.remove();
+              aba.remove();
+              sincronizarArquivosPrincipais();
+              atualizarLayoutAbas();
+              agendarAtualizacaoPreview();
+              agendarSalvamentoAutomatico();
+            });
+          }
+        }
+
+        function sincronizarArquivosPrincipais() {
+          var principal = function (linguagens) {
+            return arquivosExtras.find(function (arquivo) { return linguagens.indexOf(arquivo.linguagem) >= 0; });
+          };
+          var html = principal(['html']);
+          var css = principal(['css']);
+          var js = principal(['javascript']);
+          if (htmlEditor.getValue() !== (html ? html.editor.getValue() : '')) htmlEditor.setValue(html ? html.editor.getValue() : '', -1);
+          if (cssEditor.getValue() !== (css ? css.editor.getValue() : '')) cssEditor.setValue(css ? css.editor.getValue() : '', -1);
+          if (jsEditor.getValue() !== (js ? js.editor.getValue() : '')) jsEditor.setValue(js ? js.editor.getValue() : '', -1);
+        }
+
+        function linguagemDoArquivo(nome) {
+          var extensao = (nome.match(/\.([a-z0-9]+)$/i) || [])[1];
+          var linguagens = { html: 'html', htm: 'html', css: 'css', scss: 'scss', js: 'javascript', mjs: 'javascript', cjs: 'javascript', ts: 'typescript', jsx: 'javascriptreact', svg: 'svg', json: 'json', xml: 'xml', md: 'markdown', markdown: 'markdown' };
+          return linguagens[String(extensao || '').toLowerCase()] || null;
+        }
+
+        function nomeUnicoDoArquivo(nomeDesejado) {
+          var nome = String(nomeDesejado || 'arquivo.txt').replace(/\\/g, '/');
+          var existe = function (candidato) {
+            return arquivosExtras.some(function (arquivo) { return arquivo.nome.toLowerCase() === candidato.toLowerCase(); });
+          };
+          if (!existe(nome)) return nome;
+          var partes = nome.match(/^(.*?)(\.[^./]+)?$/);
+          var base = partes && partes[1] ? partes[1] : nome;
+          var extensao = partes && partes[2] ? partes[2] : '';
+          var numero = 2;
+          while (existe(base + '-' + numero + extensao)) numero++;
+          return base + '-' + numero + extensao;
+        }
+
+        function referenciasLocaisDoArquivo(arquivo) {
+          var codigo = arquivo.editor.getValue();
+          var referencias = [];
+          var adicionar = function (caminho) {
+            caminho = String(caminho || '').replace(/[?#].*$/, '').trim();
+            if (!caminho || /^(?:https?:|\/\/|data:|#|mailto:|tel:)/i.test(caminho) || caminho.indexOf('..') === 0) return;
+            var nome = caminho.replace(/^\.\//, '').replace(/^\/+/, '');
+            if (nome && linguagemDoArquivo(nome)) referencias.push(nome);
+          };
+          if (arquivo.linguagem === 'html') {
+            (codigo.match(/<(?:link|script|img|object|iframe)\b[^>]*(?:href|src)\s*=\s*["'][^"']+["'][^>]*>/gi) || []).forEach(function (tag) {
+              var atributo = tag.match(/(?:href|src)\s*=\s*["']([^"']+)["']/i);
+              if (atributo) adicionar(atributo[1]);
+            });
+          } else if (arquivo.linguagem === 'css' || arquivo.linguagem === 'scss') {
+            var importacaoCss = /@(?:import|use|forward)\s+(?:url\(\s*)?["']([^"']+)["']/gi;
+            var achadoCss;
+            while ((achadoCss = importacaoCss.exec(codigo)) !== null) adicionar(achadoCss[1]);
+          } else if (['javascript', 'typescript', 'javascriptreact'].indexOf(arquivo.linguagem) >= 0) {
+            var importacaoJs = /(?:\bfrom\s*|\bimport\s*\(|\bimport\s+|\bfetch\s*\()\s*["']([^"']+)["']/gi;
+            var achadoJs;
+            while ((achadoJs = importacaoJs.exec(codigo)) !== null) adicionar(achadoJs[1]);
+          } else if (['svg', 'xml', 'markdown'].indexOf(arquivo.linguagem) >= 0) {
+            var referenciaGenerica = /(?:href|src)\s*=\s*["']([^"']+)["']|!?\[[^\]]*\]\(([^)]+)\)/gi;
+            var achadoGenerico;
+            while ((achadoGenerico = referenciaGenerica.exec(codigo)) !== null) adicionar(achadoGenerico[1] || achadoGenerico[2]);
+          }
+          return referencias.filter(function (nome, indice) { return referencias.indexOf(nome) === indice; });
+        }
+
+        function sincronizarDependenciasLocais() {
+          var referencias = [];
+          arquivosExtras.slice().forEach(function (arquivo) {
+            referencias = referencias.concat(referenciasLocaisDoArquivo(arquivo));
+          });
+          referencias.filter(function (nome, indice) { return referencias.indexOf(nome) === indice; }).forEach(function (nome) {
+            var existe = arquivosExtras.some(function (arquivo) { return arquivo.nome.toLowerCase() === nome.toLowerCase(); });
+            var linguagem = linguagemDoArquivo(nome);
+            if (!existe && linguagem) criarArquivoExtra(linguagem, nome, '');
+          });
+        }
+
+        function criarArquivoExtra(linguagem, nome, conteudo) {
+          var extensoes = { svg: 'svg', markdown: 'md', json: 'json', xml: 'xml', typescript: 'ts', scss: 'scss', javascriptreact: 'jsx', html: 'html', css: 'css', javascript: 'js' };
+          var sufixo = extensoes[linguagem] || 'txt';
+          var identificador = 'arquivo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+          var idPane = identificador + '-pane';
+          var nomeArquivo = nomeUnicoDoArquivo(nome || ('novo-arquivo.' + sufixo));
+          var aba = document.createElement('div');
+          aba.className = 'tab-btn code-tab';
+          aba.setAttribute('data-target', idPane);
+          aba.draggable = true;
+          aba.innerHTML = '<input checked class="editor-toggle-checkbox" type="checkbox"><span class="tab-text"></span><span class="file-tab-actions"><button aria-label="Limpar conteúdo deste arquivo" class="tab-action-btn file-clear-btn" draggable="false" title="Limpar arquivo" type="button"><img alt="" class="file-action-icon file-clear-icon" src="assets/images/icons.svg/lixeira.svg"></button><button aria-label="Fechar arquivo" class="tab-action-btn file-close-btn" draggable="false" title="Fechar arquivo" type="button">×</button></span>';
+          var rotulos = { html: 'HTML', css: 'CSS', javascript: 'JavaScript', svg: 'SVG', markdown: 'Markdown', json: 'JSON', xml: 'XML', typescript: 'TypeScript', scss: 'SCSS', javascriptreact: 'JSX' };
+          aba.querySelector('.tab-text').textContent = rotulos[linguagem] || linguagem.toUpperCase();
+          aba.setAttribute('aria-label', nomeArquivo);
+          dragContainer.appendChild(aba);
+
+          var painel = document.createElement('div');
+          painel.className = 'tab-pane';
+          painel.id = idPane;
+          var container = document.createElement('div');
+          container.className = 'code-editor-container';
+          container.id = identificador + '-editor';
+          painel.appendChild(container);
+          editorsContainer.appendChild(painel);
+
+          var arquivo = { idPane: idPane, nome: nomeArquivo, linguagem: linguagem, editor: criarEditor(container.id, linguagem, conteudo || '', nomeArquivo) };
+          arquivosExtras.push(arquivo);
+          registrarAbaDeArquivo(aba, aba.querySelector('.editor-toggle-checkbox'), aba.querySelector('.file-close-btn'));
+          aba.querySelector('.file-clear-btn').addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!window.confirm('Deseja limpar o conteúdo de ' + arquivo.nome + '?')) return;
+            arquivo.editor.setValue('', -1);
+            arquivo.editor.focus();
+            mostrarToast(arquivo.nome + ' foi limpo.');
+          });
+          arquivo.editor.on('change', function () {
+            sincronizarArquivosPrincipais();
+            sincronizarDependenciasLocais();
+            agendarValidacaoArquivo(arquivo);
+            agendarAtualizacaoPreview();
+            if (!carregandoCodigoDaEtapa) agendarSalvamentoAutomatico();
+          });
+          arquivo.editor.on('focus', function () {
+            editorAtivoParaHistorico = arquivo.editor;
+            atualizarControlesHistorico();
+          });
+          arquivo.editor.session.on('change', function () {
+            atualizarControlesHistorico();
+          });
+          arquivo.editor.aoAtualizarMarcadores = function (editor) {
+            var anotacoesCompletas = editor.session.getAnnotations().concat(editor.getNativeAnnotations());
+            atualizarBadgeDoArquivo(arquivo, anotacoesCompletas);
+          };
+          arquivo.ouvinteMarcadoresNativos = arquivo.editor.ouvinteMarcadoresNativos;
+          atualizarLayoutAbas();
+          // O container acabou de deixar o estado display:none. Forçar o
+          // layout imediatamente impede que decorations e hovers do Monaco
+          // usem as dimensões 0×0 calculadas durante a criação da aba.
+          arquivo.layoutFrame = requestAnimationFrame(function () {
+            arquivo.layoutFrame = null;
+            arquivo.editor.resize();
+          });
+          sincronizarArquivosPrincipais();
+          if (!carregandoCodigoDaEtapa) sincronizarDependenciasLocais();
+          agendarValidacaoArquivo(arquivo);
+          arquivo.editor.focus();
+          if (!carregandoCodigoDaEtapa) agendarSalvamentoAutomatico();
         }
 
         function atualizarLayoutAbas() {
@@ -2319,7 +3269,7 @@
           if (IDE_ABERTO) atualizarLayoutAbas();
         });
 
-        [chkToggleHtml, chkToggleCss, chkToggleJs].forEach(function (checkbox) {
+        [chkToggleHtml, chkToggleCss, chkToggleJs].filter(Boolean).forEach(function (checkbox) {
           checkbox.addEventListener('change', function () {
             abrirJanela();
             atualizarLayoutAbas();
@@ -2370,30 +3320,54 @@
           return { html: html, css: css, js: js };
         }
 
-        btnImportFile.addEventListener('click', function () { inputImportFile.click(); });
+        function importarNoEditorDaLinguagem(linguagem, nome, conteudo) {
+          var arquivoExistente = arquivosExtras.find(function (arquivo) { return arquivo.linguagem === linguagem; });
+          if (arquivoExistente) {
+            arquivoExistente.editor.setValue(conteudo, -1);
+            return arquivoExistente;
+          }
+          criarArquivoExtra(linguagem, nome, conteudo);
+          return arquivosExtras[arquivosExtras.length - 1];
+        }
+
+        function importarArquivoPorTipo(file, conteudo) {
+          var linguagem = linguagemDoArquivo(file.name);
+          if (linguagem === 'html') {
+            var partes = separarCodigoImportado(conteudo);
+            importarNoEditorDaLinguagem('html', file.name, partes.html);
+            if (partes.css) importarNoEditorDaLinguagem('css', 'style.css', partes.css);
+            if (partes.js) importarNoEditorDaLinguagem('javascript', 'script.js', partes.js);
+            return partes.css || partes.js
+              ? 'HTML, CSS e JavaScript importados nos editores correspondentes.'
+              : 'HTML importado no editor HTML.';
+          }
+          if (linguagem) {
+            importarNoEditorDaLinguagem(linguagem, file.name, conteudo);
+            return file.name + ' importado no editor ' + linguagem.toUpperCase() + '.';
+          }
+          var partesDesconhecidas = separarCodigoImportado(conteudo);
+          importarNoEditorDaLinguagem('html', file.name, partesDesconhecidas.html);
+          if (partesDesconhecidas.css) importarNoEditorDaLinguagem('css', 'style.css', partesDesconhecidas.css);
+          if (partesDesconhecidas.js) importarNoEditorDaLinguagem('javascript', 'script.js', partesDesconhecidas.js);
+          return 'Código importado e distribuído entre HTML, CSS e JavaScript.';
+        }
+
+        if (btnImportFile) btnImportFile.addEventListener('click', function () { inputImportFile.click(); });
         inputImportFile.addEventListener('change', function () {
           var file = inputImportFile.files[0];
-          if (!file) return;
+          if (!file) {
+            return;
+          }
           var reader = new FileReader();
           reader.onload = function () {
-            var nome = file.name.toLowerCase();
             var conteudo = String(reader.result || '');
-
-            if (nome.endsWith('.css')) {
-              cssEditor.setValue(conteudo, -1);
-            } else if (nome.endsWith('.js')) {
-              jsEditor.setValue(conteudo, -1);
-            } else {
-              var partes = separarCodigoImportado(conteudo);
-              htmlEditor.setValue(partes.html, -1);
-              cssEditor.setValue(partes.css, -1);
-              jsEditor.setValue(partes.js, -1);
-            }
+            var mensagemImportacao = importarArquivoPorTipo(file, conteudo);
+            mostrarToast(mensagemImportacao);
 
             abrirJanela();
             atualizarLayoutAbas();
             agendarAtualizacaoPreview();
-            mostrarToast('Arquivo importado e separado em HTML/CSS/JS.');
+            if (!mensagemImportacao) mostrarToast('Arquivo importado.');
           };
           reader.readAsText(file);
           inputImportFile.value = '';
@@ -2411,6 +3385,111 @@
           setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
         }
 
+        function arquivosCorrelacionadosParaExportacao(arquivoInicial) {
+          var relacionados = arquivosRelacionados(arquivoInicial);
+          // Os três editores-base são co-dependentes no preview. Por isso,
+          // ao exportar HTML, CSS e JavaScript participam do projeto mesmo
+          // quando o aluno ainda não adicionou referências externas.
+          if (arquivoInicial.linguagem === 'html') {
+            arquivosExtras.filter(function (arquivo) {
+              return ['css', 'scss', 'javascript', 'typescript', 'javascriptreact'].indexOf(arquivo.linguagem) >= 0;
+            }).forEach(function (arquivo) {
+              if (relacionados.indexOf(arquivo) < 0) relacionados.push(arquivo);
+            });
+          }
+          return relacionados;
+        }
+
+        function tipoMimeDoArquivo(arquivo) {
+          var tipos = { html: 'text/html;charset=utf-8', css: 'text/css;charset=utf-8', javascript: 'text/javascript;charset=utf-8', svg: 'image/svg+xml;charset=utf-8', markdown: 'text/markdown;charset=utf-8', json: 'application/json;charset=utf-8', xml: 'application/xml;charset=utf-8', typescript: 'text/typescript;charset=utf-8', scss: 'text/x-scss;charset=utf-8', javascriptreact: 'text/jsx;charset=utf-8' };
+          return tipos[arquivo.linguagem] || 'text/plain;charset=utf-8';
+        }
+
+        function exportarHtmlComDependencias(arquivoHtml, externo) {
+          var relacionados = arquivosCorrelacionadosParaExportacao(arquivoHtml);
+          // SCSS, TypeScript e JSX exigem compilação. Mantê-los como arquivos
+          // fonte evita gerar um style.css/script.js que o navegador não
+          // consegue interpretar.
+          var css = relacionados.filter(function (arquivo) { return arquivo.linguagem === 'css'; }).map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n\n');
+          var js = relacionados.filter(function (arquivo) { return arquivo.linguagem === 'javascript'; }).map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n\n');
+          var fontesQueExigemCompilacao = relacionados.filter(function (arquivo) {
+            return ['scss', 'typescript', 'javascriptreact'].indexOf(arquivo.linguagem) >= 0;
+          });
+          var corpo = arquivoHtml.editor.getValue();
+          var nomeHtml = arquivoHtml.nome || 'index.html';
+          var documento = externo
+            ? '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n' + corpo + '\n  <script src="script.js"></script>\n</body>\n</html>\n'
+            : '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <style>\n' + css + '\n  </style>\n</head>\n<body>\n' + corpo + '\n  <script>\n' + escaparFechamentoScript(js) + '\n  </script>\n</body>\n</html>\n';
+          baixarArquivo(documento, nomeHtml, 'text/html;charset=utf-8');
+          if (externo) {
+            baixarArquivo(css, 'style.css', 'text/css;charset=utf-8');
+            baixarArquivo(js, 'script.js', 'text/javascript;charset=utf-8');
+            relacionados.filter(function (arquivo) {
+              return arquivo !== arquivoHtml && ['css', 'javascript'].indexOf(arquivo.linguagem) < 0;
+            }).forEach(function (arquivo) {
+              baixarArquivo(arquivo.editor.getValue(), arquivo.nome, tipoMimeDoArquivo(arquivo));
+            });
+          } else {
+            fontesQueExigemCompilacao.forEach(function (arquivo) {
+              baixarArquivo(arquivo.editor.getValue(), arquivo.nome, tipoMimeDoArquivo(arquivo));
+            });
+          }
+          var temFontesSeparadas = fontesQueExigemCompilacao.length > 0;
+          mostrarToast(externo
+            ? 'Projeto e arquivos relacionados exportados!'
+            : (temFontesSeparadas ? 'HTML exportado; fontes TS/JSX/SCSS foram preservadas separadamente.' : 'Projeto reunido em um arquivo HTML!'));
+        }
+
+        function arquivosRelacionados(arquivoInicial) {
+          var encontrados = [];
+          var visitar = function (arquivo) {
+            if (!arquivo || encontrados.indexOf(arquivo) >= 0) return;
+            encontrados.push(arquivo);
+            referenciasLocaisDoArquivo(arquivo).forEach(function (nome) {
+              var dependencia = arquivosExtras.find(function (item) { return item.nome.toLowerCase() === nome.toLowerCase(); });
+              visitar(dependencia);
+            });
+          };
+          visitar(arquivoInicial);
+          return encontrados;
+        }
+
+        function exportarArquivosRelacionados(arquivoInicial) {
+          arquivosCorrelacionadosParaExportacao(arquivoInicial).forEach(function (arquivo) {
+            baixarArquivo(arquivo.editor.getValue(), arquivo.nome, tipoMimeDoArquivo(arquivo));
+          });
+          mostrarToast('Arquivos relacionados exportados!');
+        }
+
+        function configurarDialogoDeExportacao(arquivo) {
+          var html = arquivo.linguagem === 'html';
+          if (exportCodeTitle) exportCodeTitle.textContent = html ? 'Exportar projeto HTML' : 'Exportar arquivos relacionados';
+          if (exportInternalTitle) exportInternalTitle.textContent = html ? 'Projeto em um arquivo' : 'Somente este arquivo';
+          if (exportInternalDescription) exportInternalDescription.textContent = html ? 'HTML com CSS e JavaScript correlacionados internamente' : 'Exporta apenas ' + arquivo.nome;
+          if (exportExternalTitle) exportExternalTitle.textContent = html ? 'Projeto em arquivos separados' : 'Exportar dependências externas';
+          if (exportExternalDescription) exportExternalDescription.textContent = html ? 'HTML, CSS, JavaScript e arquivos relacionados separados' : 'Exporta este arquivo e todas as dependências locais relacionadas';
+        }
+
+        function arquivoPadraoParaExportacao() {
+          return arquivosExtras.find(function (arquivo) { return arquivo.linguagem === 'html'; }) || arquivosExtras[0] || null;
+        }
+
+        function exportarArquivosPorExtensao(extensoesSelecionadas) {
+          var grupos = {
+            html: ['html'], css: ['css', 'scss'], javascript: ['javascript', 'typescript', 'javascriptreact'],
+            svg: ['svg'], json: ['json'], xml: ['xml'], markdown: ['markdown']
+          };
+          var arquivos = arquivosExtras.filter(function (arquivo) {
+            return extensoesSelecionadas.some(function (extensao) { return (grupos[extensao] || []).indexOf(arquivo.linguagem) >= 0; });
+          });
+          if (!arquivos.length) {
+            mostrarToast('Não há arquivos nas extensões selecionadas.');
+            return;
+          }
+          arquivos.forEach(function (arquivo) { baixarArquivo(arquivo.editor.getValue(), arquivo.nome, tipoMimeDoArquivo(arquivo)); });
+          mostrarToast(arquivos.length + ' arquivo(s) exportado(s) pelas extensões selecionadas!');
+        }
+
         function exportarCodigoUnico() {
           baixarArquivo(montarCodigoPreview(), 'codigo-editado.html', 'text/html;charset=utf-8');
           mostrarToast('Documento único exportado!');
@@ -2420,7 +3499,7 @@
           var html = htmlEditor.getValue();
           var css = cssEditor.getValue();
           var js = jsEditor.getValue();
-          var indexHtml = '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <link rel="stylesheet" href="style.css">\n  <title>Código editado</title>\n</head>\n<body>\n' + html + '\n  <script src="script.js"><\\/script>\n</body>\n</html>\n';
+          var indexHtml = '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <link rel="stylesheet" href="style.css">\n  <title>Código editado</title>\n</head>\n<body>\n' + html + '\n  <script src="script.js"></script>\n</body>\n</html>\n';
           baixarArquivo(indexHtml, 'index.html', 'text/html;charset=utf-8');
           baixarArquivo(css, 'style.css', 'text/css;charset=utf-8');
           baixarArquivo(js, 'script.js', 'text/javascript;charset=utf-8');
@@ -2454,16 +3533,44 @@
           mostrarToast('Arquivo SVG exportado!');
         }
 
-        btnExportFile.addEventListener('click', function () {
+        if (btnExportFile) btnExportFile.addEventListener('click', function () {
+          var arquivo = arquivoPadraoParaExportacao();
+          if (!arquivo) {
+            mostrarToast('Crie ou importe um arquivo antes de exportar.');
+            return;
+          }
+          arquivoDeExportacaoPendente = arquivo;
+          configurarDialogoDeExportacao(arquivo);
           if (exportCodeDialog && typeof exportCodeDialog.showModal === 'function') {
             exportCodeDialog.showModal();
           } else {
-            exportarCodigoUnico();
+            exportarHtmlComDependencias(arquivo, false);
           }
         });
 
         if (exportCodeDialog) {
           exportCodeDialog.addEventListener('close', function () {
+            if (arquivoDeExportacaoPendente) {
+              var arquivo = arquivoDeExportacaoPendente;
+              if (exportCodeDialog.returnValue === 'by-type') {
+                if (exportTypesDialog && typeof exportTypesDialog.showModal === 'function') exportTypesDialog.showModal();
+                else mostrarToast('A seleção por extensão não está disponível neste navegador.');
+                return;
+              }
+              arquivoDeExportacaoPendente = null;
+              if (exportCodeDialog.returnValue === 'internal') {
+                if (arquivo.linguagem === 'html') exportarHtmlComDependencias(arquivo, false);
+                else {
+                  baixarArquivo(arquivo.editor.getValue(), arquivo.nome, 'text/plain;charset=utf-8');
+                  mostrarToast(arquivo.nome + ' exportado!');
+                }
+              }
+              if (exportCodeDialog.returnValue === 'external') {
+                if (arquivo.linguagem === 'html') exportarHtmlComDependencias(arquivo, true);
+                else exportarArquivosRelacionados(arquivo);
+              }
+              return;
+            }
             if (exportCodeDialog.returnValue === 'single') exportarCodigoUnico();
             if (exportCodeDialog.returnValue === 'separate') exportarCodigosSeparados();
             if (exportCodeDialog.returnValue === 'html') exportarCodigoHtml();
@@ -2472,6 +3579,51 @@
             if (exportCodeDialog.returnValue === 'svg') exportarCodigoSvg();
           });
         }
+
+        if (exportTypesDialog) {
+          exportTypesDialog.addEventListener('close', function () {
+            if (exportTypesDialog.returnValue !== 'selected') {
+              arquivoDeExportacaoPendente = null;
+              return;
+            }
+            var extensoesSelecionadas = Array.prototype.slice.call(exportTypesDialog.querySelectorAll('input[name="extensions"]:checked')).map(function (input) { return input.value; });
+            arquivoDeExportacaoPendente = null;
+            exportarArquivosPorExtensao(extensoesSelecionadas);
+          });
+        }
+
+        if (btnNewFile && newFileMenu) {
+          var barraDeAbasDoMenu = btnNewFile.closest('.browser-tabs');
+          function fecharMenuNovoArquivo() {
+            newFileMenu.hidden = true;
+            btnNewFile.setAttribute('aria-expanded', 'false');
+            if (barraDeAbasDoMenu) barraDeAbasDoMenu.classList.remove('is-new-file-menu-open');
+          }
+          btnNewFile.addEventListener('click', function () {
+            if (!newFileMenu.hidden) return fecharMenuNovoArquivo();
+            var retangulo = btnNewFile.getBoundingClientRect();
+            newFileMenu.style.top = Math.min(window.innerHeight - 250, retangulo.bottom + 5) + 'px';
+            newFileMenu.style.left = Math.min(window.innerWidth - 238, Math.max(8, retangulo.left)) + 'px';
+            newFileMenu.hidden = false;
+            btnNewFile.setAttribute('aria-expanded', 'true');
+            if (barraDeAbasDoMenu) barraDeAbasDoMenu.classList.add('is-new-file-menu-open');
+          });
+          newFileMenu.addEventListener('click', function (event) {
+            var botao = event.target.closest('button[data-language]');
+            if (!botao) return;
+            var linguagem = botao.getAttribute('data-language');
+            var nomes = { html: 'pagina.html', css: 'estilo.css', javascript: 'script.js', svg: 'imagem.svg', markdown: 'README.md', json: 'dados.json', xml: 'dados.xml', typescript: 'app.ts', scss: 'estilo.scss', javascriptreact: 'App.jsx' };
+            criarArquivoExtra(linguagem, nomes[linguagem] || 'arquivo.txt', '');
+            fecharMenuNovoArquivo();
+          });
+          document.addEventListener('pointerdown', function (event) {
+            if (!newFileMenu.hidden && !newFileMenu.contains(event.target) && !btnNewFile.contains(event.target)) fecharMenuNovoArquivo();
+          });
+          document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !newFileMenu.hidden) fecharMenuNovoArquivo();
+          });
+        }
+
 
         chkTogglePreview.addEventListener('change', function () {
           if (chkTogglePreview.checked) mostrarPreview();
@@ -2562,6 +3714,8 @@
             itemArrastado = null;
           }
           atualizarLayoutAbas();
+          agendarAtualizacaoPreview();
+          agendarSalvamentoAutomatico();
         });
 
         atualizarJanela();
@@ -2576,7 +3730,7 @@
   /* ==========================================================
      BOOT — guarda a página (redireciona pra Landing se não
      houver sessão), carrega o progresso do aluno no Firestore
-     e só então liga a teoria (módulos/etapas) e o editor Ace.
+     e só então liga a teoria (módulos/etapas) e o editor Monaco.
      ========================================================== */
   async function bootIde() {
     if (!CL.auth || !CL.api) {
@@ -2664,10 +3818,10 @@
 
     iniciarTeoria(progressoCarregado, exerciciosCarregado, posicaoCarregada);
 
-    // O SDK do Ace carrega via <script src> antes deste arquivo, mas
-    // mantemos o fallback defensivo do protótipo original só por
+    // O carregador AMD do Monaco vem antes deste arquivo. Mantemos o
+    // fallback defensivo do protótipo original só por
     // segurança (ex.: script bloqueado/lento).
-    if (window.ace) {
+    if (window.require) {
       iniciarEditorDeCodigo();
     } else {
       window.addEventListener('load', iniciarEditorDeCodigo);

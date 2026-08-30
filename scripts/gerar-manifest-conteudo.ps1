@@ -6,7 +6,10 @@ $contentRootPath = (Resolve-Path $ContentRoot).Path
 $manifestPath = Join-Path $contentRootPath 'catalogo-automatico.js'
 
 $files = Get-ChildItem -Path $contentRootPath -Recurse -File -Filter '*.js' |
-  Where-Object { $_.Name -notin @('catalogo-automatico.js', 'catalogo-manual.js', 'modo.js', 'modo-automatico.js', 'modo-manual.js') } |
+  Where-Object {
+    $_.Name -notin @('catalogo-automatico.js', 'catalogo-manual.js', 'modo.js', 'modo-automatico.js', 'modo-manual.js') -and
+    $_.FullName -notmatch '[\\/]templates[\\/]'
+  } |
   Sort-Object FullName |
   ForEach-Object {
     $_.FullName.Substring((Resolve-Path "$PSScriptRoot\..\public").Path.Length + 1).Replace('\', '/')

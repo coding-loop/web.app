@@ -2241,6 +2241,27 @@
               overflow: visible;
           }
 
+          #cl-sidebar .cl-course-logo--programming-logic {
+              display: grid;
+              place-items: center;
+          }
+
+          #cl-sidebar .cl-course-logo__theme {
+              grid-area: 1 / 1;
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+          }
+
+          #cl-sidebar .cl-course-logo__theme--dark,
+          [data-theme="solarized-dark"] #cl-sidebar .cl-course-logo__theme--light {
+              display: none;
+          }
+
+          [data-theme="solarized-dark"] #cl-sidebar .cl-course-logo__theme--dark {
+              display: block;
+          }
+
           #cl-sidebar .cl-course-logo--js {
               border: 2px solid #002b36;
               border-radius: 6px;

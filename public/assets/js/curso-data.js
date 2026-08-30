@@ -1826,7 +1826,7 @@
       var concluido = moduloConcluido(modulo, progresso);
       var anteriorConcluido = i === 0 || moduloConcluido(modulos[i - 1], progresso);
       var status = concluido ? 'completed' : (anteriorConcluido ? 'available' : 'locked');
-      if (modulo.id === moduloAtualId && !concluido) status = 'current';
+      if (modulo.id === moduloAtualId && !concluido && anteriorConcluido) status = 'current';
 
       return {
         id: modulo.id,
@@ -1834,6 +1834,8 @@
         titulo: 'Módulo ' + (i + 1) + ': ' + modulo.nome,
         linguagem: modulo.linguagem,
         status: status,
+        showReset: concluido,
+        resetLabel: 'Refazer módulo',
         connectorFilled: i > 0 && moduloConcluido(modulos[i - 1], progresso)
       };
     });
@@ -1852,7 +1854,7 @@
       var status;
       if (p.concluida) {
         status = 'completed';
-      } else if (numero === currentStep) {
+      } else if (numero === currentStep && anteriorConcluida) {
         status = 'current';
       } else if (anteriorConcluida) {
         status = 'available';
@@ -1867,7 +1869,8 @@
         linguagem: modulo.linguagem,
         status: status,
         percentual: (typeof p.percentual === 'number') ? p.percentual : null,
-        showReset: true,
+        showReset: !!p.concluida,
+        resetLabel: 'Refazer etapa',
         connectorFilled: anteriorConcluida && numero > 1
       };
     });

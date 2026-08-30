@@ -25,6 +25,11 @@
   var subtituloEl = document.getElementById('trilha-subtitulo');
 
   function logoCursoSvg(linguagem) {
+    if (linguagem === 'programming-logic') {
+      return '<span class="cl-course-logo cl-course-logo--programming-logic" aria-hidden="true">' +
+        '<img class="cl-course-logo__theme" src="assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4" alt="">' +
+        '</span>';
+    }
     if (linguagem === 'html') {
       return '<svg class="cl-course-logo cl-course-logo--shield" viewBox="0 0 64 64" aria-hidden="true"><g transform="translate(32 32) scale(1.18 1.1) translate(-32 -32)"><path fill="#e44d26" stroke="#002b36" stroke-width="2" stroke-linejoin="round" d="M8 4h48l-4.4 50.1L32 60 12.4 54.1z"/><path fill="#f16529" d="M32 9v45.8l15.8-4.8L51.6 9z"/><path fill="#fff" d="M18 17h28l-.7 7H25.7l.5 5.6h18.6l-1.4 15.6-11.4 3.2-11.4-3.2-.8-9h7.1l.3 3.6 4.8 1.3 4.8-1.3.5-5.3H19.7z"/></g></svg>';
     }
@@ -57,6 +62,12 @@
   // da trilha, para que HTML/CSS/JS tenham o mesmo comportamento em toda a
   // dashboard.
   montarMenuCursos();
+  /* O catálogo é carregado de modo assíncrono. Sem esta segunda montagem,
+     cursos adicionados pelo catálogo (como LogProg) só aparecem na sidebar
+     depois que o usuário abre alguma trilha. */
+  if (CL.curso && CL.curso.conteudoPronto && typeof CL.curso.conteudoPronto.then === 'function') {
+    CL.curso.conteudoPronto.then(montarMenuCursos).catch(function () {});
+  }
 
   function irParaIde(moduloId, etapaNumero, layoutIndice) {
     var destino = 'ide.html?modulo=' + encodeURIComponent(moduloId);
@@ -180,10 +191,17 @@
 
       container.classList.remove('trilha-container--indice');
 
+      var layoutPorCurso = {
+        'programming-logic': 'logprog-ziguezague',
+        html: 'logprog-ziguezague',
+        css: 'logprog-ziguezague',
+        js: 'logprog-ziguezague'
+      };
+
       CL.trilha.render(container, {
         nodes: nodes,
         cursoId: cursoId,
-        layout: 'vinte-um-por-tela',
+        layout: layoutPorCurso[cursoId] || 'vinte-um-por-tela',
         onSelect: function (moduloId) { irParaIde(moduloId, null, 'trilha'); },
         onReset: function (moduloId) {
           var confirmado = window.confirm(
