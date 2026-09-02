@@ -790,6 +790,12 @@
 
                 z-index: var(--cl-z-base);
 
+                /* A área principal precisa ter sua própria superfície. Sem
+                   isso ela ficava transparente e, na prática, só header e
+                   navegação refletiam a troca entre os temas Solarized. */
+                background: var(--cl-bg);
+                color: var(--cl-text);
+
                 display: flex;
 
                 flex-direction: column;
@@ -805,6 +811,8 @@
                 overflow-y: hidden;
 
                 transition:
+                    background var(--cl-transition),
+                    color var(--cl-transition),
                     margin-top var(--cl-nav-transition),
                     height var(--cl-nav-transition);
 
@@ -1077,6 +1085,60 @@
 
                 overflow: visible;
 
+            }
+
+            /* Padrão de rolagem para conjuntos horizontais de abas e botões.
+               A barra nativa fica oculta; setas largas indicam itens fora da
+               área visível, sem competir com os próprios controles. */
+            .cl-scrollable-controls {
+                display: grid;
+                grid-template-columns: 26px minmax(0, 1fr) 26px;
+                align-items: center;
+                min-width: 0;
+            }
+
+            .cl-scrollable-controls [data-scroll-viewport] {
+                min-width: 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+            }
+
+            .cl-scrollable-controls [data-scroll-viewport]::-webkit-scrollbar { display: none; }
+
+            #cl-sidebar .cl-course-tabs-scroll {
+                width: 100%;
+                height: 100%;
+            }
+
+            #cl-sidebar .cl-course-tabs-viewport { height: 100%; }
+
+            .cl-scroll-hint-arrow {
+                display: grid;
+                width: 26px;
+                height: 2rem;
+                place-items: center;
+                color: var(--cl-primary);
+                border: 0;
+                padding: 0;
+                background: transparent;
+                font-family: Arial, sans-serif;
+                font-size: 20px;
+                font-weight: 900;
+                line-height: 1;
+                opacity: .7;
+                pointer-events: auto;
+                cursor: pointer;
+                transform: scaleX(1.18);
+                transition: opacity .2s ease;
+            }
+
+            .cl-scrollable-controls.can-scroll-left .cl-scroll-hint-arrow--left,
+            .cl-scrollable-controls.can-scroll-right .cl-scroll-hint-arrow--right {
+                opacity: 1;
+                color: var(--cl-info, #268bd2);
             }
 
             .cl-topbar-item {
@@ -1861,6 +1923,44 @@
                 pointer-events: auto;
 
             }
+
+            /* Tipos padronizados. Os seletores com um hífen mantêm
+               compatibilidade com toasts criados por versões anteriores. */
+            .cl-toast--info,
+            .cl-toast-info {
+                border-left: .3rem solid var(--cl-info);
+            }
+
+            .cl-toast--success,
+            .cl-toast-success {
+                border-left: .3rem solid var(--cl-success);
+            }
+
+            .cl-toast--warning,
+            .cl-toast-warning {
+                border-left: .3rem solid var(--cl-warning);
+            }
+
+            .cl-toast--error,
+            .cl-toast-error,
+            .cl-toast--danger,
+            .cl-toast-danger {
+                border-left: .3rem solid var(--cl-danger);
+            }
+
+            .cl-toast--info .cl-toast-icon,
+            .cl-toast-info .cl-toast-icon { color: var(--cl-info); }
+
+            .cl-toast--success .cl-toast-icon,
+            .cl-toast-success .cl-toast-icon { color: var(--cl-success); }
+
+            .cl-toast--warning .cl-toast-icon,
+            .cl-toast-warning .cl-toast-icon { color: var(--cl-warning); }
+
+            .cl-toast--error .cl-toast-icon,
+            .cl-toast-error .cl-toast-icon,
+            .cl-toast--danger .cl-toast-icon,
+            .cl-toast-danger .cl-toast-icon { color: var(--cl-danger); }
 
             /* ---------- */
 

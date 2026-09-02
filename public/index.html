@@ -10,7 +10,7 @@
          download do SDK do Firebase, que carrega logo abaixo. -->
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
-    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
 
     <!-- CSS do modal de login — autocontido; usa variáveis do tema se
          existirem (--cl-*), com fallback pra não quebrar sem elas. -->
@@ -336,7 +336,7 @@
     </div>
 
     <script defer src="assets/js/firebase-init.js"></script>
-    <script defer src="assets/js/auth.js"></script>
+    <script defer src="assets/js/auth.js?v=local-study-20260901-1"></script>
 
     <script>
         /* =====================================================
@@ -387,15 +387,16 @@
 
             CL.ui.showToast = function (message, type, duration) {
                 type = type || "info";
+                if (type === "danger") type = "error";
                 duration = duration || CL.config.toastDuration;
 
                 const root = document.getElementById("cl-toast-root");
                 if (!root) return;
 
-                const icons = { info: "ℹ", success: "✔", warning: "⚠", danger: "✖" };
+                const icons = { info: "ℹ", success: "✔", warning: "⚠", error: "✖" };
 
                 const toast = document.createElement("div");
-                toast.className = `cl-toast cl-toast-${type}`;
+                toast.className = `cl-toast cl-toast--${type}`;
                 toast.innerHTML = `
                     <span class="cl-toast-icon">${icons[type] || icons.info}</span>
                     <div class="cl-toast-content">
@@ -470,11 +471,13 @@
             const emailForm = document.getElementById("cl-login-form-email");
             const emailSubmitLabel = document.getElementById("cl-email-submit-label");
             const emailToggleBtn = document.getElementById("cl-email-toggle-mode");
+            const passwordInput = document.getElementById("cl-password-input");
 
             function setEmailMode(mode) {
                 emailMode = mode;
                 emailSubmitLabel.textContent = mode === "register" ? "Criar conta" : "Entrar";
                 emailToggleBtn.textContent = mode === "register" ? "Já tenho conta" : "Criar uma conta";
+                passwordInput.setAttribute("autocomplete", mode === "register" ? "new-password" : "current-password");
             }
 
             emailToggleBtn.addEventListener("click", function () {
@@ -522,11 +525,13 @@
                 const messages = {
                     expired: "Sua sessão expirou. Faça login novamente para continuar.",
                     unauthenticated: "Você precisa estar logado para acessar essa área.",
-                    logout: "Você saiu da sua conta."
+                    logout: "Você saiu da sua conta.",
+                    "account-deleted": "Sua conta e os dados associados foram excluídos."
                 };
 
                 if (messages[reason]) {
-                    CL.ui.showToast(messages[reason], reason === "logout" ? "info" : "warning", 6000);
+                    const type = reason === "logout" ? "info" : (reason === "account-deleted" ? "success" : "warning");
+                    CL.ui.showToast(messages[reason], type, 6000);
                 }
 
                 history.replaceState(null, "", window.location.pathname);

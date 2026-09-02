@@ -33,7 +33,12 @@
   };
 
   function escapeAttr(texto) {
-    return String(texto || '').replace(/"/g, '&quot;');
+    return String(texto || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   /* Converte a ordem do módulo em uma posição numa curva de Hilbert.
@@ -283,12 +288,12 @@
           '<div class="trilha-node-surface trilha-node-surface--' + escapeAttr(status) + '">' +
             resetBtn +
             '<button type="button" class="trilha-node ' + statusClass + '" data-trilha-node data-id="' + escapeAttr(node.id) + '" data-status="' + escapeAttr(status) + '"' + (bloqueado ? ' aria-disabled="true" title="Bloqueado: conclua o nível anterior"' : ' title="' + escapeAttr(node.titulo) + '"') + '>' +
-              (logoUrl ? '<img class="trilha-node-logo" src="' + logoUrl + '" alt="" aria-hidden="true"/>' : '') +
+              (logoUrl ? '<img class="trilha-node-logo" src="' + escapeAttr(logoUrl) + '" alt="" aria-hidden="true"/>' : '') +
               '<span class="trilha-node-numero">' + node.numero + '</span>' +
               check +
             '</button>' +
           '</div>' +
-          '<span class="trilha-node-titulo">' + node.titulo + '</span>' +
+          '<span class="trilha-node-titulo">' + escapeAttr(node.titulo) + '</span>' +
           '<div class="trilha-node-footer">' + percentual + '</div>' +
         '</div>' +
       '</div>'
@@ -355,6 +360,14 @@
         bolinhaDestino.classList.contains('trilha-node--completed') ||
         bolinhaDestino.classList.contains('trilha-node--current')
       );
+
+      /* O contorno entra primeiro para ficar atrás do traço colorido. Como
+         ambos seguem a mesma curva, a linha preserva os estados pontilhado
+         e concluído sem sobrepor os módulos. */
+      var contorno = document.createElementNS(svgns, 'path');
+      contorno.setAttribute('d', d);
+      contorno.setAttribute('class', 'trilha-path-contorno' + (andado ? ' is-andado' : ''));
+      fragmento.appendChild(contorno);
 
       var path = document.createElementNS(svgns, 'path');
       path.setAttribute('d', d);
@@ -474,7 +487,10 @@
   }
 
   function atualizarTituloFixo(container, options) {
-    var pagina = container.closest('#cl-page-course');
+    /* Por padrão, o banner pertence à página de curso do dashboard. A
+       Learning Platform informa seu próprio painel para reutilizar a mesma
+       arte nas trilhas de etapas. */
+    var pagina = (options && options.titleHost) || container.closest('#cl-page-course');
     if (!pagina) return;
 
     var titulo = pagina.querySelector('.trilha-titulo-fixo');
@@ -495,7 +511,17 @@
       titulo = document.createElement('div');
       titulo.className = 'trilha-titulo-fixo';
       titulo.setAttribute('aria-hidden', 'true');
-      pagina.appendChild(titulo);
+      /* Na Learning Platform o banner precisa ser o primeiro filho do
+         painel, acima do conteúdo de etapas. */
+      if (options && options.titleHost) {
+        pagina.insertBefore(titulo, pagina.firstChild);
+      } else {
+        pagina.appendChild(titulo);
+      }
+    }
+
+    if (options && options.titleHost && titulo !== pagina.firstElementChild) {
+      pagina.insertBefore(titulo, pagina.firstChild);
     }
 
     titulo.innerHTML = '<img src="' + imagemTitulo + '" alt="">';
@@ -852,7 +878,7 @@
       behavior: 'smooth'
     });
     alvo.classList.add('is-destacado');
-    setTimeout(function () { alvo.classList.remove('is-destacado'); }, 1);
+    setTimeout(function () { alvo.classList.remove('is-destacado'); }, 1600);
   };
 
 })();

@@ -53,9 +53,10 @@
       return '<li class="cl-topbar-item">' +
         '<a class="cl-topbar-link" data-page="course" href="#course/' + encodeURIComponent(curso.id) + '">' +
         logo +
-        '<span class="cl-topbar-label">' + curso.nome + '</span>' +
-        '</a></li>';
+        '<span class="cl-topbar-label">' + escaparHtml(curso.nome) + '</span>' +
+      '</a></li>';
     }).join('');
+    if (window.CLScrollableControls) window.CLScrollableControls.refresh(document.getElementById('course-tabs-scroll'));
   }
 
   // Também transforma os atalhos de curso em menus de layout fora da página
@@ -135,9 +136,9 @@
     return CL.curso.ORDEM_CURSOS[0];
   }
 
-  // Mesmo padrão de segurança do ide.js (bootIde/comTimeout): em redes
-  // lentas, o Firestore pode demorar dezenas de segundos. Não faz
-  // sentido deixar a trilha inteira travada esperando — depois de 6s,
+  // Proteção defensiva para qualquer implementação futura assíncrona da
+  // persistência. No modo local atual a leitura termina imediatamente.
+  // Se algum adaptador demorar, depois de 6s
   // ela é desenhada com o progresso vazio (tudo "disponível"/"não
   // concluído" nesta sessão) e, se a leitura real chegar depois, a
   // trilha é redesenhada sozinha com os dados certos.
@@ -239,7 +240,7 @@
       // Passou de 6s: libera a trilha agora (progresso vazio nesta
       // sessão) em vez de deixar o aluno olhando pra tela em branco.
       if (CL.config && CL.config.debug) {
-        console.warn('[pagina-curso] Firestore demorou mais de 6s; desenhando a trilha com progresso vazio por enquanto.');
+        console.warn('[pagina-curso] A leitura do progresso demorou mais de 6s; desenhando a trilha vazia por enquanto.');
       }
       if (CL.ui && typeof CL.ui.showToast === 'function') {
         CL.ui.showToast('Sua conexão está lenta — mostrando a trilha sem o progresso salvo por enquanto.', 'warning', 6000);

@@ -670,3 +670,44 @@
     .cl-settings-choice-group { width: 100%; }
     .cl-settings-choice-group { grid-auto-columns: minmax(0, 1fr); }
   }
+
+  /* Tema claro: a área interna herda a atmosfera das trilhas — fundo
+     atenuado, superfícies de vidro e realces suaves — sem tocar no tema
+     escuro. */
+  [data-theme="solarized-light"] #cl-main {
+    background-image: linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .55));
+  }
+
+  [data-theme="solarized-light"] #cl-page-home .cl-home-area-hero,
+  [data-theme="solarized-light"] #cl-page-home .cl-home-area-card,
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-hero,
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-stat,
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-panel,
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-course,
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-announcement,
+  [data-theme="solarized-light"] #cl-page-profile .cl-profile-layout,
+  [data-theme="solarized-light"] #cl-page-settings .cl-settings-section {
+    background: color-mix(in srgb, var(--cl-surface) 88%, transparent);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+    backdrop-filter: blur(10px);
+  }
+
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-course:hover,
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-course:focus-visible,
+  [data-theme="solarized-light"] #cl-page-home .cl-home-area-card:has(a:hover) {
+    border-color: var(--cl-primary);
+    box-shadow: 0 0 0 4px rgba(38, 139, 210, .22), 0 4px 16px rgba(0, 0, 0, .2);
+  }
+
+  [data-theme="solarized-light"] #cl-page-dashboard .cl-dashboard-progress span {
+    box-shadow: 0 0 8px color-mix(in srgb, var(--course-color, var(--cl-primary)) 45%, transparent);
+  }
+
+  [data-theme="solarized-light"] #cl-page-settings .cl-settings-choice.is-active {
+    box-shadow: 0 0 0 4px rgba(38, 139, 210, .22);
+  }
+
+  [data-theme="solarized-light"] #cl-main :disabled,
+  [data-theme="solarized-light"] #cl-main [aria-disabled="true"] {
+    opacity: .4;
+  }

@@ -511,6 +511,8 @@ CL.state = {
                     toast é montado com essa estrutura para herdar o estilo existente. */
                     CL.ui.showToast = function (message, type = "info", duration = CL.config.toastDuration) {
 
+                        if (type === "danger") type = "error";
+
                         const container = CL.dom.$("#cl-toast-root");
 
                         if (!container) {

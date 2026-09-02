@@ -13,10 +13,9 @@
     const CL = window.CL;
 
     /* ===================================================== */
-    /* STORAGE — apenas preferências de UI (tema, idioma).
-       Dados de usuário/progresso NUNCA ficam mais no
-       localStorage: tudo isso agora vive no Firestore
-       (ver api.js), sincronizado entre dispositivos. */
+    /* STORAGE — preferências e dados de estudo locais. Progresso e códigos
+       ficam separados por usuário no navegador (ver api.js) e só passam
+       para outro dispositivo por meio dos backups configurados pelo aluno. */
     /* ===================================================== */
 
     CL.storage = {};
@@ -150,9 +149,10 @@
         };
     };
 
-    /* Mantém o perfil no rascunho local. A escrita no Firestore acontece
-       em lote imediatamente antes do logout. */
+    /* Mantém os dados básicos da conta disponíveis para a interface local. */
     CL.auth._syncProfile = async function (user) {
+        /* A Landing usa apenas autenticação e não carrega api.js. */
+        if (!CL.api || typeof CL.api.saveProfile !== "function") return true;
         try {
             const payload = {
                 name: user.name,
@@ -163,10 +163,10 @@
             await CL.api.saveProfile(payload);
         } catch (error) {
             if (CL.config.debug) {
-                console.error("[CL.auth] falha ao sincronizar perfil:", error);
+                console.error("[CL.auth] falha ao salvar perfil local:", error);
             }
             if (CL.ui && typeof CL.ui.showToast === "function") {
-                CL.ui.showToast("Não foi possível sincronizar seu perfil agora. Tentaremos novamente ao sair.", "warning", 5000);
+                CL.ui.showToast("Não foi possível salvar seu perfil neste navegador.", "warning", 5000);
             }
         }
     };
@@ -186,20 +186,13 @@
 
             if (user) {
                 // renderUser() só usa dados que já vêm do próprio Firebase
-                // Auth (nome/email/avatar) — não depende do Firestore, então
+                // Auth (nome/email/avatar) — não depende dos dados de estudo, então
                 // não precisa esperar _syncProfile pra mostrar isso na tela.
                 CL.auth.renderUser();
 
-                // _syncProfile faz leitura+escrita no Firestore. Rodar isso
-                // em paralelo (sem "await" aqui) é o que importa: antes,
-                // essa linha travava CL.auth.ready — e por consequência
-                // TODA página protegida (guard()) e o redirecionamento da
-                // Landing — esperando o Firestore responder. "Está logado
-                // ou não" só depende do Firebase Auth (rápido); sincronizar
-                // o perfil pode acontecer em segundo plano sem bloquear
-                // ninguém. _syncProfile já trata os próprios erros
-                // internamente (try/catch), então não precisa de .catch
-                // aqui.
+                // O perfil local é atualizado em segundo plano; autenticar e
+                // liberar a página protegida depende apenas do Firebase Auth.
+                // _syncProfile trata os próprios erros internamente.
                 CL.auth._syncProfile(user);
             }
 
@@ -361,8 +354,7 @@
         }
     };
 
-    /* AUTH > UPDATE USER — atualiza o rascunho local; o Firebase é
-       sincronizado em lote antes do logout. */
+    /* AUTH > UPDATE USER — atualiza o perfil de estudo local. */
     CL.auth.updateUser = async function (data) {
         data = data || {};
 

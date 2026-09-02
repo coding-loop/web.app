@@ -1,14 +1,13 @@
 /* =====================================================
    API.JS
-   Comunicação com o Firestore: salvar/ler progresso do
-   aluno, código salvo na IDE e perfil do usuário.
+   Persistência dos estudos do aluno no navegador e acesso
+   ao Firestore somente para recursos remotos compartilhados.
    Substitui o antigo CL.api (wrapper de REST genérico, que
    nunca chegou a ser usado por não haver backend).
 
-   Modelo de dados:
-     users/{uid}                        -> perfil (nome, email, avatar...)
-     users/{uid}/progress/{lessonId}     -> progresso de uma aula/exercício
-     users/{uid}/exercises/{exerciseId}  -> código salvo na IDE (html/css/js)
+   Progresso, perfil de estudo e códigos ficam no localStorage,
+   separados por usuário. O aluno pode exportar backups para
+   computador, armazenamento local, Google Drive e OneDrive.
 
    Depende de: firebase-init.js, auth.js
    ===================================================== */
@@ -37,8 +36,8 @@
         }
     };
 
-    /* Rascunho local por usuário. O estudo não gera escrita no Firestore;
-       o conteúdo é enviado em lote antes do logout. */
+    /* Formato local antigo, mantido somente para migrar instalações que
+       ainda possuem dados na chave firebase-draft. */
     CL.api._draftKey = function () {
         return `${CL.config.storagePrefix}:firebase-draft:${CL.api._uid()}`;
     };
@@ -71,7 +70,7 @@
             // O boot da IDE faz três leituras em paralelo. Em uma queda de
             // conexão, uma única mensagem é suficiente para não poluir a UI.
             if (lastErrorToast.message !== message || now - lastErrorToast.at > 3000) {
-                CL.ui.showToast(message, "danger");
+                CL.ui.showToast(message, "error");
                 lastErrorToast = { message: message, at: now };
             }
         }
@@ -93,155 +92,6 @@
             throw new Error(`CL.api: ${label || "id"} inválido.`);
         }
         return value;
-    };
-
-    /* ===================================================== */
-    /* PERFIL */
-    /* ===================================================== */
-
-    CL.api.getProfile = async function (uid) {
-        try {
-            const currentUid = CL.api._uid();
-            if (uid && uid !== currentUid) {
-                throw new Error("CL.api: só é permitido ler o próprio perfil.");
-            }
-            return CL.api._draft().profile || null;
-        } catch (error) {
-            CL.api._handleError("getProfile", error, "read");
-        }
-    };
-
-    CL.api.saveProfile = async function (data) {
-        const draft = CL.api._draft();
-        draft.profile = Object.assign({}, draft.profile, data || {});
-        CL.api._saveDraft(draft);
-        return true;
-    };
-
-    /* ===================================================== */
-    /* PROGRESSO — trilha de cursos/aulas */
-    /* ===================================================== */
-
-    /* progressId costuma ser algo como "html-basico:aula-01" */
-    CL.api.saveProgress = async function (progressId, data) {
-        try {
-            progressId = CL.api._documentId(progressId, "progressId");
-            const draft = CL.api._draft();
-            draft.progress[progressId] = Object.assign({}, draft.progress[progressId], data || {});
-            draft.deletedProgress = draft.deletedProgress.filter(function (id) { return id !== progressId; });
-            CL.api._saveDraft(draft);
-            return true;
-        } catch (error) {
-            CL.api._handleError("saveProgress", error, "write");
-        }
-    };
-
-    CL.api.getProgress = async function (progressId) {
-        try {
-            progressId = CL.api._documentId(progressId, "progressId");
-            return CL.api._draft().progress[progressId] || null;
-        } catch (error) {
-            CL.api._handleError("getProgress", error, "read");
-        }
-    };
-
-    /* Lista todo o progresso do usuário logado, indexado por id,
-       pronto pra CL.pages.dashboard/courses pintarem os cards. */
-    CL.api.listProgress = async function () {
-        try {
-            return CL.api._draft().progress;
-        } catch (error) {
-            CL.api._handleError("listProgress", error, "read");
-        }
-    };
-
-    /* Apaga o progresso de uma etapa (usado pelo IDE quando o aluno
-       pede pra "refazer" uma etapa). */
-    CL.api.deleteProgress = async function (progressId) {
-        try {
-            progressId = CL.api._documentId(progressId, "progressId");
-            const draft = CL.api._draft();
-            delete draft.progress[progressId];
-            if (!draft.deletedProgress.includes(progressId)) draft.deletedProgress.push(progressId);
-            CL.api._saveDraft(draft);
-            return true;
-        } catch (error) {
-            CL.api._handleError("deleteProgress", error, "write");
-        }
-    };
-
-    /* Escuta mudanças de progresso em tempo real (útil se o aluno
-       tiver o dashboard aberto em duas abas/dispositivos). Retorna a
-       função de "unsubscribe" — chame quando sair da página/rota. */
-    CL.api.onProgressChange = function (callback) {
-        try {
-            if (typeof callback !== "function") {
-                throw new Error("CL.api: callback de progresso inválido.");
-            }
-            callback(CL.api._draft().progress);
-            // Sem listener do Firestore: o modo local-first sincroniza ao sair.
-            return function () {};
-        } catch (error) {
-            if (CL.config.debug) {
-                console.error("[CL.api] onProgressChange (setup):", error);
-            }
-            return function () {};
-        }
-    };
-
-    /* ===================================================== */
-    /* EXERCÍCIOS — código salvo pelo aluno na IDE */
-    /* ===================================================== */
-
-    CL.api.saveExercise = async function (exerciseId, code) {
-        try {
-            exerciseId = CL.api._documentId(exerciseId, "exerciseId");
-            code = code || {};
-            const draft = CL.api._draft();
-            draft.exercises[exerciseId] = {
-                html: code.html || "",
-                css: code.css || "",
-                js: code.js || "",
-                files: Array.isArray(code.files) ? code.files : []
-            };
-            draft.deletedExercises = draft.deletedExercises.filter(function (id) { return id !== exerciseId; });
-            CL.api._saveDraft(draft);
-            return true;
-        } catch (error) {
-            CL.api._handleError("saveExercise", error, "write");
-        }
-    };
-
-    CL.api.getExercise = async function (exerciseId) {
-        try {
-            exerciseId = CL.api._documentId(exerciseId, "exerciseId");
-            return CL.api._draft().exercises[exerciseId] || { html: "", css: "", js: "" };
-        } catch (error) {
-            CL.api._handleError("getExercise", error, "read");
-        }
-    };
-
-    /* Apaga o código salvo de uma etapa (usado pelo IDE quando o aluno
-       pede pra "refazer" uma etapa — volta a mostrar o codigoInicial). */
-    CL.api.deleteExercise = async function (exerciseId) {
-        try {
-            exerciseId = CL.api._documentId(exerciseId, "exerciseId");
-            const draft = CL.api._draft();
-            delete draft.exercises[exerciseId];
-            if (!draft.deletedExercises.includes(exerciseId)) draft.deletedExercises.push(exerciseId);
-            CL.api._saveDraft(draft);
-            return true;
-        } catch (error) {
-            CL.api._handleError("deleteExercise", error, "write");
-        }
-    };
-
-    CL.api.listExercises = async function () {
-        try {
-            return CL.api._draft().exercises;
-        } catch (error) {
-            CL.api._handleError("listExercises", error, "read");
-        }
     };
 
     /* ===================================================== */
@@ -283,6 +133,9 @@
     CL.api._saveStudyIndex = function (index) {
         index.updatedAt = new Date().toISOString();
         localStorage.setItem(CL.api._studyKey(), JSON.stringify(index));
+        window.dispatchEvent(new CustomEvent("cl:study-index-change", {
+            detail: { progress: index.progress || {} }
+        }));
     };
 
     CL.api.getExerciseLocal = function (exerciseId) {
@@ -461,6 +314,33 @@
         return true;
     };
 
+    /* Notifica a aba atual e outras abas do mesmo navegador. */
+    CL.api.onProgressChange = function (callback) {
+        if (typeof callback !== "function") {
+            throw new Error("CL.api: callback de progresso inválido.");
+        }
+
+        const studyKey = CL.api._studyKey();
+        const notifyCurrent = function () {
+            callback(CL.api._studyIndex().progress || {});
+        };
+        const onLocalChange = function (event) {
+            callback((event.detail && event.detail.progress) || {});
+        };
+        const onStorage = function (event) {
+            if (event.key === studyKey) notifyCurrent();
+        };
+
+        notifyCurrent();
+        window.addEventListener("cl:study-index-change", onLocalChange);
+        window.addEventListener("storage", onStorage);
+
+        return function () {
+            window.removeEventListener("cl:study-index-change", onLocalChange);
+            window.removeEventListener("storage", onStorage);
+        };
+    };
+
     CL.api.saveExercise = async function (exerciseId, code) {
         exerciseId = CL.api._documentId(exerciseId, "exerciseId");
         code = code || {};
@@ -494,54 +374,9 @@
         return true;
     };
 
-    /* Nesta fase o localStorage é a fonte de verdade; manter esta função
-       evita quebrar o logout enquanto a sincronização remota fica desativada. */
+    /* Compatibilidade com o fluxo de logout. Não há sincronização remota:
+       os backups configurados pelo aluno são o mecanismo de portabilidade. */
     CL.api.syncLocalData = async function () {
-        return true;
-    };
-
-    /* Implementação remota anterior, mantida abaixo temporariamente para
-       referência durante a futura sincronização com o Firestore. */
-    CL.api._syncFirestoreLegacy = async function () {
-        const uid = CL.api._uid();
-        const draft = CL.api._draft();
-        const userRef = CL.firebase.db.collection("users").doc(uid);
-        const operations = [];
-
-        operations.push(function (batch) {
-            batch.set(userRef, Object.assign({}, draft.profile, {
-                lastSyncedAt: CL.firebase.FieldValue.serverTimestamp()
-            }), { merge: true });
-        });
-        Object.keys(draft.progress).forEach(function (id) {
-            operations.push(function (batch) {
-                batch.set(userRef.collection("progress").doc(id), Object.assign({}, draft.progress[id], {
-                    updatedAt: CL.firebase.FieldValue.serverTimestamp()
-                }), { merge: true });
-            });
-        });
-        Object.keys(draft.exercises).forEach(function (id) {
-            operations.push(function (batch) {
-                batch.set(userRef.collection("exercises").doc(id), Object.assign({}, draft.exercises[id], {
-                    updatedAt: CL.firebase.FieldValue.serverTimestamp()
-                }), { merge: true });
-            });
-        });
-        draft.deletedProgress.forEach(function (id) {
-            operations.push(function (batch) { batch.delete(userRef.collection("progress").doc(id)); });
-        });
-        draft.deletedExercises.forEach(function (id) {
-            operations.push(function (batch) { batch.delete(userRef.collection("exercises").doc(id)); });
-        });
-
-        for (let start = 0; start < operations.length; start += 500) {
-            const batch = CL.firebase.db.batch();
-            operations.slice(start, start + 500).forEach(function (apply) { apply(batch); });
-            await batch.commit();
-        }
-        draft.deletedProgress = [];
-        draft.deletedExercises = [];
-        CL.api._saveDraft(draft);
         return true;
     };
 

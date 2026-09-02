@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IDE — Coding Loop</title>
 
-    <link rel="stylesheet" href="assets/css/global.css">
-    <link rel="stylesheet" href="assets/css/ide.css?v=ide-logprog-accent-20260829-1">
+    <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
+    <link rel="stylesheet" href="assets/css/ide.css?v=step-tabs-20260829-1">
     <link rel="stylesheet" href="assets/css/trilha.css?v=trilha-opacidade-indice-20260829-1">
 
     <!-- Preconnect: economiza o tempo de DNS/TLS antes dos downloads
@@ -18,11 +18,12 @@
     <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-    <script defer src="https://accounts.google.com/gsi/client"></script>
-    <script defer src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+    <!-- Bibliotecas opcionais de backup não podem bloquear a IDE. -->
+    <script async src="https://accounts.google.com/gsi/client"></script>
+    <script async src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 
-    <!-- Monaco Editor — o mesmo motor de edição usado pelo VS Code. -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/loader.js"></script>
+    <!-- O Monaco é carregado por ide.js com CDNs alternativas. Uma falha
+         externa não bloqueia mais a execução dos scripts locais. -->
 
 </head>
 <body>
@@ -53,6 +54,7 @@
 
           <div class="backup-header-actions">
             <button aria-label="Progress Backup" class="header-save-btn backup-now-header" id="btn-backup-now" title="Progress Backup" type="button">
+              <span class="save-btn-dot" id="save-progress-dot" aria-hidden="true"></span>
               <img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/export-progress-light.svg" data-icon-light="assets/images/icons.svg/export-progress-dark.svg" src="assets/images/icons.svg/export-progress-light.svg">
             </button>
             <div class="backup-menu">
@@ -176,7 +178,6 @@
 
       <!-- Índice do curso: trilha de etapas do módulo atual, populada via JavaScript. -->
       <nav id="indice-etapas" class="indice-panel" hidden aria-label="Índice do curso">
-        <div id="indice-titulo-modulo" class="indice-modulo-titulo"></div>
         <div id="indice-lista" class="trilha-container"></div>
       </nav>
 
@@ -198,14 +199,15 @@
                 ⌨
               </button>
 
-              <button aria-label="Alternar tela cheia do IDE" class="maximize-btn" id="btn-maximize-toggle" title="Alternar Tela Cheia do IDE" type="button">
+              <button aria-label="Alternar tela cheia do IDE" aria-pressed="false" class="maximize-btn" id="btn-maximize-toggle" title="Alternar Tela Cheia do IDE" type="button">
                 <svg id="icon-maximize" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
                 <svg id="icon-minimize" style="display:none;" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
               </button>
             </div>
 
-            <div class="browser-tabs-scroll-wrapper" id="tabs-scroll-wrapper">
-              <div class="browser-tabs-right" id="tabs-draggable-container">
+            <div class="browser-tabs-scroll-wrapper cl-scrollable-controls" id="tabs-scroll-wrapper">
+              <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--left" data-scroll-direction="left" aria-label="Ver botões anteriores" type="button">‹</button>
+              <div class="browser-tabs-viewport" data-scroll-viewport"><div class="browser-tabs-right" id="tabs-draggable-container">
                 <button aria-label="Desfazer última alteração" class="toolbar-btn" id="btn-undo" title="Ctrl+Z" type="button" disabled>
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 7 4 12l5.5 5M5 12h8a5 5 0 0 1 5 5v1"/></svg>
                 </button>
@@ -270,10 +272,8 @@
                 </dialog>
 
                 <input accept=".html,.htm,.css,.js,.svg,.md,.markdown,.json,.xml,.ts,.scss,.jsx" class="file-input-hidden" id="input-import-file" type="file"/>
-              </div>
-
-              <div class="scroll-fade scroll-fade-left" aria-hidden="true"><span class="scroll-fade-arrow">‹</span></div>
-              <div class="scroll-fade scroll-fade-right" aria-hidden="true"><span class="scroll-fade-arrow">›</span></div>
+              </div></div>
+              <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--right" data-scroll-direction="right" aria-label="Ver mais botões" type="button">›</button>
             </div>
 
             <div class="browser-tabs-fixed-right">
@@ -357,21 +357,22 @@
         initialized: false
       };
 
-      /* Toast mínimo (mesma marcação/classes cl-toast-* de global.css
+      /* Toast mínimo (mesma marcação/classes cl-toast--* de global.css
          usadas na Landing), só pra CL.api._handleError conseguir
-         avisar o aluno se uma gravação no Firestore falhar. */
+         avisar o aluno se uma operação local falhar. */
       CL.ui = CL.ui || {};
       CL.ui.showToast = function (message, type, duration) {
         type = type || "info";
+        if (type === "danger") type = "error";
         duration = duration || CL.config.toastDuration;
 
         var root = document.getElementById("cl-toast-root");
         if (!root) return;
 
-        var icons = { info: "ℹ", success: "✔", warning: "⚠", danger: "✖" };
+        var icons = { info: "ℹ", success: "✔", warning: "⚠", error: "✖" };
 
         var toast = document.createElement("div");
-        toast.className = "cl-toast cl-toast-" + type;
+        toast.className = "cl-toast cl-toast--" + type;
         toast.innerHTML =
           '<span class="cl-toast-icon">' + (icons[type] || icons.info) + '</span>' +
           '<div class="cl-toast-content"><span class="cl-toast-title"></span></div>' +
@@ -387,21 +388,22 @@
   </script>
 
   <script defer src="assets/js/firebase-init.js"></script>
-  <script defer src="assets/js/auth.js"></script>
-  <script defer src="assets/js/api.js"></script>
+  <script defer src="assets/js/auth.js?v=local-study-20260901-1"></script>
+  <script defer src="assets/js/api.js?v=local-study-20260901-1"></script>
 
   <!-- Dados do curso (módulos/etapas) e motor de renderização da
        trilha — os mesmos usados na trilha de módulos da Dashboard. -->
-  <script defer src="assets/js/curso-data.js?v=trilha-controls-20260824-1"></script>
+  <script defer src="assets/js/curso-data.js?v=local-study-20260901-1"></script>
   <script defer src="assets/content/catalogo-automatico.js"></script>
   <script defer src="assets/content/catalogo-manual.js"></script>
   <script defer src="assets/content/modo.js"></script>
   <script defer src="assets/js/curso-etapas-loader.js"></script>
-    <script defer src="assets/js/trilha.js?v=trilha-inicio-240-20260829-1"></script>
+    <script defer src="assets/js/trilha.js?v=local-study-20260901-1"></script>
 
   <!-- Diagnósticos oficiais do TypeScript em pt-BR. Deve carregar antes da IDE. -->
   <script defer src="assets/js/dicionario-typescript-pt-br.js?v=ts-diagnostics-20260824-1"></script>
-  <script defer src="assets/js/ide.js?v=ide-course-icon-logprog-20260829-2"></script>
+  <script defer src="assets/js/scrollable-controls.js"></script>
+    <script defer src="assets/js/ide.js?v=ide-buttons-20260902-1"></script>
 
 </body>
 </html>

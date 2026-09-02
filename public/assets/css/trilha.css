@@ -123,6 +123,21 @@ body:has(#cl-app[data-page="course"]) {
     url("../images/trilha-bg-js.png");
 }
 
+/* No mapa da trilha, a arte aparece um pouco mais presente. O índice
+   conserva os 55% definidos acima por usar .trilha-container--indice. */
+.trilha-container:not(.trilha-container--indice)[data-curso="html"] {
+  background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-html.png");
+}
+.trilha-container:not(.trilha-container--indice)[data-curso="programming-logic"] {
+  background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-logprog.png");
+}
+.trilha-container:not(.trilha-container--indice)[data-curso="css"] {
+  background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-css.png");
+}
+.trilha-container:not(.trilha-container--indice)[data-curso="js"] {
+  background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-js.png");
+}
+
 .indice-modulo-nav {
   position: sticky;
   top: 0;
@@ -324,8 +339,14 @@ body:has(#cl-app[data-page="course"]) {
   top: 1rem;
   left: 1rem;
   display: inline-flex;
+  max-width: calc(100% - 2rem);
   padding: .25rem;
   gap: .2rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
   border: 1px solid color-mix(in srgb, var(--cl-border, #586e75) 75%, transparent);
   border-radius: .7rem;
   background: color-mix(in srgb, var(--cl-surface, #073642) 88%, transparent);
@@ -334,6 +355,7 @@ body:has(#cl-app[data-page="course"]) {
 }
 
 .trilha-layout-controle {
+  flex: 0 0 auto;
   border: 0;
   border-radius: .5rem;
   padding: .55rem .75rem;
@@ -403,6 +425,8 @@ body:has(#cl-app[data-page="course"]) {
 
 .curso-indice__cabecalho h1 { margin: .2rem 0 .4rem; font-size: clamp(1.45rem, 3vw, 2.2rem); }
 .curso-indice__cabecalho p { margin: 0; color: var(--cl-text-muted, #93a1a1); }
+[data-theme="solarized-dark"] .curso-indice__cabecalho p { color: #fff; }
+[data-theme="solarized-light"] .curso-indice__cabecalho p { color: #002b36; }
 .curso-indice__sobretitulo { color: var(--cl-primary, #268bd2) !important; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .curso-indice__progresso { height: .55rem; overflow: hidden; border-radius: 999px; background: var(--cl-surface-2, #073642); }
 .curso-indice__progresso span { display: block; height: 100%; border-radius: inherit; background: var(--cl-success, #859900); transition: width .2s ease; }
@@ -453,10 +477,26 @@ body:has(#cl-app[data-page="course"]) {
   transition: stroke .2s ease, opacity .2s ease;
 }
 
+/* Contorno branco do caminho: o SVG fica atrás dos nós, e este traço mais
+   largo é criado antes da linha principal para aparecer somente nas bordas. */
+.trilha-path-contorno {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-dasharray: 2 14;
+  opacity: .85;
+}
+
 /* Trecho já percorrido (nó de chegada concluído/atual) = linha
    sólida e na cor de sucesso, tipo "caminho já andado". */
 .trilha-path-segmento.is-andado {
   stroke: var(--cl-success, #859900);
+  stroke-dasharray: none;
+  opacity: 1;
+}
+
+.trilha-path-contorno.is-andado {
   stroke-dasharray: none;
   opacity: 1;
 }
@@ -479,7 +519,9 @@ body:has(#cl-app[data-page="course"]) {
   align-items: center;
   gap: 0;
   position: relative;
-  z-index: 1; /* fica acima do SVG do caminho */
+  /* Cada módulo forma uma camada acima do SVG (z-index: 0), para a
+     linha desaparecer atrás do nó em qualquer ponto de cruzamento. */
+  z-index: 10;
 }
 
 /* Zigue-zague: alternado por CLASSE (aplicada pelo trilha.js),
@@ -593,9 +635,6 @@ body:has(#cl-app[data-page="course"]) {
 .trilha-node--current {
   border-color: var(--cl-primary, #268bd2);
   box-shadow: 0 0 0 4px rgba(38, 139, 210, .22);
-  /* O módulo atual mantém o indicador azul, mas usa a mesma transparência
-     visual dos demais cards ainda não concluídos. */
-  opacity: .5;
 }
 
 .trilha-node--current .trilha-node-numero {
@@ -607,9 +646,16 @@ body:has(#cl-app[data-page="course"]) {
 }
 
 .trilha-node--locked {
-  opacity: .5;
-  filter: grayscale(.4);
+  /* Não reduzimos a opacidade do botão: a superfície precisa continuar
+     opaca para esconder o SVG que passa atrás do módulo. */
+  filter: grayscale(.4) brightness(.82);
   cursor: not-allowed;
+}
+
+/* A regra geral do painel reduz elementos com aria-disabled no tema claro.
+   Nesta trilha, a bolinha precisa permanecer opaca para encobrir o SVG. */
+[data-theme="solarized-light"] #cl-main .trilha-node[aria-disabled="true"] {
+  opacity: 1;
 }
 
 /* Os três controles periféricos pertencem ao mesmo sistema visual.

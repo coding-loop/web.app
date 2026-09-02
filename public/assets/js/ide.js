@@ -7,11 +7,9 @@
    = true antes de carregar este arquivo): exige sessão válida
    antes de montar qualquer coisa.
 
-   Progresso e código do aluno NÃO ficam mais em localStorage —
-   tudo vive no Firestore via CL.api (ver assets/js/api.js):
-     - users/{uid}.idePosition                    -> módulo/etapa atual
-     - users/{uid}/progress/{moduloId:step}        -> concluída? / % de acerto
-     - users/{uid}/exercises/{moduloId:step}        -> {html, css, js} salvos
+   Progresso, posição e código ficam no armazenamento local por usuário,
+   via CL.api (ver assets/js/api.js). A portabilidade entre dispositivos
+   acontece pelos destinos de backup configurados pelo aluno.
 
    Depende de (carregados ANTES deste arquivo, em ide.html):
    firebase-init.js, auth.js, api.js e o SDK do Monaco.
@@ -23,8 +21,8 @@
   var CL = window.CL;
 
   // Chamada pelo bootIde() (no rodapé deste arquivo) depois que o
-  // guard de autenticação passou e os dados do Firestore já foram
-  // carregados. progressoCarregado/exerciciosCarregado/posicaoCarregada
+  // guard de autenticação passou e os dados locais já foram carregados.
+  // progressoCarregado/exerciciosCarregado/posicaoCarregada
   // vêm de CL.api.listProgress()/listExercises()/getProfile().
   function iniciarTeoria(progressoCarregado, exerciciosCarregado, posicaoCarregada) {
     // ==========================================================
@@ -181,12 +179,10 @@
 
     // ==========================================================
     // PROGRESSO POR ETAPA (concluído / % de acerto / reset)
-    // Antes vivia no localStorage; agora fica em Firestore
-    // (users/{uid}/progress/{moduloId:step}), via CL.api.
+    // Vive no armazenamento local por usuário, via CL.api.
     // Para evitar leituras assíncronas espalhadas pela UI, tudo é
     // carregado uma vez no boot (ver bootIde) para este cache em
-    // memória, e as escritas seguem "fire and forget" para o
-    // Firestore (CL.api já mostra um toast se a escrita falhar).
+    // memória, e as escritas seguem "fire and forget" para CL.api.
     // ==========================================================
     let progressoEtapasCache = progressoCarregado || {};
 
@@ -255,14 +251,14 @@
     // mais uma lista de texto com todos os módulos. O motor visual
     // (CL.trilha) e os dados dos nós (CL.curso.buildEtapaNodes) são
     // compartilhados com a trilha de Módulos da Dashboard.
-    const indiceTituloEl = document.getElementById('indice-titulo-modulo');
-    // `indice=trilha|lista` é enviado pela trilha de módulos para abrir
-    // diretamente o painel de etapas no formato correspondente.
-    const indiceSolicitadoNaUrl = new URLSearchParams(window.location.search).get('indice');
+    // A preferência definida em Configurações é a fonte única para os dois
+    // níveis de aprendizagem: módulos no dashboard e etapas na plataforma.
+    // Não deixamos um parâmetro antigo da URL substituir essa escolha.
     const layoutAprendizagem = window.localStorage.getItem('cl-layout-aprendizagem') || 'mapa';
-    let indiceLayoutAtual = indiceSolicitadoNaUrl === 'lista'
-      ? 'lista'
-      : (indiceSolicitadoNaUrl === 'trilha' ? 'trilha' : (layoutAprendizagem === 'indice' ? 'lista' : 'trilha'));
+    let indiceLayoutAtual = layoutAprendizagem === 'indice' ? 'lista' : 'trilha';
+    // A URL decide apenas se o índice deve iniciar aberto. O formato visual
+    // continua obedecendo exclusivamente à preferência das Configurações.
+    const indiceSolicitadoNaUrl = new URLSearchParams(window.location.search).get('indice');
 
     function escaparTextoIndice(valor) {
       return String(valor == null ? '' : valor)
@@ -310,38 +306,70 @@
 
     function renderIndice() {
       const modulo = getModuloAtual();
-      if (indiceTituloEl) {
-        indiceTituloEl.textContent = 'Módulo ' + (currentModuleIndex + 1) + ' de ' + MODULOS.length + ': ' + modulo.nome;
+      const cursoId = cursoAtualId;
+
+      /* Etapas e módulos compartilham a mesma identidade do curso: fundo
+         ilustrado, pegadas e banner Code Path com a logo correspondente. */
+      indiceListaEl.setAttribute('data-curso', cursoId);
+      indicePanelEl.setAttribute('data-curso', cursoId);
+      // O banner é um aprimoramento visual. A guarda evita interromper a
+      // IDE caso o navegador ainda tenha uma versão anterior de trilha.js
+      // em cache, que ainda não expõe atualizarTituloFixo.
+      if (CL.trilha && typeof CL.trilha.atualizarTituloFixo === 'function') {
+        CL.trilha.atualizarTituloFixo(indiceListaEl, {
+          cursoId: cursoId,
+          titleHost: indicePanelEl
+        });
       }
 
       const nodes = CL.curso.buildEtapaNodes(modulo, progressoEtapasCache, currentStep);
 
       if (indiceLayoutAtual === 'lista') {
+        // Esta classe é exclusiva do índice de módulos e reserva espaço
+        // para um banner absoluto; nas etapas ela criaria um vão indevido.
+        indiceListaEl.classList.remove('trilha-container--indice');
         renderIndiceLinear(modulo, nodes);
         return;
       }
 
       indiceListaEl.classList.remove('indice-lista--linear');
+      indiceListaEl.classList.remove('trilha-container--indice');
 
-      CL.trilha.render(indiceListaEl, {
-        nodes: nodes,
-        onSelect: function (nodeId) {
-          const numero = parseInt(nodeId.split(':').pop(), 10);
-          if (!numero) return;
-          prepararTrocaDeEtapa();
-          currentStep = numero;
-          updateStepsUI();
-          fecharIndice();
-        },
-        onReset: function (nodeId) {
-          const numero = parseInt(nodeId.split(':').pop(), 10);
-          if (!numero) return;
-          const confirmado = window.confirm('Refazer esta etapa? O progresso e o código salvo dela serão apagados.');
-          if (!confirmado) return;
-          resetarProgressoEtapa(modulo.id, numero);
-          renderIndice();
+      try {
+        if (!CL.trilha || typeof CL.trilha.render !== 'function') {
+          throw new Error('Motor visual da trilha indisponível.');
         }
-      });
+
+        CL.trilha.render(indiceListaEl, {
+          nodes: nodes,
+          cursoId: cursoId,
+          layout: 'logprog-ziguezague',
+          onSelect: function (nodeId) {
+            const numero = parseInt(nodeId.split(':').pop(), 10);
+            if (!numero) return;
+            prepararTrocaDeEtapa();
+            currentStep = numero;
+            updateStepsUI();
+            fecharIndice();
+          },
+          onReset: function (nodeId) {
+            const numero = parseInt(nodeId.split(':').pop(), 10);
+            if (!numero) return;
+            const confirmado = window.confirm('Refazer esta etapa? O progresso e o código salvo dela serão apagados.');
+            if (!confirmado) return;
+            resetarProgressoEtapa(modulo.id, numero);
+            renderIndice();
+          }
+        });
+      } catch (erroTrilha) {
+        // A navegação e o editor são mais importantes que o desenho do mapa.
+        // Se o motor visual falhar, o índice continua utilizável em cards e
+        // iniciarTeoria consegue terminar normalmente.
+        console.error('[ide] falha ao desenhar a trilha das etapas; usando índice em cards:', erroTrilha);
+        indiceLayoutAtual = 'lista';
+        indiceListaEl.classList.remove('trilha-container--indice');
+        renderIndiceLinear(modulo, nodes);
+      }
     }
 
     function fecharIndice() {
@@ -354,8 +382,12 @@
     function abrirIndice() {
       renderIndice();
       indicePanelEl.hidden = false;
+      // O painel é reutilizado ao alternar etapas; sempre reabre no início,
+      // logo abaixo do banner Code Path.
+      indicePanelEl.scrollTop = 0;
       theoryContentEl.hidden = true;
       toggleIndiceBtn.classList.add('is-active');
+      toggleIndiceBtn.setAttribute('aria-expanded', 'true');
     }
 
     toggleIndiceBtn.addEventListener('click', function () {
@@ -369,53 +401,79 @@
       return getEtapasDoModulo()[currentStep - 1];
     };
 
+    const ABAS_DA_ETAPA = ['conteudo', 'questoes', 'exercicio', 'desafio'];
+    let abaAtualDaEtapa = 'conteudo';
+
+    function desafioPadraoDaEtapa(etapa) {
+      return '<p>Agora aplique o que estudou com mais autonomia. Revise o resultado no Preview antes de avançar.</p>' +
+        '<div class="task-box"><strong>Desafio:</strong> ' + etapa.missao + '</div>';
+    }
+
     function renderEtapas() {
       moduleTitleEl.textContent = getModuloAtual().nome;
-      const totalEtapas = getTotalEtapas();
 
       theoryContentEl.innerHTML = getEtapasDoModulo().map(function (etapa, i) {
         const numero = i + 1;
-        const ehPrimeira = numero === 1;
-        const ehUltima = numero === totalEtapas;
-
-        // Botão de voltar (canto superior esquerdo do card): na 1ª etapa
-        // do módulo leva pra trilha de módulos na Dashboard; nas demais,
-        // volta pra etapa anterior.
-        const tituloVoltar = ehPrimeira ? 'Voltar para a Trilha de Módulos' : 'Etapa Anterior';
         const btnVoltar =
-          '<button type="button" class="step-nav-btn step-nav-btn--back" data-step-action="back" title="' + tituloVoltar + '" aria-label="' + tituloVoltar + '">' +
+          '<button type="button" class="step-nav-btn step-nav-btn--back" data-step-action="back" title="Voltar" aria-label="Voltar">' +
             '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>' +
           '</button>';
-
-        // Botão de avançar (depois do fim do conteúdo, canto inferior
-        // direito): na última etapa leva pra trilha de módulos (pra
-        // aluno escolher o próximo módulo, se já destravado); nas
-        // demais, avança pra próxima etapa.
-        const tituloAvancar = ehUltima ? 'Concluir e Ir para a Trilha de Módulos' : 'Próxima Etapa';
         const btnAvancar =
           '<div class="step-nav-footer">' +
-            '<button type="button" class="step-nav-btn step-nav-btn--next" data-step-action="next" title="' + tituloAvancar + '" aria-label="' + tituloAvancar + '">' +
-              '<span>' + (ehUltima ? 'Concluir módulo' : 'Próxima etapa') + '</span>' +
+            '<button type="button" class="step-nav-btn step-nav-btn--next" data-step-action="next" title="Avançar" aria-label="Avançar">' +
+              '<span></span>' +
               '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>' +
             '</button>' +
           '</div>';
 
         return (
           '<section class="step-card' + (i === 0 ? ' active' : '') + '" data-step="' + numero + '">' +
-            btnVoltar +
-            '<h3>' + etapa.titulo + '</h3>' +
-            etapa.texto +
-            '<div class="task-box"><strong>Missão:</strong> ' + etapa.missao + '</div>' +
+            '<div class="step-navigation">' + btnVoltar +
+            '<div class="step-tabs-scroll-wrapper cl-scrollable-controls" data-scrollable-controls><button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--left" data-scroll-direction="left" aria-label="Ver abas anteriores" type="button">‹</button><div class="step-tabs-viewport" data-scroll-viewport><div class="step-tabs" role="tablist" aria-label="Seções da etapa ' + numero + '">' +
+              '<button type="button" class="step-tab" data-step-tab="conteudo" role="tab">Conteúdo</button>' +
+              '<button type="button" class="step-tab" data-step-tab="questoes" role="tab">Questões</button>' +
+              '<button type="button" class="step-tab" data-step-tab="exercicio" role="tab">Exercício</button>' +
+              '<button type="button" class="step-tab" data-step-tab="desafio" role="tab">Desafio</button>' +
+            '</div></div><button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--right" data-scroll-direction="right" aria-label="Ver mais abas" type="button">›</button></div></div>' +
+            '<div class="step-section" data-step-section="conteudo" role="tabpanel"><h3>' + etapa.titulo + '</h3>' + etapa.texto + '</div>' +
+            '<div class="step-section" data-step-section="questoes" role="tabpanel" hidden><h3>Questões</h3><p>Revise o conteúdo desta etapa antes de seguir para o exercício.</p></div>' +
+            '<div class="step-section" data-step-section="exercicio" role="tabpanel" hidden><h3>Exercício</h3><div class="task-box"><strong>Missão:</strong> ' + etapa.missao + '</div></div>' +
+            '<div class="step-section" data-step-section="desafio" role="tabpanel" hidden><h3>Desafio</h3>' + (etapa.desafio || desafioPadraoDaEtapa(etapa)) + '</div>' +
             btnAvancar +
           '</section>'
         );
       }).join('');
+      if (window.CLScrollableControls) window.CLScrollableControls.refresh(theoryContentEl);
+    }
+
+    function atualizarAbasDaEtapa() {
+      const card = theoryContentEl.querySelector('.step-card.active');
+      if (!card) return;
+      card.querySelectorAll('[data-step-tab]').forEach(function (tab) {
+        const ativa = tab.getAttribute('data-step-tab') === abaAtualDaEtapa;
+        tab.classList.toggle('is-active', ativa);
+        tab.setAttribute('aria-selected', String(ativa));
+        tab.tabIndex = ativa ? 0 : -1;
+      });
+      card.querySelectorAll('[data-step-section]').forEach(function (section) {
+        section.hidden = section.getAttribute('data-step-section') !== abaAtualDaEtapa;
+      });
+      const voltar = card.querySelector('[data-step-action="back"]');
+      const avancar = card.querySelector('[data-step-action="next"]');
+      const voltarTexto = abaAtualDaEtapa === 'desafio' ? 'Voltar para exercício' : (abaAtualDaEtapa === 'exercicio' ? 'Voltar para questões' : (abaAtualDaEtapa === 'questoes' ? 'Voltar para conteúdo' : (currentStep === 1 ? 'Voltar para a trilha de módulos' : 'Voltar para desafio anterior')));
+      const avancarTexto = abaAtualDaEtapa === 'conteudo' ? 'Ir para questões' : (abaAtualDaEtapa === 'questoes' ? 'Ir para exercício' : (abaAtualDaEtapa === 'exercicio' ? 'Ir para desafio' : (currentStep === getTotalEtapas() ? 'Concluir módulo' : 'Próxima etapa')));
+      voltar.title = voltarTexto; voltar.setAttribute('aria-label', voltarTexto);
+      avancar.title = avancarTexto; avancar.setAttribute('aria-label', avancarTexto);
+      avancar.querySelector('span').textContent = avancarTexto;
+      theoryContentEl.scrollTop = 0;
     }
 
     function updateStepsUI() {
       document.querySelectorAll('.step-card').forEach(function (card) {
         card.classList.toggle('active', parseInt(card.dataset.step, 10) === currentStep);
       });
+
+      atualizarAbasDaEtapa();
 
       const totalEtapas = getTotalEtapas();
 
@@ -448,6 +506,12 @@
     // trilha de módulos (onde o próximo módulo, agora destravado, pode
     // ser escolhido).
     function avancarNaEtapa() {
+      const indiceAba = ABAS_DA_ETAPA.indexOf(abaAtualDaEtapa);
+      if (indiceAba < ABAS_DA_ETAPA.length - 1) {
+        abaAtualDaEtapa = ABAS_DA_ETAPA[indiceAba + 1];
+        atualizarAbasDaEtapa();
+        return;
+      }
       const etapaConcluidaAgora = window.getEtapaAtual();
       const moduloIdAtual = getModuloAtual().id;
       const percentualCalculado = calcularPercentualEtapa(etapaConcluidaAgora);
@@ -458,6 +522,7 @@
       if (currentStep < getTotalEtapas()) {
         prepararTrocaDeEtapa();
         currentStep++;
+        abaAtualDaEtapa = 'conteudo';
         updateStepsUI();
         return;
       }
@@ -473,9 +538,16 @@
     // Volta na etapa atual: se não for a 1ª do módulo, volta pra etapa
     // anterior; se for a 1ª, volta pra trilha de módulos.
     function voltarNaEtapa() {
+      const indiceAba = ABAS_DA_ETAPA.indexOf(abaAtualDaEtapa);
+      if (indiceAba > 0) {
+        abaAtualDaEtapa = ABAS_DA_ETAPA[indiceAba - 1];
+        atualizarAbasDaEtapa();
+        return;
+      }
       if (currentStep > 1) {
         prepararTrocaDeEtapa();
         currentStep--;
+        abaAtualDaEtapa = 'desafio';
         updateStepsUI();
         return;
       }
@@ -486,6 +558,12 @@
     // direita "avançar", ver renderEtapas). Delegado no container, já
     // que os cards são recriados a cada troca de módulo.
     theoryContentEl.addEventListener('click', function (e) {
+      const aba = e.target.closest('[data-step-tab]');
+      if (aba) {
+        abaAtualDaEtapa = aba.getAttribute('data-step-tab');
+        atualizarAbasDaEtapa();
+        return;
+      }
       const btnVoltarEtapa = e.target.closest('[data-step-action="back"]');
       if (btnVoltarEtapa) {
         voltarNaEtapa();
@@ -495,6 +573,23 @@
       if (btnAvancarEtapa) {
         avancarNaEtapa();
       }
+    });
+
+    theoryContentEl.addEventListener('keydown', function (e) {
+      const aba = e.target.closest('[data-step-tab]');
+      if (!aba) return;
+      const indiceAtual = ABAS_DA_ETAPA.indexOf(abaAtualDaEtapa);
+      let proximoIndice = indiceAtual;
+      if (e.key === 'ArrowRight') proximoIndice = Math.min(ABAS_DA_ETAPA.length - 1, indiceAtual + 1);
+      else if (e.key === 'ArrowLeft') proximoIndice = Math.max(0, indiceAtual - 1);
+      else if (e.key === 'Home') proximoIndice = 0;
+      else if (e.key === 'End') proximoIndice = ABAS_DA_ETAPA.length - 1;
+      else return;
+      e.preventDefault();
+      abaAtualDaEtapa = ABAS_DA_ETAPA[proximoIndice];
+      atualizarAbasDaEtapa();
+      const ativa = theoryContentEl.querySelector('.step-card.active [data-step-tab="' + abaAtualDaEtapa + '"]');
+      if (ativa) ativa.focus();
     });
 
     // ==========================================================
@@ -701,13 +796,39 @@
       const settings = CL.api.getBackupSettings();
       const data = CL.api.exportStudyData();
       const destinations = settings.destinations || [];
-      if (destinations.includes('computer')) await salvarBackupNoComputador(data);
-      if (destinations.includes('local')) CL.api.saveLocalBackup();
-      if (destinations.includes('drive')) await enviarBackupGoogleDrive(data, true);
-      if (destinations.includes('onedrive')) await enviarBackupOneDrive(data, true);
-      CL.api.saveBackupSettings({ lastBackupAt: data.exportedAt, lastBackupDestinations: destinations });
-      sincronizacaoNuvemPendente = false;
+      const tarefas = [];
+
+      function adicionarTarefa(destino, executar) {
+        tarefas.push(Promise.resolve().then(executar).then(function () { return destino; }));
+      }
+
+      if (destinations.includes('computer')) adicionarTarefa('computer', function () { return salvarBackupNoComputador(data); });
+      if (destinations.includes('local')) adicionarTarefa('local', function () { return CL.api.saveLocalBackup(); });
+      if (destinations.includes('drive')) adicionarTarefa('drive', function () { return enviarBackupGoogleDrive(data, true); });
+      if (destinations.includes('onedrive')) adicionarTarefa('onedrive', function () { return enviarBackupOneDrive(data, true); });
+
+      if (!tarefas.length) throw new Error('Selecione pelo menos um destino de backup.');
+
+      const resultados = await Promise.allSettled(tarefas);
+      const concluidos = resultados.filter(function (resultado) { return resultado.status === 'fulfilled'; })
+        .map(function (resultado) { return resultado.value; });
+      const falhas = resultados.filter(function (resultado) { return resultado.status === 'rejected'; });
+
+      if (concluidos.length) {
+        CL.api.saveBackupSettings({ lastBackupAt: data.exportedAt, lastBackupDestinations: concluidos });
+        sincronizacaoNuvemPendente = false;
+      }
       fecharMenuBackup();
+
+      if (falhas.length) {
+        const detalhe = falhas.map(function (resultado) {
+          return resultado.reason && resultado.reason.message ? resultado.reason.message : 'Falha desconhecida.';
+        }).join(' ');
+        const prefixo = concluidos.length
+          ? 'Backup concluído em ' + concluidos.length + ' destino(s), mas houve falha nos demais. '
+          : 'Não foi possível concluir o backup. ';
+        throw new Error(prefixo + detalhe);
+      }
     }
 
     let sincronizacaoNuvemPendente = false;
@@ -836,9 +957,12 @@
 
     function atualizarEstadoBotaoSalvarBackup() {
       if (!btnSaveBackupSettings) return;
-      btnSaveBackupSettings.disabled = false;
-      btnSaveBackupSettings.setAttribute('aria-disabled', 'false');
-      btnSaveBackupSettings.title = 'Salvar configurações';
+      const configuracaoCompleta = configuracaoBackupEstaCompleta();
+      btnSaveBackupSettings.disabled = !configuracaoCompleta;
+      btnSaveBackupSettings.setAttribute('aria-disabled', String(!configuracaoCompleta));
+      btnSaveBackupSettings.title = configuracaoCompleta
+        ? 'Salvar configurações'
+        : 'Conclua os destinos, a frequência e o tipo de backup';
     }
 
     async function atualizarAcoesDestino() {
@@ -1089,6 +1213,11 @@
       const fecharSemSalvar = event.submitter && event.submitter.classList.contains('backup-dialog-close');
       if (fecharSemSalvar && !window.confirm('Tem certeza que deseja sair sem configurar o backup?')) {
         event.preventDefault();
+        return;
+      }
+      const desejaSalvar = event.submitter && event.submitter.value === 'save';
+      if (desejaSalvar && !validarConfiguracaoBackup()) {
+        event.preventDefault();
       }
     });
 
@@ -1257,23 +1386,95 @@
     }
     setTimeout(abrirAvisoBackupSeNecessario, 350);
   } // fim de iniciarTeoria
-  // Chamada pelo bootIde() (rodapé deste arquivo) só depois que o Monaco
-  // estiver carregado E os dados do Firestore já tiverem
-  // chegado (iniciarTeoria já rodou, então window.getCodigoInicialParaEditor
-  // já reflete o código salvo do aluno, se houver).
+  // Chamada pelo bootIde() depois que os dados locais estiverem prontos e
+  // algum carregador do Monaco estiver disponível.
+  var MONACO_CDN_BASES = [
+    'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/',
+    'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/',
+    'https://unpkg.com/monaco-editor@0.52.0/min/'
+  ];
+
+  function carregarScriptExterno(src, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      var encerrado = false;
+      var timer = window.setTimeout(function () {
+        if (encerrado) return;
+        encerrado = true;
+        script.remove();
+        reject(new Error('Tempo esgotado ao carregar ' + src));
+      }, timeoutMs || 10000);
+
+      script.src = src;
+      script.async = true;
+      script.onload = function () {
+        if (encerrado) return;
+        encerrado = true;
+        window.clearTimeout(timer);
+        resolve(true);
+      };
+      script.onerror = function () {
+        if (encerrado) return;
+        encerrado = true;
+        window.clearTimeout(timer);
+        script.remove();
+        reject(new Error('Falha ao carregar ' + src));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function garantirCarregadorMonaco() {
+    if (window.require && typeof window.require.config === 'function') return true;
+    for (var indiceCdn = 0; indiceCdn < MONACO_CDN_BASES.length; indiceCdn += 1) {
+      try {
+        await carregarScriptExterno(MONACO_CDN_BASES[indiceCdn] + 'vs/loader.js', 10000);
+        if (window.require && typeof window.require.config === 'function') return true;
+      } catch (erroCdn) {
+        if (CL.config && CL.config.debug) console.warn('[ide] CDN do Monaco indisponível:', erroCdn);
+      }
+    }
+    return false;
+  }
+
+  function mostrarFalhaDoEditor() {
+    var mensagem = 'O editor não pôde ser carregado. Verifique a conexão e recarregue a página.';
+    if (CL.ui && typeof CL.ui.showToast === 'function') CL.ui.showToast(mensagem, 'error', 12000);
+    var container = document.getElementById('main-window-container');
+    if (container) {
+      container.setAttribute('data-editor-error', 'true');
+      container.setAttribute('aria-label', mensagem);
+    }
+  }
+
   function iniciarEditorDeCodigo() {
-      if (!window.require) {
-        window.setTimeout(iniciarEditorDeCodigo, 50);
+      if (!window.require || typeof window.require.config !== 'function') {
+        mostrarFalhaDoEditor();
         return;
       }
-      window.MonacoEnvironment = {
-        getWorkerUrl: function () {
-          var codigoWorker = "self.MonacoEnvironment={baseUrl:'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/'};importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/base/worker/workerMain.js');";
-          return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(codigoWorker);
-        }
-      };
-      window.require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs' } });
-      window.require(['vs/editor/editor.main'], iniciar);
+      var indiceBaseMonaco = 0;
+
+      function carregarModulosMonaco() {
+        var baseMonaco = MONACO_CDN_BASES[indiceBaseMonaco];
+        window.MonacoEnvironment = {
+          getWorkerUrl: function () {
+            var codigoWorker = "self.MonacoEnvironment={baseUrl:'" + baseMonaco + "'};importScripts('" + baseMonaco + "vs/base/worker/workerMain.js');";
+            return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(codigoWorker);
+          }
+        };
+        window.require.config({ paths: { vs: baseMonaco + 'vs' } });
+        window.require(['vs/editor/editor.main'], iniciar, function (erroMonaco) {
+          indiceBaseMonaco += 1;
+          if (indiceBaseMonaco < MONACO_CDN_BASES.length) {
+            carregarModulosMonaco();
+            return;
+          }
+          if (CL.config && CL.config.debug) console.error('[ide] Monaco indisponível em todas as CDNs:', erroMonaco);
+          mostrarFalhaDoEditor();
+        });
+      }
+
+      carregarModulosMonaco();
 
       function iniciar() {
         var htmlEditor, cssEditor, jsEditor, debounceTimeout, itemArrastado = null;
@@ -1318,6 +1519,32 @@
         var chkTogglePreview = document.getElementById('chk-toggle-preview');
         var dragContainer = document.getElementById('tabs-draggable-container');
         var tabsScrollWrapper = document.getElementById('tabs-scroll-wrapper');
+        var tabsScrollViewport = tabsScrollWrapper && tabsScrollWrapper.querySelector('[data-scroll-viewport]');
+
+        /* A barra da IDE usa o próprio viewport: as setas não dependem de
+           propagação de evento nem do botão Live, que fica fora da área
+           rolável. */
+        if (tabsScrollWrapper && tabsScrollViewport) {
+          tabsScrollWrapper.querySelectorAll('[data-scroll-direction]').forEach(function (botao) {
+            botao.addEventListener('click', function (evento) {
+              evento.preventDefault();
+              evento.stopPropagation();
+              var direcao = botao.getAttribute('data-scroll-direction') === 'left' ? -1 : 1;
+              var limite = Math.max(0, tabsScrollViewport.scrollWidth - tabsScrollViewport.clientWidth);
+              var distancia = Math.max(120, Math.floor(tabsScrollViewport.clientWidth * .72));
+              tabsScrollViewport.scrollTo({
+                left: Math.max(0, Math.min(limite, tabsScrollViewport.scrollLeft + (direcao * distancia))),
+                behavior: 'smooth'
+              });
+              requestAnimationFrame(atualizarIndicadoresRolagem);
+            });
+          });
+          tabsScrollViewport.addEventListener('scroll', atualizarIndicadoresRolagem, { passive: true });
+          if (window.ResizeObserver) {
+            new ResizeObserver(atualizarIndicadoresRolagem).observe(tabsScrollViewport);
+          }
+          requestAnimationFrame(atualizarIndicadoresRolagem);
+        }
 
         var paiOriginal = mainWindowContainer.parentNode;
         var irmaoOriginal = mainWindowContainer.nextSibling;
@@ -1797,6 +2024,23 @@
           var anotacoes = [];
           var listenersDeAnotacao = [];
           var editorDescartado = false;
+          var historicoEstado = { undo: 0, redo: 0 };
+
+          model.onDidChangeContent(function (evento) {
+            if (evento.isFlush) {
+              historicoEstado.undo = 0;
+              historicoEstado.redo = 0;
+            } else if (evento.isUndoing) {
+              historicoEstado.undo = Math.max(0, historicoEstado.undo - 1);
+              historicoEstado.redo += 1;
+            } else if (evento.isRedoing) {
+              historicoEstado.redo = Math.max(0, historicoEstado.redo - 1);
+              historicoEstado.undo += 1;
+            } else {
+              historicoEstado.undo += 1;
+              historicoEstado.redo = 0;
+            }
+          });
 
           function avisarAlteracaoDeAnotacoes() {
             listenersDeAnotacao.forEach(function (listener) { listener(); });
@@ -1809,11 +2053,8 @@
             },
             getUndoManager: function () {
               return {
-                // O Monaco não expõe a consulta pública da pilha. Seus
-                // comandos são no-op seguros quando ela está vazia, portanto
-                // mantemos os controles disponíveis em vez de travar Refazer.
-                hasUndo: function () { return true; },
-                hasRedo: function () { return true; }
+                hasUndo: function () { return historicoEstado.undo > 0; },
+                hasRedo: function () { return historicoEstado.redo > 0; }
               };
             },
             getAnnotations: function () { return anotacoes.slice(); },
@@ -2245,7 +2486,9 @@
           arquivosExtras.forEach(function (arquivo) {
             var aba = dragContainer.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
             var painel = document.getElementById(arquivo.idPane);
-            if (arquivo.ouvinteMarcadoresNativos) arquivo.ouvinteMarcadoresNativos.dispose();
+            clearTimeout(arquivo.validacaoTimeout);
+            if (arquivo.layoutFrame) cancelAnimationFrame(arquivo.layoutFrame);
+            if (arquivo.editor && typeof arquivo.editor.dispose === 'function') arquivo.editor.dispose();
             if (aba) aba.remove();
             if (painel) painel.remove();
           });
@@ -2393,13 +2636,11 @@
         }
 
         function atualizarIndicadoresRolagem() {
-          if (!tabsScrollWrapper || !dragContainer) return;
+          if (!tabsScrollWrapper || !tabsScrollViewport) return;
+          var limite = Math.max(0, tabsScrollViewport.scrollWidth - tabsScrollViewport.clientWidth);
           var margem = 2;
-          var podeRolarEsquerda = dragContainer.scrollLeft > margem;
-          var maximoRolagem = dragContainer.scrollWidth - dragContainer.clientWidth;
-          var podeRolarDireita = dragContainer.scrollLeft < (maximoRolagem - margem);
-          tabsScrollWrapper.classList.toggle('can-scroll-left', podeRolarEsquerda);
-          tabsScrollWrapper.classList.toggle('can-scroll-right', podeRolarDireita);
+          tabsScrollWrapper.classList.toggle('can-scroll-left', tabsScrollViewport.scrollLeft > margem);
+          tabsScrollWrapper.classList.toggle('can-scroll-right', tabsScrollViewport.scrollLeft < limite - margem);
         }
 
         var TAGS_VAZIAS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
@@ -2949,6 +3190,7 @@
               paiOriginal.appendChild(mainWindowContainer);
             }
             alternarIcones(iconMaximize, iconMinimize, false);
+            btnMaximizeToggle.setAttribute('aria-pressed', 'false');
           }
 
           setTimeout(redimensionarEditores, 50);
@@ -3646,6 +3888,7 @@
             document.body.classList.remove('ide-fullscreen-lock');
           }
           alternarIcones(iconMaximize, iconMinimize, telaCheia);
+          btnMaximizeToggle.setAttribute('aria-pressed', String(telaCheia));
           reajustarPaineisParaNovaArea();
         });
 
@@ -3657,7 +3900,6 @@
           atualizarIndicadoresRolagem();
         });
 
-        dragContainer.addEventListener('scroll', atualizarIndicadoresRolagem, { passive: true });
 
         btnPreviewLayout.addEventListener('click', function () {
           abrirJanela();
@@ -3723,13 +3965,11 @@
         if (chkTogglePreview.checked) mostrarPreview();
         setTimeout(redimensionarEditores, 100);
       }
-
-      iniciar();
   } // fim de iniciarEditorDeCodigo
 
   /* ==========================================================
      BOOT — guarda a página (redireciona pra Landing se não
-     houver sessão), carrega o progresso do aluno no Firestore
+     houver sessão), carrega o progresso local do aluno
      e só então liga a teoria (módulos/etapas) e o editor Monaco.
      ========================================================== */
   async function bootIde() {
@@ -3748,20 +3988,26 @@
 
     // Sem sessão válida, CL.auth.guard() já redireciona pra Landing
     // (?reason=unauthenticated) e devolve false. Nesse caso não faz
-    // sentido montar o editor nem gastar leituras no Firestore.
+    // sentido montar o editor nem carregar os dados de estudo.
     var autenticado = await CL.auth.guard();
     if (!autenticado) return;
 
     if (CL.curso && CL.curso.conteudoPronto) {
-      await CL.curso.conteudoPronto;
+      try {
+        await CL.curso.conteudoPronto;
+      } catch (erroConteudo) {
+        // Um arquivo complementar não pode manter toda a IDE numa tela
+        // parada. curso-data.js já contém a estrutura-base necessária.
+        console.error('[ide] parte do conteúdo complementar não carregou:', erroConteudo);
+      }
     }
 
     var progressoCarregado = {};
     var exerciciosCarregado = {};
     var posicaoCarregada = null;
 
-    // Timeout de segurança: em redes lentas (o long-polling do
-    // Firestore pode demorar dezenas de segundos), não faz sentido
+    // Timeout defensivo para adaptadores futuros de persistência. A
+    // implementação local atual normalmente termina imediatamente.
     // deixar a tela inteira travada esperando. Se passar de 6s, a
     // IDE libera a tela com o progresso vazio (igual já acontecia
     // no catch abaixo pra erro de rede) — o carregamento real
@@ -3777,20 +4023,20 @@
     }
 
     try {
-      var chamadaFirestore = Promise.all([
+      var carregamentoEstudo = Promise.all([
         CL.api.listProgress(),
         CL.api.listExercises(),
         CL.api.getProfile()
       ]);
 
-      var corrida = await comTimeout(chamadaFirestore, 6000);
+      var corrida = await comTimeout(carregamentoEstudo, 6000);
 
       if (corrida.expirou) {
         if (CL.config && CL.config.debug) {
-          console.warn('[ide] Firestore demorou mais de 6s; liberando a tela com progresso vazio nesta sessão.');
+          console.warn('[ide] A leitura dos dados demorou mais de 6s; liberando a tela com progresso vazio nesta sessão.');
         }
         if (CL.ui && typeof CL.ui.showToast === 'function') {
-          CL.ui.showToast('Sua conexão está lenta — abrindo com o progresso local. Recarregue mais tarde pra sincronizar o que estava salvo.', 'warning', 8000);
+          CL.ui.showToast('A leitura do progresso demorou — abrindo temporariamente sem os dados salvos.', 'warning', 8000);
         }
         // Não deixamos a UI travada esperando, mas também não tentamos
         // "reaplicar" o resultado tardio numa tela já montada — a
@@ -3812,20 +4058,16 @@
       // tela em branco (o aluno começa do zero nesta sessão, mas
       // volta a salvar normalmente a partir daqui).
       if (CL.config && CL.config.debug) {
-        console.error('[ide] falha ao carregar progresso do Firestore:', erro);
+        console.error('[ide] falha ao carregar os dados de estudo:', erro);
       }
     }
 
     iniciarTeoria(progressoCarregado, exerciciosCarregado, posicaoCarregada);
 
-    // O carregador AMD do Monaco vem antes deste arquivo. Mantemos o
-    // fallback defensivo do protótipo original só por
-    // segurança (ex.: script bloqueado/lento).
-    if (window.require) {
-      iniciarEditorDeCodigo();
-    } else {
-      window.addEventListener('load', iniciarEditorDeCodigo);
-    }
+    // O Monaco tenta três origens sem impedir a teoria e seus botões de
+    // funcionar caso uma CDN esteja lenta ou indisponível.
+    if (await garantirCarregadorMonaco()) iniciarEditorDeCodigo();
+    else mostrarFalhaDoEditor();
   }
 
   bootIde();
@@ -3834,7 +4076,7 @@
 
 /* ==========================================================
    REDIMENSIONADOR DE PAINÉIS (Teoria <-> IDE)
-   Não depende de autenticação nem de dados do Firestore.
+   Não depende de autenticação nem de dados de estudo.
    ========================================================== */
     (function () {
       var root = document.querySelector('.learning-platform-root');

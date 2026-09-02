@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — Coding Loop</title>
 
-    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/trilha.css?v=trilha-opacidade-indice-20260829-1">
 
@@ -126,7 +126,9 @@
                 <!-- ===================================================== -->
 
                 <nav aria-label='Navegação principal' id='cl-sidebar'>
-                    <ul class='cl-topbar-menu'>
+                    <div class='cl-course-tabs-scroll cl-scrollable-controls' id='course-tabs-scroll' data-scrollable-controls>
+                    <button class='cl-scroll-hint-arrow cl-scroll-hint-arrow--left' data-scroll-direction='left' aria-label='Ver cursos anteriores' type='button'>‹</button>
+                    <div class='cl-course-tabs-viewport' data-scroll-viewport><ul class='cl-topbar-menu'>
 
                         <!-- HTML -->
                         <li class='cl-topbar-item'>
@@ -268,7 +270,9 @@
                             </div>
                         </li>
 						-->
-                    </ul>
+                    </ul></div>
+                    <button class='cl-scroll-hint-arrow cl-scroll-hint-arrow--right' data-scroll-direction='right' aria-label='Ver mais cursos' type='button'>›</button>
+                    </div>
                 </nav>
 
                 <div id='cl-container'>
@@ -711,17 +715,17 @@
         </div><!-- /#coding-loop -->
 
     <script defer src="assets/js/firebase-init.js"></script>
-    <script defer src="assets/js/auth.js"></script>
-    <script defer src="assets/js/api.js"></script>
+    <script defer src="assets/js/auth.js?v=local-study-20260901-1"></script>
+    <script defer src="assets/js/api.js?v=local-study-20260901-1"></script>
 
     <!-- Dados do curso (módulos/etapas) e motor de renderização da
          trilha — compartilhados com o IDE (ver ide.html). -->
-    <script defer src="assets/js/curso-data.js?v=trilha-controls-20260824-1"></script>
+    <script defer src="assets/js/curso-data.js?v=local-study-20260901-1"></script>
     <script defer src="assets/content/catalogo-automatico.js"></script>
     <script defer src="assets/content/catalogo-manual.js"></script>
     <script defer src="assets/content/modo.js"></script>
     <script defer src="assets/js/curso-etapas-loader.js"></script>
-    <script defer src="assets/js/trilha.js?v=trilha-inicio-240-20260829-1"></script>
+    <script defer src="assets/js/trilha.js?v=local-study-20260901-1"></script>
 
     <!-- esta página exige sessão válida (ver CL.auth.guard, chamado por
          CL.boot.init em app.js) -->
@@ -730,13 +734,14 @@
     <script defer src="assets/js/router.js"></script>
 
     <!-- Liga a trilha de módulos à página "course" registrada acima. -->
-    <script defer src="assets/js/pagina-curso.js?v=logprog-course-icon-20260829-1"></script>
+    <script defer src="assets/js/scrollable-controls.js"></script>
+    <script defer src="assets/js/pagina-curso.js?v=local-study-20260901-1"></script>
     <script defer src="assets/js/pagina-dashboard.js"></script>
     <script defer src="assets/js/carrossel.js"></script>
     <script defer src="assets/js/pagina-perfil.js"></script>
     <script defer src="assets/js/pagina-configuracoes.js"></script>
 
-    <script defer src="assets/js/app.js"></script>
+    <script defer src="assets/js/app.js?v=toast-types-20260901-1"></script>
 
 </body>
 </html>

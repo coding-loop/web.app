@@ -1187,6 +1187,57 @@
       display: none;
     }
 
+    /* O plano de fundo pertence ao painel rolável, não ao conteúdo que
+       se desloca. Assim, as etapas passam por cima das pegadas sem levar
+       a imagem junto durante a rolagem. */
+    .indice-panel[data-curso] {
+      --indice-trilha-escurecimento: .4;
+      background-attachment: scroll;
+      background-position: center top;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-image: linear-gradient(rgb(0 0 0 / var(--indice-trilha-escurecimento)), rgb(0 0 0 / var(--indice-trilha-escurecimento))), var(--indice-trilha-imagem);
+    }
+
+    .indice-panel[data-curso]:has(.indice-lista--linear) {
+      --indice-trilha-escurecimento: .55;
+    }
+
+    .indice-panel[data-curso="programming-logic"] { --indice-trilha-imagem: url("../images/trilha-bg-logprog.png"); }
+    .indice-panel[data-curso="html"] { --indice-trilha-imagem: url("../images/trilha-bg-html.png"); }
+    .indice-panel[data-curso="css"] { --indice-trilha-imagem: url("../images/trilha-bg-css.png"); }
+    .indice-panel[data-curso="js"] { --indice-trilha-imagem: url("../images/trilha-bg-js.png"); }
+
+    /* O painel de etapas reutiliza o banner e a arte das trilhas de
+       módulos. No mapa, as etapas seguem o caminho de pegadas; no índice,
+       o mesmo fundo permanece atrás da lista. */
+    .indice-panel .trilha-titulo-fixo {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      pointer-events: none;
+      background: transparent;
+    }
+
+    .indice-panel .trilha-titulo-fixo img {
+      display: block;
+      width: min(75.5%, 900px);
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .indice-panel > .trilha-container[data-curso] {
+      width: 100%;
+      height: auto;
+      min-height: calc(100dvh - 12rem);
+      background-color: transparent;
+      /* A arte trilha-bg pertence somente ao .indice-panel fixo. */
+      background-image: none !important;
+    }
+
+    .indice-panel > .trilha-container .trilha-path-svg { z-index: 0; }
+    .indice-panel > .trilha-container .trilha-item { z-index: 10; }
+
     .indice-header {
       position: sticky;
       top: 0;
@@ -1243,9 +1294,15 @@
       padding: 8px 12px;
       border-bottom: 1px solid var(--cl-border, #e1e4e8);
       background: var(--cl-surface, #f0f2f5);
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
     }
 
     .indice-etapas-layout-controle {
+      flex: 0 0 auto;
       border: 1px solid transparent;
       border-radius: 5px;
       padding: 5px 8px;
@@ -1268,19 +1325,23 @@
       height: auto !important;
       min-height: 0 !important;
       overflow: visible !important;
-      background: var(--cl-bg, #f6f8fa) !important;
+      background: transparent !important;
     }
 
-    .indice-etapas-linear { display: grid; gap: 1px; padding: 0; margin: 0; list-style: none; }
-    .indice-etapas-linear__item { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--cl-border, #e1e4e8); }
-    .indice-etapas-linear__icone { color: var(--cl-primary, #3385FF); text-align: center; }
-    .indice-etapas-linear__item--completed .indice-etapas-linear__icone { color: var(--cl-success, #2da44e); }
-    .indice-etapas-linear__item--locked { opacity: .58; }
-    .indice-etapas-linear__item div { min-width: 0; display: grid; gap: 2px; }
-    .indice-etapas-linear__titulo { padding: 0; border: 0; color: var(--cl-text, #24292e); background: transparent; font: inherit; font-size: .86rem; font-weight: 700; text-align: left; overflow-wrap: anywhere; }
+    /* Etapas em índice usam os mesmos cards dos módulos: superfície
+       elevada, borda lateral por estado e destaque para a etapa atual. */
+    .indice-etapas-linear { display: grid; gap: .8rem; padding: 0; margin: 0; list-style: none; }
+    .indice-etapas-linear__item { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; gap: .8rem; align-items: center; padding: 1rem 1.1rem; border: 1px solid var(--cl-border, #586e75); border-left: 4px solid var(--cl-border, #586e75); border-radius: .75rem; background: var(--cl-surface, #073642); overflow: hidden; }
+    .indice-etapas-linear__item--completed { border-left-color: var(--cl-success, #859900); }
+    .indice-etapas-linear__item--current { border-left-color: var(--cl-primary, #268bd2); box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent); opacity: .7; }
+    .indice-etapas-linear__item--locked { opacity: .7; }
+    .indice-etapas-linear__icone { width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--cl-border, #586e75); border-radius: 50%; color: var(--cl-primary, #268bd2); text-align: center; font-weight: 700; }
+    .indice-etapas-linear__item--completed .indice-etapas-linear__icone { color: var(--cl-success, #859900); }
+    .indice-etapas-linear__item div { min-width: 0; display: grid; gap: .2rem; }
+    .indice-etapas-linear__titulo { padding: 0; border: 0; color: var(--cl-text, #24292e); background: transparent; font: inherit; font-size: .92rem; font-weight: 700; text-align: left; overflow-wrap: anywhere; }
     button.indice-etapas-linear__titulo { cursor: pointer; }
     button.indice-etapas-linear__titulo:hover, button.indice-etapas-linear__titulo:focus-visible { color: var(--cl-primary, #3385FF); text-decoration: underline; }
-    .indice-etapas-linear__item small { color: var(--cl-text-muted, #6a737d); font-size: .72rem; }
+    .indice-etapas-linear__item small { color: var(--cl-text-muted, #6a737d); font-size: .82rem; }
     .indice-etapas-linear__refazer { border: 0; padding: 4px 6px; color: var(--cl-danger, #cf222e); background: transparent; font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; }
 
     .indice-item-linha {
@@ -1418,19 +1479,105 @@
 
     .theory-content {
       flex: 1;
-      padding: 16px 20px;
+      padding: 16px 0 16px 20px;
       overflow-y: auto;
+      /* Reserva a faixa do scroll vertical para que controles laterais não
+         fiquem por baixo dele quando a etapa for extensa. */
+      scrollbar-gutter: stable;
     }
 
     .step-card {
       display: none;
       position: relative;
-      padding-top: 44px;
+      /* O retorno e as abas compartilham a mesma faixa horizontal. */
+      padding-top: 0;
     }
 
     .step-card.active {
       display: block;
     }
+
+    .step-navigation {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    .step-tabs-scroll-wrapper {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr) 26px;
+      align-items: center;
+      min-width: 0;
+      min-height: 32px;
+    }
+
+    .step-tabs-viewport {
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+
+    .step-tabs-viewport::-webkit-scrollbar { display: none; }
+
+    .step-tabs-scroll-wrapper .cl-scroll-hint-arrow {
+      position: static;
+      width: 26px;
+      height: 32px;
+      transform: none;
+    }
+
+    .step-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 32px;
+      margin: 0;
+      border-bottom: 1px solid var(--cl-border, #d0d7de);
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .step-tab {
+      flex: 0 0 auto;
+      position: relative;
+      border: 0;
+      padding: 7px 8px 9px;
+      color: var(--cl-text-muted, #6a737d);
+      background: transparent;
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .step-tab::after {
+      content: '';
+      position: absolute;
+      right: 8px;
+      bottom: -1px;
+      left: 8px;
+      height: 2px;
+      background: transparent;
+    }
+
+    .step-tab:hover,
+    .step-tab:focus-visible,
+    .step-tab.is-active {
+      color: var(--cl-primary, #0366d6);
+      outline: none;
+    }
+
+    .step-tab.is-active::after {
+      background: var(--cl-primary, #0366d6);
+    }
+
+    .step-section[hidden] { display: none; }
+    .step-section h3 { margin-bottom: 12px; }
 
     .step-card h3 {
       font-size: 1.1rem;
@@ -1458,9 +1605,7 @@
        demais, volta pra etapa anterior — ver renderEtapas()/
        voltarNaEtapa() em ide.js. */
     .step-nav-btn--back {
-      position: absolute;
-      top: 0;
-      left: 0;
+      position: static;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1715,26 +1860,52 @@
       flex-shrink: 0;
     }
 
-    .browser-tabs-scroll-wrapper {
+    .browser-tabs-fixed-right {
+      flex: 0 0 auto;
       position: relative;
-      flex: 1 1 auto;
+      z-index: 2;
+    }
+
+    .browser-tabs-scroll-wrapper {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr) 26px;
+      flex: 1 1 0;
+      width: auto;
       min-width: 0;
+      max-width: 100%;
       height: 100%;
+      overflow: hidden;
+    }
+
+    .browser-tabs-viewport {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      height: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+
+    .browser-tabs-viewport::-webkit-scrollbar { display: none; }
+
+    .browser-tabs-scroll-wrapper .cl-scroll-hint-arrow {
+      position: static;
+      width: 26px;
+      height: 28px;
+      transform: none;
     }
 
     .browser-tabs-right {
       display: flex;
-      width: 100%;
+      flex: 0 0 max-content;
+      width: max-content;
+      min-width: max-content;
       height: 100%;
       align-items: stretch;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-
-    .browser-tabs-right::-webkit-scrollbar {
-      display: none;
+      white-space: nowrap;
     }
 
     .scroll-fade {
@@ -1746,6 +1917,9 @@
       opacity: 0;
       transition: opacity 0.2s ease;
       z-index: 6;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
     }
 
     .scroll-fade-left {
@@ -1761,24 +1935,26 @@
     .browser-tabs-scroll-wrapper.can-scroll-left .scroll-fade-left,
     .browser-tabs-scroll-wrapper.can-scroll-right .scroll-fade-right {
       opacity: 1;
+      pointer-events: auto;
     }
 
     .scroll-fade-arrow {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 900;
       line-height: 1;
       color: #4ab5f7;
+      transform: translateY(-50%) scaleX(1.18);
     }
 
     .scroll-fade-left .scroll-fade-arrow {
-      left: 2px;
+      left: 6px;
     }
 
     .scroll-fade-right .scroll-fade-arrow {
-      right: 2px;
+      right: 6px;
     }
 
     .tab-btn,

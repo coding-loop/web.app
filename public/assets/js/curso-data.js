@@ -1765,8 +1765,6 @@
     });
   };
 
-  CL.curso.aplicarEtapasPorArquivo();
-
   /* ===================================================== */
   /* HELPERS — usados tanto pela trilha da Dashboard (nível
      = módulo, dentro de UMA trilha) quanto pela trilha do
