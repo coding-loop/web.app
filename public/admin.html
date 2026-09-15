@@ -29,7 +29,7 @@
         <label>Mensagem <textarea id="announcement-message" maxlength="1000" name="message" placeholder="Escreva o comunicado para os alunos." required rows="6"></textarea><small><span id="message-count">0</span>/1000 caracteres</small></label>
         <div class="cl-admin-fields">
           <label>Tipo <select id="announcement-level" name="level"><option value="info">Informação</option><option value="success">Novidade</option><option value="urgent">Importante</option></select></label>
-          <label>Público <select id="announcement-audience" name="audience"><option value="all">Todos os alunos</option><option value="html">Alunos de HTML</option><option value="css">Alunos de CSS</option><option value="js">Alunos de JavaScript</option></select></label>
+          <p id="audience-note">Todos os alunos autenticados podem ler os avisos; o tema apenas identifica o assunto.</p><label>Tema do aviso <select aria-describedby="audience-note" id="announcement-audience" name="audience"><option value="all">Geral</option><option value="html">HTML</option><option value="css">CSS</option><option value="js">JavaScript</option></select></label>
         </div>
         <div class="cl-admin-actions"><span aria-live="polite" id="form-status"></span><button class="cl-admin-button" id="publish-button" type="submit">Publicar aviso</button></div>
       </form>

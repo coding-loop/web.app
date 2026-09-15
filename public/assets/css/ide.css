@@ -27,10 +27,21 @@
       --ide-splitter-handle: color-mix(in srgb, var(--ide-control-contrast) 28%, transparent);
     }
 
-    .learning-platform-root[data-curso="html"] { --course-accent: #e44d26; }
-    .learning-platform-root[data-curso="css"] { --course-accent: #264de4; }
-    .learning-platform-root[data-curso="js"] { --course-accent: #f7df1e; }
-    .learning-platform-root[data-curso="programming-logic"] { --course-accent: #2aa198; }
+    .learning-platform-root[data-curso="html"] {
+      --course-accent: #e44d26;
+    }
+
+    .learning-platform-root[data-curso="css"] {
+      --course-accent: #264de4;
+    }
+
+    .learning-platform-root[data-curso="js"] {
+      --course-accent: #f7df1e;
+    }
+
+    .learning-platform-root[data-curso="programming-logic"] {
+      --course-accent: #2aa198;
+    }
 
     /* Painel Esquerdo: Teoria e Etapas */
     .theory-pane {
@@ -60,7 +71,7 @@
       height: 100%;
       min-width: 30px;
       padding: 0;
-      flex-shrink: 0;     
+      flex-shrink: 0;
       margin-right: 0;
     }
 
@@ -76,12 +87,12 @@
       cursor: pointer;
       border-radius: 4px;
       border: 1px solid transparent;
-      transition: border-color 0.2s ease, background 0.2s ease; 
+      transition: border-color 0.2s ease, background 0.2s ease;
     }
 
     .back-to-dashboard-btn:hover {
       background: transparent;
-      border-color: #3385FF; 
+      border-color: #3385FF;
     }
 
     /* O ícone da seta começa com a cor padrão e opacidade reduzida */
@@ -156,7 +167,9 @@
       border-color: #3385FF;
     }
 
-    .dashboard-fixed-section { position: relative; }
+    .dashboard-fixed-section {
+      position: relative;
+    }
 
     .indice-layout-dropdown {
       position: absolute;
@@ -172,7 +185,9 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, .28);
     }
 
-    .indice-layout-dropdown[hidden] { display: none; }
+    .indice-layout-dropdown[hidden] {
+      display: none;
+    }
 
     .indice-layout-dropdown button {
       border: 0;
@@ -197,6 +212,7 @@
       width: 18px;
       height: 18px;
     }
+
     .toggle-theme-btn {
       display: flex;
       align-items: center;
@@ -231,19 +247,38 @@
       box-sizing: border-box;
     }
 
-    .export-code-dialog::backdrop { background: rgba(0, 43, 54, .55); }
-    .export-code-dialog form { padding: 10px; }
+    .export-code-dialog::backdrop {
+      background: rgba(0, 43, 54, .55);
+    }
+
+    .export-code-dialog form {
+      padding: 10px;
+    }
+
     .export-code-dialog .export-code-dialog-header {
       align-items: flex-start;
       margin: -10px -10px 6px;
       padding: 4px 10px;
     }
-    .export-code-dialog h2 { margin: 0 0 2px; font-size: .9rem; line-height: 1.1; }
-    .export-code-dialog .backup-dialog-title p { margin: 0; color: var(--cl-text-muted); font-size: .7rem; line-height: 1.1; }
+
+    .export-code-dialog h2 {
+      margin: 0 0 2px;
+      font-size: .9rem;
+      line-height: 1.1;
+    }
+
+    .export-code-dialog .backup-dialog-title p {
+      margin: 0;
+      color: var(--cl-text-muted);
+      font-size: .7rem;
+      line-height: 1.1;
+    }
+
     .export-code-dialog .export-code-title-icon {
       width: 30px;
       height: 30px;
     }
+
     #export-code-dialog .export-code-title-icon svg {
       width: 21px;
       height: 21px;
@@ -251,11 +286,35 @@
       stroke: none;
     }
 
-    .export-code-dialog-actions { display: grid; gap: 6px; }
+    .export-code-dialog-actions {
+      display: grid;
+      gap: 6px;
+    }
 
-    .new-file-options { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:6px; }
-    .new-file-options button { min-height:34px; border:1px solid var(--cl-border); border-radius:6px; background:var(--cl-surface); color:var(--cl-text); font:inherit; font-size:.78rem; cursor:pointer; }
-    .new-file-options button:hover, .new-file-options button:focus-visible { border-color:var(--cl-primary); color:var(--cl-primary); background:color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface)); outline:none; }
+    .new-file-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .new-file-options button {
+      min-height: 34px;
+      border: 1px solid var(--cl-border);
+      border-radius: 6px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      font: inherit;
+      font-size: .78rem;
+      cursor: pointer;
+    }
+
+    .new-file-options button:hover,
+    .new-file-options button:focus-visible {
+      border-color: var(--cl-primary);
+      color: var(--cl-primary);
+      background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface));
+      outline: none;
+    }
 
     .new-file-menu {
       position: fixed;
@@ -271,14 +330,59 @@
       box-shadow: 0 10px 26px rgba(0, 0, 0, .28);
     }
 
-    .new-file-menu[hidden] { display: none; }
-    .new-file-menu button { min-height: 30px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--cl-text); font: inherit; font-size: .75rem; text-align: left; padding: 0 8px; cursor: pointer; }
-    .new-file-menu button:hover, .new-file-menu button:focus-visible { border-color: var(--cl-primary); background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface)); color: var(--cl-primary); outline: none; }
+    .new-file-menu[hidden] {
+      display: none;
+    }
 
-    .export-extension-options { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:7px; padding:2px 0 10px; }
-    .export-extension-options label { display:flex; align-items:center; gap:7px; min-height:32px; padding:0 8px; border:1px solid var(--cl-border); border-radius:5px; color:var(--cl-text); font-size:.78rem; cursor:pointer; }
-    .export-extension-options label:hover { border-color:var(--cl-primary); }
-    .export-extension-options input { accent-color:var(--cl-primary); }
+    .new-file-menu button {
+      min-height: 30px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--cl-text);
+      font: inherit;
+      font-size: .75rem;
+      text-align: left;
+      padding: 0 8px;
+      cursor: pointer;
+    }
+
+    .new-file-menu button:hover,
+    .new-file-menu button:focus-visible {
+      border-color: var(--cl-primary);
+      background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface));
+      color: var(--cl-primary);
+      outline: none;
+    }
+
+    .export-extension-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+      padding: 2px 0 10px;
+    }
+
+    .export-extension-options label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 0 8px;
+      border: 1px solid var(--cl-border);
+      border-radius: 5px;
+      color: var(--cl-text);
+      font-size: .78rem;
+      cursor: pointer;
+    }
+
+    .export-extension-options label:hover {
+      border-color: var(--cl-primary);
+    }
+
+    .export-extension-options input {
+      accent-color: var(--cl-primary);
+    }
+
     .export-code-dialog-actions .cl-btn {
       display: flex;
       align-items: center;
@@ -350,7 +454,7 @@
       flex: 0 0 20px;
     }
 
-    #export-code-dialog .export-code-option-icon--multiple img + img {
+    #export-code-dialog .export-code-option-icon--multiple img+img {
       margin-left: 0;
     }
 
@@ -407,7 +511,7 @@
       align-items: center;
       justify-content: center;
       width: 28px;
-      height: 28px; 
+      height: 28px;
       padding: 0;
       background: transparent;
       color: #e0e0e0;
@@ -450,10 +554,31 @@
       position: relative;
     }
 
-    .backup-header-actions { display: flex; align-items: center; gap: 4px; }
-    .backup-menu { position: relative; width: 28px; height: 28px; }
-    .backup-menu .header-save-btn { width: 28px; height: 28px; overflow: visible; }
-    .backup-menu .header-save-btn img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: none; }
+    .backup-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .backup-menu {
+      position: relative;
+      width: 28px;
+      height: 28px;
+    }
+
+    .backup-menu .header-save-btn {
+      width: 28px;
+      height: 28px;
+      overflow: visible;
+    }
+
+    .backup-menu .header-save-btn img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      max-width: none;
+    }
 
     /* Configuração idêntica nos dois temas: o ícone permanece contido
        no botão e nunca invade a barra do cabeçalho. */
@@ -468,8 +593,7 @@
       max-height: 54px;
       object-fit: contain;
     }
-    .backup-now-header { width: 28px; height: 28px; padding: 0; overflow: hidden; }
-    .backup-now-header img { display: block; width: 18px; height: 18px; max-width: 18px; max-height: 18px; margin: auto; object-fit: contain; }
+
     .backup-menu-options {
       position: absolute;
       top: calc(100% + 6px);
@@ -483,7 +607,11 @@
       background: var(--cl-surface);
       box-shadow: 0 10px 28px rgba(0, 43, 54, .28);
     }
-    .backup-menu-options[hidden] { display: none; }
+
+    .backup-menu-options[hidden] {
+      display: none;
+    }
+
     .backup-menu-options button {
       display: flex;
       align-items: center;
@@ -501,7 +629,14 @@
       text-align: left;
       cursor: pointer;
     }
-    .backup-menu-options button img { width: 18px; height: 18px; flex: 0 0 18px; object-fit: contain; }
+
+    .backup-menu-options button img {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      object-fit: contain;
+    }
+
     .backup-menu-options #btn-backup-settings img {
       width: 18px;
       height: 18px;
@@ -509,8 +644,13 @@
       transform: scale(2.5);
       transform-origin: center;
     }
+
     .backup-menu-options button:hover,
-    .backup-menu-options button:focus-visible { background: var(--cl-surface-hover); color: var(--cl-primary); outline: none; }
+    .backup-menu-options button:focus-visible {
+      background: var(--cl-surface-hover);
+      color: var(--cl-primary);
+      outline: none;
+    }
 
     .backup-settings-dialog {
       max-width: 390px;
@@ -521,48 +661,146 @@
       color: var(--cl-text);
       box-shadow: 0 16px 48px rgba(0, 0, 0, .35);
     }
-    .backup-settings-dialog::backdrop { background: rgba(0, 43, 54, .55); }
-    .backup-settings-dialog fieldset { display: grid; gap: 8px; margin: 0 0 14px; border: 1px solid var(--cl-border); border-radius: 7px; }
-    .backup-settings-dialog legend { padding: 0 5px; color: var(--cl-primary); font-weight: 600; }
-    .backup-settings-dialog label { color: var(--cl-text); cursor: pointer; }
-    .backup-settings-dialog select { padding: 6px; border: 1px solid var(--cl-border); border-radius: 5px; background: var(--cl-surface); color: var(--cl-text); font: inherit; }
-    .backup-status { margin: 0 0 12px; color: var(--cl-text-muted); font-size: .88rem; }
-    .backup-privacy-note { margin: 0 0 12px; color: var(--cl-text-muted); font-size: .78rem; line-height: 1.4; }
-    /* Padrão visual de aviso nativo do navegador. */
-    .backup-folder-guide { width: min(400px, calc(100vw - 32px)); margin: auto; padding: 0; border: 1px solid #484848; border-radius: 16px; background: #242424; color: #f4f4f4; box-shadow: 0 22px 60px rgba(0, 0, 0, .58); }
-    .backup-folder-guide::backdrop { background: rgba(0, 0, 0, .46); }
-    .backup-folder-guide form { padding: 24px 20px 20px; }
-    .backup-folder-guide p { margin: 0; color: #f2f2f2; font-size: 1rem; line-height: 1.42; }
-    .backup-folder-guide-notice { display: flex; align-items: center; gap: 7px; font-weight: 300; }
-    .backup-folder-guide-notice svg { width: 18px; height: 18px; flex: 0 0 18px; fill: #f5c542; stroke: #c99612; stroke-width: 1.5; stroke-linejoin: round; }
-    .backup-folder-guide-actions { display: flex; justify-content: flex-end; gap: 18px; margin-top: 28px; }
-    .backup-folder-guide-cancel,
-    .backup-folder-guide-continue { padding: 0; border: 0; background: transparent; color: #fff; font: inherit; font-weight: 300; cursor: pointer; }
-    .backup-folder-guide-continue { margin-right: 16px; }
-    #backup-folder-guide .backup-folder-guide-cancel:hover,
-    #backup-folder-guide .backup-folder-guide-cancel:focus,
-    #backup-folder-guide .backup-folder-guide-cancel:focus-visible,
-    #backup-folder-guide .backup-folder-guide-continue:hover,
-    #backup-folder-guide .backup-folder-guide-continue:focus,
-    #backup-folder-guide .backup-folder-guide-continue:focus-visible { background: transparent !important; color: #d0d0d0 !important; outline: none; }
 
-    .cloud-permission-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 32px); margin: auto; padding: 0; border: 1px solid var(--cl-border); border-radius: 14px; background: var(--cl-surface); color: var(--cl-text); box-shadow: 0 22px 60px rgba(0, 0, 0, .4); }
-    .cloud-permission-dialog::backdrop { background: rgba(0, 43, 54, .62); }
-    .cloud-permission-dialog form { padding: 22px; }
-    .cloud-permission-dialog h2 { margin: 0 0 12px; font-size: 1.15rem; }
-    .cloud-permission-dialog h3 { margin: 0 0 6px; font-size: .88rem; }
-    .cloud-permission-dialog p { margin: 0 0 12px; color: var(--cl-text-muted); font-size: .84rem; line-height: 1.48; }
-    .cloud-permission-summary { margin: 16px 0 12px; padding: 13px; border: 1px solid var(--cl-border); border-radius: 9px; background: color-mix(in srgb, var(--cl-primary) 7%, transparent); }
-    .cloud-permission-summary p { margin: 0; color: var(--cl-text); }
-    .cloud-permission-limits { color: var(--cl-text) !important; font-weight: 600; }
-    .cloud-permission-dialog details { margin: 14px 0 18px; color: var(--cl-text-muted); font-size: .8rem; }
-    .cloud-permission-dialog summary { cursor: pointer; font-weight: 650; }
-    .cloud-permission-dialog details p { margin: 8px 0 0; }
-    .cloud-permission-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-    .cloud-permission-cancel { border: 0; background: transparent; color: var(--cl-text-muted); font: inherit; cursor: pointer; }
-    .cloud-permission-continue { margin: 0; white-space: nowrap; }
-    .backup-status.is-error { color: var(--cl-danger); font-weight: 650; }
-    .backup-test-button { margin: 0 0 10px; }
+    .backup-settings-dialog::backdrop {
+      background: rgba(0, 43, 54, .55);
+    }
+
+    .backup-settings-dialog fieldset {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 14px;
+      border: 1px solid var(--cl-border);
+      border-radius: 7px;
+    }
+
+    .backup-settings-dialog legend {
+      padding: 0 5px;
+      color: var(--cl-primary);
+      font-weight: 600;
+    }
+
+    .backup-settings-dialog label {
+      color: var(--cl-text);
+      cursor: pointer;
+    }
+
+    .backup-settings-dialog select {
+      padding: 6px;
+      border: 1px solid var(--cl-border);
+      border-radius: 5px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      font: inherit;
+    }
+
+    .backup-status {
+      margin: 0 0 12px;
+      color: var(--cl-text-muted);
+      font-size: .88rem;
+    }
+
+    .backup-privacy-note {
+      margin: 0 0 12px;
+      color: var(--cl-text-muted);
+      font-size: .78rem;
+      line-height: 1.4;
+    }
+
+    .cloud-permission-dialog {
+      width: min(560px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      margin: auto;
+      padding: 0;
+      border: 1px solid var(--cl-border);
+      border-radius: 14px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, .4);
+    }
+
+    .cloud-permission-dialog::backdrop {
+      background: rgba(0, 43, 54, .62);
+    }
+
+    .cloud-permission-dialog form {
+      padding: 22px;
+    }
+
+    .cloud-permission-dialog h2 {
+      margin: 0 0 12px;
+      font-size: 1.15rem;
+    }
+
+    .cloud-permission-dialog h3 {
+      margin: 0 0 6px;
+      font-size: .88rem;
+    }
+
+    .cloud-permission-dialog p {
+      margin: 0 0 12px;
+      color: var(--cl-text-muted);
+      font-size: .84rem;
+      line-height: 1.48;
+    }
+
+    .cloud-permission-summary {
+      margin: 16px 0 12px;
+      padding: 13px;
+      border: 1px solid var(--cl-border);
+      border-radius: 9px;
+      background: color-mix(in srgb, var(--cl-primary) 7%, transparent);
+    }
+
+    .cloud-permission-summary p {
+      margin: 0;
+      color: var(--cl-text);
+    }
+
+    .cloud-permission-limits {
+      color: var(--cl-text) !important;
+      font-weight: 600;
+    }
+
+    .cloud-permission-dialog details {
+      margin: 14px 0 18px;
+      color: var(--cl-text-muted);
+      font-size: .8rem;
+    }
+
+    .cloud-permission-dialog summary {
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .cloud-permission-dialog details p {
+      margin: 8px 0 0;
+    }
+
+    .cloud-permission-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .cloud-permission-cancel {
+      border: 0;
+      background: transparent;
+      color: var(--cl-text-muted);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .cloud-permission-continue {
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .backup-status.is-error {
+      color: var(--cl-danger);
+      font-weight: 650;
+    }
 
     /* Painel visual de configuração de backup. */
     #backup-settings-dialog {
@@ -589,23 +827,116 @@
       overflow: hidden;
     }
 
-    #restore-backup-form { padding: 20px; }
-    #restore-backup-dialog .backup-dialog-header { margin: -20px -20px 20px; }
-    #restore-backup-dialog .backup-dialog-title-icon svg { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-    .restore-backup-options { display: grid; gap: 14px; }
-    .restore-backup-field { display: grid; gap: 6px; color: var(--cl-text); font-size: .78rem; font-weight: 650; }
-    .restore-backup-field span { color: var(--cl-text-muted); }
-    .restore-backup-field select { width: 100%; box-sizing: border-box; min-height: 38px; padding: 8px 10px; border-radius: 7px; }
-    .restore-backup-copy { display: flex; align-items: flex-start; gap: 8px; padding: 11px; border: 1px solid var(--cl-border); border-radius: 8px; color: var(--cl-text); font-size: .78rem; line-height: 1.35; }
-    .restore-backup-copy input { margin: 2px 0 0; accent-color: var(--cl-primary); }
-    #restore-backup-dialog .restore-backup-actions { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--cl-border); }
-    #restore-backup-dialog .restore-backup-actions .cl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; margin: 0; padding: 8px 12px; border: 1px solid var(--cl-border); border-radius: 7px; background: var(--cl-surface); color: var(--cl-text); font: inherit; font-size: .78rem; font-weight: 650; cursor: pointer; }
+    #restore-backup-form {
+      padding: 20px;
+    }
+
+    #restore-backup-dialog .backup-dialog-header {
+      margin: -20px -20px 20px;
+    }
+
+    #restore-backup-dialog .backup-dialog-title-icon svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .restore-backup-options {
+      display: grid;
+      gap: 14px;
+    }
+
+    .restore-backup-field {
+      display: grid;
+      gap: 6px;
+      color: var(--cl-text);
+      font-size: .78rem;
+      font-weight: 650;
+    }
+
+    .restore-backup-field span {
+      color: var(--cl-text-muted);
+    }
+
+    .restore-backup-field select {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: 7px;
+    }
+
+    .restore-backup-copy {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 11px;
+      border: 1px solid var(--cl-border);
+      border-radius: 8px;
+      color: var(--cl-text);
+      font-size: .78rem;
+      line-height: 1.35;
+    }
+
+    .restore-backup-copy input {
+      margin: 2px 0 0;
+      accent-color: var(--cl-primary);
+    }
+
+    #restore-backup-dialog .restore-backup-actions {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--cl-border);
+    }
+
+    #restore-backup-dialog .restore-backup-actions .cl-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 36px;
+      margin: 0;
+      padding: 8px 12px;
+      border: 1px solid var(--cl-border);
+      border-radius: 7px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
     #restore-backup-dialog .restore-backup-actions .cl-btn:hover,
-    #restore-backup-dialog .restore-backup-actions .cl-btn:focus-visible { border-color: var(--cl-primary); color: var(--cl-primary); outline: none; }
-    #restore-backup-dialog .restore-backup-actions .backup-save-button { border-color: var(--cl-primary); background: var(--cl-primary); color: #fff; }
+    #restore-backup-dialog .restore-backup-actions .cl-btn:focus-visible {
+      border-color: var(--cl-primary);
+      color: var(--cl-primary);
+      outline: none;
+    }
+
+    #restore-backup-dialog .restore-backup-actions .backup-save-button {
+      border-color: var(--cl-primary);
+      background: var(--cl-primary);
+      color: #fff;
+    }
+
     #restore-backup-dialog .restore-backup-actions .backup-save-button:hover,
-    #restore-backup-dialog .restore-backup-actions .backup-save-button:focus-visible { color: #fff; filter: brightness(1.08); }
-    #restore-backup-dialog .restore-backup-actions svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    #restore-backup-dialog .restore-backup-actions .backup-save-button:focus-visible {
+      color: #fff;
+      filter: brightness(1.08);
+    }
+
+    #restore-backup-dialog .restore-backup-actions svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
     .backup-dialog-header {
       display: flex;
@@ -714,7 +1045,9 @@
       font-weight: 700;
     }
 
-    .backup-required-mark { color: var(--cl-danger); }
+    .backup-required-mark {
+      color: var(--cl-danger);
+    }
 
     .backup-option-grid {
       display: grid;
@@ -746,6 +1079,18 @@
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cl-primary) 45%, transparent);
     }
 
+    /* Destinos são controlados pelos próprios botões de ação. Os inputs
+       continuam apenas como estado interno do formulário, sem checkbox
+       exposto na interface. */
+    #backup-settings-dialog .backup-option--with-action>input[name="destinations"] {
+      display: none;
+    }
+
+    #backup-settings-dialog .backup-option--with-action {
+      padding-right: 11px;
+      cursor: default;
+    }
+
     #backup-settings-dialog .backup-option--fixed {
       border-color: var(--cl-primary);
       background: color-mix(in srgb, var(--cl-primary) 10%, var(--cl-surface));
@@ -753,7 +1098,7 @@
       cursor: default;
     }
 
-    .backup-option > input {
+    .backup-option>input {
       position: absolute;
       top: 11px;
       right: 11px;
@@ -783,39 +1128,20 @@
       object-fit: contain;
     }
 
-    .backup-option input[value="drive"] + .backup-option-icon,
-    .backup-option input[value="onedrive"] + .backup-option-icon {
+    /* O Google Drive já tem <img> no HTML (icon-only markup); só o OneDrive
+       usa o padrão de ícone por background-image + fallback <svg> oculto. */
+    .backup-option input[value="onedrive"]+.backup-option-icon {
       background-repeat: no-repeat;
       background-position: center;
       background-size: 19px 19px;
-    }
-
-    .backup-option input[value="drive"] + .backup-option-icon {
-      background-image: url("../images/icons.svg/logo-google-drive.svg");
-    }
-
-    .backup-option input[value="onedrive"] + .backup-option-icon {
       background-image: url("../images/icons.svg/logo-onedrive.svg");
     }
 
-    .backup-option input[value="drive"] + .backup-option-icon svg,
-    .backup-option input[value="onedrive"] + .backup-option-icon svg {
+    .backup-option input[value="onedrive"]+.backup-option-icon svg {
       display: none;
     }
 
     .backup-option-icon.backup-google-drive-icon svg {
-      fill: currentColor;
-      stroke: none;
-    }
-
-    .backup-option-icon.backup-manual-icon .manual-file,
-    .backup-option-icon.backup-manual-icon .manual-fold {
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 10;
-    }
-
-    .backup-option-icon.backup-manual-icon .manual-symbol {
       fill: currentColor;
       stroke: none;
     }
@@ -878,10 +1204,10 @@
     #backup-settings-dialog .backup-destination-action.is-connected,
     #backup-settings-dialog .backup-destination-action.is-connected:hover,
     #backup-settings-dialog .backup-destination-action.is-connected:focus-visible {
-      border-color: #16a34a !important;
-      background: color-mix(in srgb, #16a34a 18%, transparent) !important;
-      color: #16a34a !important;
-      box-shadow: 0 0 0 2px color-mix(in srgb, #16a34a 16%, transparent) !important;
+      border-color: #268bd2 !important;
+      background: color-mix(in srgb, #268bd2 18%, transparent) !important;
+      color: #268bd2 !important;
+      box-shadow: 0 0 0 2px color-mix(in srgb, #268bd2 16%, transparent) !important;
     }
 
     #backup-settings-dialog .backup-destination-action.is-sync-required,
@@ -907,10 +1233,16 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
     #backup-settings-dialog #btn-sync-google-drive,
-    #backup-settings-dialog #btn-sync-onedrive { min-width: 128px; }
+    #backup-settings-dialog #btn-sync-onedrive {
+      min-width: 128px;
+    }
+
     #backup-settings-dialog #btn-sync-google-drive,
-    #backup-settings-dialog #btn-sync-onedrive { margin: 6px 0 0 44px; }
+    #backup-settings-dialog #btn-sync-onedrive {
+      margin: 6px 0 0 44px;
+    }
 
 
     #backup-settings-dialog .backup-retention-section {
@@ -1014,8 +1346,13 @@
       box-shadow: 0 18px 54px rgba(0, 0, 0, .4);
     }
 
-    .backup-reminder-dialog::backdrop { background: rgba(0, 43, 54, .68); }
-    .backup-reminder-dialog form { padding: 20px; }
+    .backup-reminder-dialog::backdrop {
+      background: rgba(0, 43, 54, .68);
+    }
+
+    .backup-reminder-dialog form {
+      padding: 20px;
+    }
 
     .backup-reminder-header {
       display: flex;
@@ -1027,8 +1364,18 @@
       background: color-mix(in srgb, var(--cl-primary) 7%, var(--cl-surface));
     }
 
-    .backup-reminder-header h2 { margin: 0 0 7px; font-size: 1rem; color: var(--cl-text); }
-    .backup-reminder-header p { margin: 0; color: var(--cl-text-muted); font-size: .82rem; line-height: 1.5; }
+    .backup-reminder-header h2 {
+      margin: 0 0 7px;
+      font-size: 1rem;
+      color: var(--cl-text);
+    }
+
+    .backup-reminder-header p {
+      margin: 0;
+      color: var(--cl-text-muted);
+      font-size: .82rem;
+      line-height: 1.5;
+    }
 
     .backup-reminder-icon {
       display: inline-flex;
@@ -1067,8 +1414,16 @@
       cursor: pointer;
     }
 
-    .backup-reminder-dismiss input { margin: 0; accent-color: var(--cl-primary); }
-    .backup-reminder-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .backup-reminder-dismiss input {
+      margin: 0;
+      accent-color: var(--cl-primary);
+    }
+
+    .backup-reminder-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
 
     .backup-reminder-actions .cl-btn {
       display: inline-flex;
@@ -1117,15 +1472,25 @@
     }
 
     @media (max-width: 480px) {
-      .backup-reminder-dialog { width: calc(100vw - 16px); }
-      .backup-reminder-actions { align-items: stretch; flex-direction: column-reverse; }
-      .backup-reminder-actions .cl-btn { width: 100%; }
+      .backup-reminder-dialog {
+        width: calc(100vw - 16px);
+      }
+
+      .backup-reminder-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+      }
+
+      .backup-reminder-actions .cl-btn {
+        width: 100%;
+      }
     }
 
     @media (max-width: 560px) {
       #backup-settings-dialog {
         width: calc(100vw - 16px);
-        max-height: 100vh;
+        max-height: calc(100vh - 16px);
+        max-height: calc(100dvh - 16px);
       }
 
       #backup-settings-form {
@@ -1181,6 +1546,9 @@
       min-height: 0;
       overflow-y: auto;
       background: #f6f8fa;
+      /* Permite que o espaçamento logo após o banner acompanhe o tamanho
+         da imagem Code Path quando a coluna da Learn Platform encolhe. */
+      container-type: inline-size;
     }
 
     .indice-panel[hidden] {
@@ -1203,10 +1571,21 @@
       --indice-trilha-escurecimento: .55;
     }
 
-    .indice-panel[data-curso="programming-logic"] { --indice-trilha-imagem: url("../images/trilha-bg-logprog.png"); }
-    .indice-panel[data-curso="html"] { --indice-trilha-imagem: url("../images/trilha-bg-html.png"); }
-    .indice-panel[data-curso="css"] { --indice-trilha-imagem: url("../images/trilha-bg-css.png"); }
-    .indice-panel[data-curso="js"] { --indice-trilha-imagem: url("../images/trilha-bg-js.png"); }
+    .indice-panel[data-curso="programming-logic"] {
+      --indice-trilha-imagem: url("../images/trilha-bg-logprog.png");
+    }
+
+    .indice-panel[data-curso="html"] {
+      --indice-trilha-imagem: url("../images/trilha-bg-html.png");
+    }
+
+    .indice-panel[data-curso="css"] {
+      --indice-trilha-imagem: url("../images/trilha-bg-css.png");
+    }
+
+    .indice-panel[data-curso="js"] {
+      --indice-trilha-imagem: url("../images/trilha-bg-js.png");
+    }
 
     /* O painel de etapas reutiliza o banner e a arte das trilhas de
        módulos. No mapa, as etapas seguem o caminho de pegadas; no índice,
@@ -1217,6 +1596,8 @@
       z-index: 30;
       pointer-events: none;
       background: transparent;
+      /* Alinha o banner Code Path ao respiro visual do índice de etapas. */
+      margin-top: 0;
     }
 
     .indice-panel .trilha-titulo-fixo img {
@@ -1226,7 +1607,15 @@
       margin: 0 auto;
     }
 
-    .indice-panel > .trilha-container[data-curso] {
+    /* Todos os banners Code Path medem 1920x1280, mas o desenho termina
+       próximo de y=237. O mesmo recorte responsivo usado pelo HTML evita
+       que a área inferior dos PNGs empurre as etapas nos demais cursos. */
+    .indice-panel[data-curso] .trilha-titulo-fixo {
+      height: min(111.6px, 9.36cqw);
+      overflow: hidden;
+    }
+
+    .indice-panel>.trilha-container[data-curso] {
       width: 100%;
       height: auto;
       min-height: calc(100dvh - 12rem);
@@ -1235,8 +1624,19 @@
       background-image: none !important;
     }
 
-    .indice-panel > .trilha-container .trilha-path-svg { z-index: 0; }
-    .indice-panel > .trilha-container .trilha-item { z-index: 10; }
+    .indice-panel>.trilha-container .trilha-path-svg {
+      z-index: 0;
+    }
+
+    .indice-panel>.trilha-container .trilha-item {
+      z-index: 10;
+    }
+
+    /* No modo trilha, as etapas começam na mesma altura usada pelo índice.
+       O cálculo acompanha a largura real da Learn Platform. */
+    .indice-panel>.trilha-container .trilha-caminho--etapas {
+      padding-top: calc(clamp(4rem, 8cqw, 8rem) - 25px);
+    }
 
     .indice-header {
       position: sticky;
@@ -1326,23 +1726,114 @@
       min-height: 0 !important;
       overflow: visible !important;
       background: transparent !important;
+      /* Usa a mesma coluna central do índice de módulos. As margens são
+         calculadas a partir da largura real da Learn Platform, portanto a
+         lista se ajusta tanto com o painel em 1/3 quanto em tela cheia. */
+      box-sizing: border-box;
+      /* Reserva a faixa de respiro que o índice de módulos tem acima do
+         primeiro card. Assim, a borda do primeiro item não entra sob o
+         título fixo nem sob o efeito de desaparecimento do topo. */
+      padding-top: calc(clamp(4rem, 8cqw, 8rem) - 25px);
+      padding-inline: clamp(1rem, 5cqw, 4rem);
     }
 
     /* Etapas em índice usam os mesmos cards dos módulos: superfície
        elevada, borda lateral por estado e destaque para a etapa atual. */
-    .indice-etapas-linear { display: grid; gap: .8rem; padding: 0; margin: 0; list-style: none; }
-    .indice-etapas-linear__item { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; gap: .8rem; align-items: center; padding: 1rem 1.1rem; border: 1px solid var(--cl-border, #586e75); border-left: 4px solid var(--cl-border, #586e75); border-radius: .75rem; background: var(--cl-surface, #073642); overflow: hidden; }
-    .indice-etapas-linear__item--completed { border-left-color: var(--cl-success, #859900); }
-    .indice-etapas-linear__item--current { border-left-color: var(--cl-primary, #268bd2); box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent); opacity: .7; }
-    .indice-etapas-linear__item--locked { opacity: .7; }
-    .indice-etapas-linear__icone { width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--cl-border, #586e75); border-radius: 50%; color: var(--cl-primary, #268bd2); text-align: center; font-weight: 700; }
-    .indice-etapas-linear__item--completed .indice-etapas-linear__icone { color: var(--cl-success, #859900); }
-    .indice-etapas-linear__item div { min-width: 0; display: grid; gap: .2rem; }
-    .indice-etapas-linear__titulo { padding: 0; border: 0; color: var(--cl-text, #24292e); background: transparent; font: inherit; font-size: .92rem; font-weight: 700; text-align: left; overflow-wrap: anywhere; }
-    button.indice-etapas-linear__titulo { cursor: pointer; }
-    button.indice-etapas-linear__titulo:hover, button.indice-etapas-linear__titulo:focus-visible { color: var(--cl-primary, #3385FF); text-decoration: underline; }
-    .indice-etapas-linear__item small { color: var(--cl-text-muted, #6a737d); font-size: .82rem; }
-    .indice-etapas-linear__refazer { border: 0; padding: 4px 6px; color: var(--cl-danger, #cf222e); background: transparent; font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; }
+    .indice-etapas-linear {
+      display: grid;
+      gap: .8rem;
+      width: min(100%, 920px);
+      padding: 0;
+      margin: 0 auto;
+      list-style: none;
+    }
+
+    .indice-etapas-linear__item {
+      display: grid;
+      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+      gap: .8rem;
+      align-items: center;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--cl-border, #586e75);
+      border-left: 4px solid var(--cl-border, #586e75);
+      border-radius: .75rem;
+      background: var(--cl-surface, #073642);
+      overflow: hidden;
+    }
+
+    .indice-etapas-linear__item--completed {
+      border-left-color: var(--cl-success, #859900);
+    }
+
+    .indice-etapas-linear__item--current {
+      border-left-color: var(--cl-primary, #268bd2);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent);
+      opacity: .7;
+    }
+
+    .indice-etapas-linear__item--locked {
+      opacity: .7;
+    }
+
+    .indice-etapas-linear__icone {
+      width: 2rem;
+      height: 2rem;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--cl-border, #586e75);
+      border-radius: 50%;
+      color: var(--cl-primary, #268bd2);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .indice-etapas-linear__item--completed .indice-etapas-linear__icone {
+      color: var(--cl-success, #859900);
+    }
+
+    .indice-etapas-linear__item div {
+      min-width: 0;
+      display: grid;
+      gap: .2rem;
+    }
+
+    .indice-etapas-linear__titulo {
+      padding: 0;
+      border: 0;
+      color: var(--cl-text, #24292e);
+      background: transparent;
+      font: inherit;
+      font-size: .92rem;
+      font-weight: 700;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    button.indice-etapas-linear__titulo {
+      cursor: pointer;
+    }
+
+    button.indice-etapas-linear__titulo:hover,
+    button.indice-etapas-linear__titulo:focus-visible {
+      color: var(--cl-primary, #3385FF);
+      text-decoration: underline;
+    }
+
+    .indice-etapas-linear__item small {
+      color: var(--cl-text-muted, #6a737d);
+      font-size: .82rem;
+    }
+
+    .indice-etapas-linear__refazer {
+      border: 0;
+      padding: 4px 6px;
+      color: var(--cl-danger, #cf222e);
+      background: transparent;
+      font: inherit;
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
     .indice-item-linha {
       display: flex;
@@ -1507,10 +1998,14 @@
 
     .step-tabs-scroll-wrapper {
       display: grid;
-      grid-template-columns: 26px minmax(0, 1fr) 26px;
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
       min-width: 0;
       min-height: 32px;
+    }
+
+    .step-tabs-scroll-wrapper.has-horizontal-overflow {
+      grid-template-columns: 26px minmax(0, 1fr) 26px;
     }
 
     .step-tabs-viewport {
@@ -1522,7 +2017,9 @@
       overscroll-behavior-x: contain;
     }
 
-    .step-tabs-viewport::-webkit-scrollbar { display: none; }
+    .step-tabs-viewport::-webkit-scrollbar {
+      display: none;
+    }
 
     .step-tabs-scroll-wrapper .cl-scroll-hint-arrow {
       position: static;
@@ -1545,6 +2042,9 @@
     .step-tab {
       flex: 0 0 auto;
       position: relative;
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
       border: 0;
       padding: 7px 8px 9px;
       color: var(--cl-text-muted, #6a737d);
@@ -1553,6 +2053,23 @@
       font-size: .78rem;
       font-weight: 700;
       cursor: pointer;
+    }
+
+    .step-tab-lock {
+      width: 13px;
+      height: 13px;
+      fill: currentColor;
+    }
+
+    .step-tab:not(.is-locked) .step-tab-lock {
+      display: none;
+    }
+
+    .step-tab.is-locked,
+    .step-tab:disabled {
+      color: var(--cl-text-muted, #6a737d);
+      opacity: .62;
+      cursor: not-allowed;
     }
 
     .step-tab::after {
@@ -1565,8 +2082,8 @@
       background: transparent;
     }
 
-    .step-tab:hover,
-    .step-tab:focus-visible,
+    .step-tab:hover:not(:disabled),
+    .step-tab:focus-visible:not(:disabled),
     .step-tab.is-active {
       color: var(--cl-primary, #0366d6);
       outline: none;
@@ -1576,8 +2093,100 @@
       background: var(--cl-primary, #0366d6);
     }
 
-    .step-section[hidden] { display: none; }
-    .step-section h3 { margin-bottom: 12px; }
+    .step-section[hidden] {
+      display: none;
+    }
+
+    .step-section h3 {
+      margin-bottom: 12px;
+    }
+
+    .step-questions-empty {
+      color: var(--cl-text-muted, #6a737d);
+    }
+
+    .step-question {
+      margin: 0 0 20px;
+      padding: 14px;
+      border: 1px solid var(--cl-border, #d0d7de);
+      border-radius: 8px;
+      background: var(--cl-surface, #fff);
+    }
+
+    .step-question-enunciado {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      margin: 0;
+      color: var(--cl-text, #24292f);
+      font-weight: 650;
+    }
+
+    .step-question-number {
+      display: inline-grid;
+      flex: 0 0 auto;
+      width: 21px;
+      height: 21px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--cl-primary, #0366d6);
+      font-size: .72rem;
+    }
+
+    .step-question-opcoes {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .step-question-opcao {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--cl-border, #d0d7de);
+      border-radius: 6px;
+      color: var(--cl-text, #24292f);
+      background: var(--cl-surface, #fff);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .step-question-opcao:hover:not(:disabled),
+    .step-question-opcao:focus-visible {
+      border-color: var(--cl-primary, #0366d6);
+      outline: 2px solid color-mix(in srgb, var(--cl-primary, #0366d6) 28%, transparent);
+      outline-offset: 1px;
+    }
+
+    .step-question-opcao:disabled {
+      cursor: default;
+      opacity: 1;
+    }
+
+    .step-question-opcao.is-correta {
+      border-color: #2e7d32;
+      background: rgba(46, 125, 50, .13);
+    }
+
+    .step-question-opcao.is-incorreta {
+      border-color: #c62828;
+      background: rgba(198, 40, 40, .13);
+    }
+
+    .step-question-feedback {
+      margin: 10px 0 0;
+      font-size: .9rem;
+      font-weight: 600;
+    }
+
+    .step-question-feedback.is-correto {
+      color: #237a37;
+    }
+
+    .step-question-feedback.is-incorreto {
+      color: #b42318;
+    }
 
     .step-card h3 {
       font-size: 1.1rem;
@@ -1611,7 +2220,7 @@
       justify-content: center;
       width: 32px;
       height: 32px;
-      border-radius: 50%; 
+      border-radius: 50%;
       border: 1px solid #d0d7de;
       background: #f6f8fa;
       color: #444;
@@ -1688,6 +2297,27 @@
       height: 100% !important;
       max-width: 100% !important;
       flex: 1 1 auto !important;
+    }
+
+    /* Em tela cheia, somente o conteúdo interno das etapas pode rolar. */
+    .learning-platform-root.ide-recolhido {
+      overflow-y: hidden;
+    }
+
+    /* Em tela cheia, o índice de etapas não reserva uma página inteira de
+       trilha. Assim, com poucas etapas não há rolagem vazia; ela só surge
+       quando os próprios cards excedem a altura disponível. */
+    .learning-platform-root.ide-recolhido .indice-panel>.trilha-container[data-curso] {
+      min-height: 0;
+    }
+
+    /* A largura total fazia o espaçamento por cqw chegar a 103px e criar
+       overflow mesmo com poucos cards. Em tela cheia basta o respiro curto
+       abaixo do Code Path; novas etapas continuam ampliando o conteúdo e
+       ativam a rolagem normal do .indice-panel quando necessário. */
+    .learning-platform-root.ide-recolhido .indice-lista--linear,
+    .learning-platform-root.ide-recolhido .indice-panel>.trilha-container .trilha-caminho--etapas {
+      padding-top: calc(1rem + 18px);
     }
 
     .learning-platform-root.ide-recolhido .ide-container-pane {
@@ -1850,7 +2480,9 @@
     /* O menu de novos arquivos pertence à barra. Quando aberto, a barra
        precisa superar a camada do editor para que o menu não fique oculto. */
     .browser-tabs.is-new-file-menu-open,
-    .browser-tabs:has(#btn-new-file[aria-expanded="true"]) { z-index: 200; }
+    .browser-tabs:has(#btn-new-file[aria-expanded="true"]) {
+      z-index: 200;
+    }
 
     .browser-tabs-left,
     .browser-tabs-fixed-right {
@@ -1868,13 +2500,17 @@
 
     .browser-tabs-scroll-wrapper {
       display: grid;
-      grid-template-columns: 26px minmax(0, 1fr) 26px;
+      grid-template-columns: minmax(0, 1fr);
       flex: 1 1 0;
       width: auto;
       min-width: 0;
       max-width: 100%;
       height: 100%;
       overflow: hidden;
+    }
+
+    .browser-tabs-scroll-wrapper.has-horizontal-overflow {
+      grid-template-columns: 26px minmax(0, 1fr) 26px;
     }
 
     .browser-tabs-viewport {
@@ -1889,7 +2525,9 @@
       overscroll-behavior-x: contain;
     }
 
-    .browser-tabs-viewport::-webkit-scrollbar { display: none; }
+    .browser-tabs-viewport::-webkit-scrollbar {
+      display: none;
+    }
 
     .browser-tabs-scroll-wrapper .cl-scroll-hint-arrow {
       position: static;
@@ -2061,9 +2699,17 @@
       font-variant-emoji: emoji;
     }
 
-    .code-tab.erro-warning .tab-text::before { color: #e0a030; }
-    .code-tab.erro-info .tab-text::before { color: #4ab5f7; }
-    .code-tab.erro-hint .tab-text::before { color: #8aa1b1; }
+    .code-tab.erro-warning .tab-text::before {
+      color: #e0a030;
+    }
+
+    .code-tab.erro-info .tab-text::before {
+      color: #4ab5f7;
+    }
+
+    .code-tab.erro-hint .tab-text::before {
+      color: #8aa1b1;
+    }
 
     .code-tab.tem-erro .tab-text::after {
       content: attr(data-diagnostic-count);
@@ -2263,7 +2909,9 @@
     }
 
     .tab-pane:focus-within,
-    .tab-pane:has(.monaco-hover:not(.hidden)) { z-index: 10001; }
+    .tab-pane:has(.monaco-hover:not(.hidden)) {
+      z-index: 10001;
+    }
 
     /* O hover pertence ao editor que o originou, mas pode ultrapassar os
        limites do painel para permanecer legível sobre editores e Preview. */
@@ -2382,17 +3030,23 @@
     }
 
     /* Compatibilidade com exercícios legados; não cria abas no IDE. */
-    .legacy-editor-state { display: none; }
+    .legacy-editor-state {
+      display: none;
+    }
 
     /* Mantém o tooltip de diagnóstico dentro do painel que o originou. Em
        layouts divididos, sem esse recorte ele pode atravessar para a aba ou
        para o Preview ao lado. */
     .tab-pane .monaco-editor,
-    .tab-pane .monaco-editor .overflow-guard { overflow: visible !important; }
+    .tab-pane .monaco-editor .overflow-guard {
+      overflow: visible !important;
+    }
+
     .tab-pane .monaco-editor .overflowingContentWidgets {
       z-index: 10002 !important;
       overflow: visible !important;
     }
+
     .tab-pane .monaco-editor .monaco-hover {
       z-index: 10003 !important;
       max-width: calc(100% - 12px) !important;
@@ -2401,8 +3055,11 @@
       border-width: 2px !important;
       box-shadow: 0 10px 30px rgba(0, 0, 0, .48) !important;
     }
+
     .tab-pane .monaco-editor .monaco-hover .hover-contents,
-    .tab-pane .monaco-editor .monaco-hover .markdown-hover { overflow-wrap: anywhere; }
+    .tab-pane .monaco-editor .monaco-hover .markdown-hover {
+      overflow-wrap: anywhere;
+    }
 
     /* O Command Palette (F1) pertence à IDE inteira, não somente ao painel
        estreito do editor focado. Ele fica centralizado na janela e mantém
@@ -2632,7 +3289,7 @@
         inset: -7px 0;
       }
     }
-    
+
     .tab-btn.live-toggle-btn {
       padding: 0 6px !important;
       font-size: 11px !important;
@@ -2651,37 +3308,84 @@
       color: var(--cl-text);
     }
 
-    .theory-pane { border-color: var(--cl-border); }
+    .theory-pane {
+      border-color: var(--cl-border);
+    }
+
     .theory-header,
     .browser-tabs,
-    .pane-resizer { background: var(--cl-surface); }
+    .pane-resizer {
+      background: var(--cl-surface);
+    }
+
     .module-nav-bar h2,
-    .step-card h3 { color: var(--cl-primary); }
-    .progress-bar { background: var(--cl-surface-2); }
-    .progress-fill { background: var(--cl-primary); }
+    .step-card h3 {
+      color: var(--cl-primary);
+    }
+
+    .progress-bar {
+      background: var(--cl-surface-2);
+    }
+
+    .progress-fill {
+      background: var(--cl-primary);
+    }
+
     .step-card p,
-    .task-box { color: var(--cl-text); }
-    .task-box { background: var(--cl-surface-2); border-left-color: var(--course-accent); }
-    .step-nav-btn--back { background: var(--cl-surface); border-color: var(--cl-border); color: var(--cl-text); }
-    .step-nav-btn--back:hover { background: var(--cl-surface-hover); border-color: var(--cl-primary); color: var(--cl-primary); }
-    .step-nav-btn--next { background: var(--cl-primary); color: var(--cl-on-primary); }
-    .step-nav-btn--next:hover { background: var(--cl-info); }
+    .task-box {
+      color: var(--cl-text);
+    }
+
+    .task-box {
+      background: var(--cl-surface-2);
+      border-left-color: var(--course-accent);
+    }
+
+    .step-nav-btn--back {
+      background: var(--cl-surface);
+      border-color: var(--cl-border);
+      color: var(--cl-text);
+    }
+
+    .step-nav-btn--back:hover {
+      background: var(--cl-surface-hover);
+      border-color: var(--cl-primary);
+      color: var(--cl-primary);
+    }
+
+    .step-nav-btn--next {
+      background: var(--cl-primary);
+      color: var(--cl-on-primary);
+    }
+
+    .step-nav-btn--next:hover {
+      background: var(--cl-info);
+    }
 
     .ide-container-pane,
     .browser-window,
     .window-content,
     .editors-area,
-    .tab-pane { background: var(--cl-surface); }
+    .tab-pane {
+      background: var(--cl-surface);
+    }
+
     .browser-window,
     .browser-tabs,
     .tab-btn,
     .toolbar-btn,
     .maximize-btn,
-    .collapse-btn { border-color: var(--cl-border); }
+    .collapse-btn {
+      border-color: var(--cl-border);
+    }
+
     .tab-btn,
     .toolbar-btn,
     .maximize-btn,
-    .collapse-btn { color: var(--cl-text-muted); }
+    .collapse-btn {
+      color: var(--cl-text-muted);
+    }
+
     .tab-btn:hover,
     .tab-btn:focus-within,
     .toolbar-btn:hover,
@@ -2691,24 +3395,57 @@
     .collapse-btn:hover,
     .collapse-btn:focus,
     .tab-btn.active,
-    .collapse-btn.is-active { background: var(--cl-surface-hover); color: var(--cl-primary); border-color: var(--cl-primary); }
+    .collapse-btn.is-active {
+      background: var(--cl-surface-hover);
+      color: var(--cl-primary);
+      border-color: var(--cl-primary);
+    }
+
     .editors-area.split-2,
-    .editors-area.split-3 { background: var(--cl-border); }
-    .preview-area { background: var(--cl-bg); border-color: var(--cl-border); }
-    .scroll-fade-left { background: linear-gradient(to right, var(--cl-surface), transparent); }
-    .scroll-fade-right { background: linear-gradient(to left, var(--cl-surface), transparent); }
+    .editors-area.split-3 {
+      background: var(--cl-border);
+    }
+
+    .preview-area {
+      background: var(--cl-bg);
+      border-color: var(--cl-border);
+    }
+
+    .scroll-fade-left {
+      background: linear-gradient(to right, var(--cl-surface), transparent);
+    }
+
+    .scroll-fade-right {
+      background: linear-gradient(to left, var(--cl-surface), transparent);
+    }
 
     /* Contraste forte para os controles e a divisão entre aprendizagem e IDE. */
-    [data-theme="solarized-dark"] { --ide-control-contrast: #fdf6e3; }
-    [data-theme="solarized-light"] { --ide-control-contrast: #002b36; }
+    [data-theme="solarized-dark"] {
+      --ide-control-contrast: #fdf6e3;
+    }
 
-    .theory-pane { border-right-color: var(--ide-control-contrast); }
-    .pane-resizer { background: var(--ide-control-contrast); }
+    [data-theme="solarized-light"] {
+      --ide-control-contrast: #002b36;
+    }
+
+    .theory-pane {
+      border-right-color: var(--ide-control-contrast);
+    }
+
+    .pane-resizer {
+      background: var(--ide-control-contrast);
+    }
+
     .pane-resizer:hover,
-    .pane-resizer.is-dragging { background: var(--ide-control-contrast); }
+    .pane-resizer.is-dragging {
+      background: var(--ide-control-contrast);
+    }
+
     .pane-resizer::before,
     .editor-split-resizer::before,
-    .preview-split-resizer::before { background: var(--ide-splitter-handle); }
+    .preview-split-resizer::before {
+      background: var(--ide-splitter-handle);
+    }
 
     .back-to-dashboard-btn,
     .toggle-indice-btn,
@@ -2718,7 +3455,9 @@
     .toolbar-btn,
     .maximize-btn,
     .collapse-btn,
-    .preview-btn { color: var(--ide-control-contrast); }
+    .preview-btn {
+      color: var(--ide-control-contrast);
+    }
 
     .back-to-dashboard-btn .seta-retorno,
     .toggle-indice-btn svg,
@@ -2727,7 +3466,10 @@
     .toolbar-btn svg,
     .maximize-btn svg,
     .collapse-btn svg,
-    .preview-btn svg { fill: var(--ide-control-contrast); }
+    .preview-btn svg {
+      fill: var(--ide-control-contrast);
+    }
+
     .live-toggle-btn svg {
       width: 12px !important;
       height: 12px !important;
@@ -2789,9 +3531,13 @@
     .preview-btn:hover,
     .preview-btn:focus,
     .preview-btn-layout.is-active,
-    .preview-btn-max.is-active { color: #002b36; }
+    .preview-btn-max.is-active {
+      color: #002b36;
+    }
 
-    .preview-btn svg { fill: #002b36; }
+    .preview-btn svg {
+      fill: #002b36;
+    }
 
     /* Limpar editor é destrutivo: destaque vermelho inequívoco no hover. */
     .tab-action-btn:hover,
@@ -2802,8 +3548,13 @@
     }
 
     /* Hover uniforme: a área clicável ganha uma camada mais clara sem borda. */
-    [data-theme="solarized-dark"] { --ide-button-hover: rgba(253, 246, 227, 0.14); }
-    [data-theme="solarized-light"] { --ide-button-hover: rgba(255, 255, 255, 0.72); }
+    [data-theme="solarized-dark"] {
+      --ide-button-hover: rgba(253, 246, 227, 0.14);
+    }
+
+    [data-theme="solarized-light"] {
+      --ide-button-hover: rgba(255, 255, 255, 0.72);
+    }
 
     .back-to-dashboard-btn:hover,
     .back-to-dashboard-btn:focus,
@@ -3069,10 +3820,10 @@
     .theory-content::-webkit-scrollbar-track,
     .indice-panel::-webkit-scrollbar-track {
       background: linear-gradient(to right,
-        transparent calc(50% - 1px),
-        var(--cl-scroll-track) calc(50% - 1px),
-        var(--cl-scroll-track) calc(50% + 1px),
-        transparent calc(50% + 1px));
+          transparent calc(50% - 1px),
+          var(--cl-scroll-track) calc(50% - 1px),
+          var(--cl-scroll-track) calc(50% + 1px),
+          transparent calc(50% + 1px));
     }
 
     .theory-content::-webkit-scrollbar-thumb,

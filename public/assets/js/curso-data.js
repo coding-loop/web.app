@@ -24,6 +24,9 @@
         texto: HTML explicando a teoria (pode usar <p>, <code>, <strong>...)
         missao: HTML descrevendo o que o aluno deve fazer no editor
       Campos opcionais:
+        questoes: [{ pergunta, opcoes, correta, explicacao }] — revisão de
+                   múltipla escolha; `correta` é o índice da opção, começando em 0
+        desafio: HTML com uma prática complementar à missão
         codigoInicial: { html, css, js } — código que aparece no editor
                         quando o aluno abre essa etapa pela 1ª vez
                         (se omitido, herda o que estava salvo/anterior)

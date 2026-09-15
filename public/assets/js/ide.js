@@ -131,7 +131,6 @@
     const moduleTitleEl = document.getElementById('module-title');
     const btnBackupMenu = document.getElementById('btn-backup-menu');
     const backupMenuOptions = document.getElementById('backup-menu-options');
-    const btnBackupNow = document.getElementById('btn-backup-now');
     const btnRestoreBackup = document.getElementById('btn-restore-backup');
     const btnBackupSettings = document.getElementById('btn-backup-settings');
     const backupSettingsDialog = document.getElementById('backup-settings-dialog');
@@ -142,11 +141,8 @@
     const restoreBackupVersion = document.getElementById('restore-backup-version');
     const restoreBackupVersionRow = document.getElementById('restore-backup-version-row');
     const backupStatus = document.getElementById('backup-status');
-    const btnTestBackupConnection = document.getElementById('btn-test-backup-connection');
     const btnSaveBackupSettings = document.getElementById('btn-save-backup-settings');
-    const inputImportProgress = document.getElementById('input-import-progress');
     const btnSelectBackupFolder = document.getElementById('btn-select-backup-folder');
-    const backupFolderGuide = document.getElementById('backup-folder-guide');
     const btnSyncGoogleDrive = document.getElementById('btn-sync-google-drive');
     const btnSyncOneDrive = document.getElementById('btn-sync-onedrive');
     const cloudPermissionDialog = document.getElementById('cloud-permission-dialog');
@@ -158,7 +154,6 @@
     const backupReminderDismiss = document.getElementById('backup-reminder-dismiss');
     const btnReminderConfigureBackup = document.getElementById('btn-reminder-configure-backup');
     const progressBar = document.getElementById('progress-bar');
-    let pastaBackupSelecionada = null;
 
     // ---------- Índice do curso (novo) ----------
     const toggleIndiceBtn = document.getElementById('toggle-indice');
@@ -343,7 +338,8 @@
         CL.trilha.render(indiceListaEl, {
           nodes: nodes,
           cursoId: cursoId,
-          layout: 'logprog-ziguezague',
+          layout: 'etapas-responsivas',
+          tipoTrilha: 'etapas',
           onSelect: function (nodeId) {
             const numero = parseInt(nodeId.split(':').pop(), 10);
             if (!numero) return;
@@ -382,9 +378,16 @@
     function abrirIndice() {
       renderIndice();
       indicePanelEl.hidden = false;
-      // O painel é reutilizado ao alternar etapas; sempre reabre no início,
-      // logo abaixo do banner Code Path.
-      indicePanelEl.scrollTop = 0;
+      /* Com a IDE recolhida, a Learn Platform passa a ocupar toda a tela.
+         Nesse formato, o índice deve revelar as etapas imediatamente, sem
+         abrir primeiro no espaço decorativo do topo. */
+      if (plataforma && plataforma.classList.contains('ide-recolhido')) {
+        requestAnimationFrame(function () {
+          indicePanelEl.scrollTop = indicePanelEl.scrollHeight;
+        });
+      } else {
+        indicePanelEl.scrollTop = 0;
+      }
       theoryContentEl.hidden = true;
       toggleIndiceBtn.classList.add('is-active');
       toggleIndiceBtn.setAttribute('aria-expanded', 'true');
@@ -403,10 +406,70 @@
 
     const ABAS_DA_ETAPA = ['conteudo', 'questoes', 'exercicio', 'desafio'];
     let abaAtualDaEtapa = 'conteudo';
+    const desbloqueioDasAbas = {};
+    const ICONE_ABA_BLOQUEADA = '<svg class="step-tab-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h6V8a3 3 0 0 0-6 0v2Zm3 3a2 2 0 0 0-1 3.73V18h2v-1.27A2 2 0 0 0 12 13Z"/></svg>';
+
+    function chaveDesbloqueioDaEtapa() {
+      return getModuloAtual().id + ':' + currentStep;
+    }
+
+    function indiceMaximoDesbloqueado() {
+      const progresso = getProgressoEtapa(getModuloAtual().id, currentStep);
+      if (progresso.concluida) return ABAS_DA_ETAPA.length - 1;
+      return desbloqueioDasAbas[chaveDesbloqueioDaEtapa()] || 0;
+    }
+
+    function liberarProximaAba() {
+      const indiceAtual = ABAS_DA_ETAPA.indexOf(abaAtualDaEtapa);
+      if (indiceAtual < 0 || indiceAtual >= ABAS_DA_ETAPA.length - 1) return;
+      const chave = chaveDesbloqueioDaEtapa();
+      desbloqueioDasAbas[chave] = Math.max(desbloqueioDasAbas[chave] || 0, indiceAtual + 1);
+    }
+
+    function renderBotaoAba(nome, rotulo) {
+      return '<button type="button" class="step-tab" data-step-tab="' + nome + '" role="tab">' +
+        '<span>' + rotulo + '</span>' + ICONE_ABA_BLOQUEADA +
+      '</button>';
+    }
 
     function desafioPadraoDaEtapa(etapa) {
       return '<p>Agora aplique o que estudou com mais autonomia. Revise o resultado no Preview antes de avançar.</p>' +
         '<div class="task-box"><strong>Desafio:</strong> ' + etapa.missao + '</div>';
+    }
+
+    function escaparHtml(valor) {
+      return String(valor == null ? '' : valor).replace(/[&<>"']/g, function (caractere) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[caractere];
+      });
+    }
+
+    function renderSecaoQuestoes(etapa) {
+      var questoes = Array.isArray(etapa.questoes) ? etapa.questoes : [];
+      var questoesValidas = questoes.map(function (questao, indiceOriginal) {
+        return { questao: questao, indiceOriginal: indiceOriginal };
+      }).filter(function (item) {
+        var questao = item.questao;
+        return questao && Array.isArray(questao.opcoes) && questao.opcoes.length >= 2 &&
+          Number.isInteger(questao.correta) && questao.correta >= 0 && questao.correta < questao.opcoes.length;
+      });
+
+      if (!questoesValidas.length) {
+        return '<p class="step-questions-empty">Esta etapa não tem perguntas de revisão. Você pode seguir direto para o exercício.</p>';
+      }
+
+      return questoesValidas.map(function (item, indice) {
+        var questao = item.questao;
+        var enunciado = questao.perguntaHtml || escaparHtml(questao.pergunta);
+        return '<article class="step-question" data-questao-indice="' + item.indiceOriginal + '">' +
+          '<p class="step-question-enunciado"><span class="step-question-number">' + (indice + 1) + '</span>' + enunciado + '</p>' +
+          '<div class="step-question-opcoes" role="radiogroup" aria-label="Opções da questão ' + (indice + 1) + '">' +
+            questao.opcoes.map(function (opcao, indiceOpcao) {
+              return '<button type="button" class="step-question-opcao" data-opcao-indice="' + indiceOpcao + '" role="radio" aria-checked="false">' + escaparHtml(opcao) + '</button>';
+            }).join('') +
+          '</div>' +
+          '<p class="step-question-feedback" aria-live="polite" hidden></p>' +
+        '</article>';
+      }).join('');
     }
 
     function renderEtapas() {
@@ -430,13 +493,13 @@
           '<section class="step-card' + (i === 0 ? ' active' : '') + '" data-step="' + numero + '">' +
             '<div class="step-navigation">' + btnVoltar +
             '<div class="step-tabs-scroll-wrapper cl-scrollable-controls" data-scrollable-controls><button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--left" data-scroll-direction="left" aria-label="Ver abas anteriores" type="button">‹</button><div class="step-tabs-viewport" data-scroll-viewport><div class="step-tabs" role="tablist" aria-label="Seções da etapa ' + numero + '">' +
-              '<button type="button" class="step-tab" data-step-tab="conteudo" role="tab">Conteúdo</button>' +
-              '<button type="button" class="step-tab" data-step-tab="questoes" role="tab">Questões</button>' +
-              '<button type="button" class="step-tab" data-step-tab="exercicio" role="tab">Exercício</button>' +
-              '<button type="button" class="step-tab" data-step-tab="desafio" role="tab">Desafio</button>' +
+              renderBotaoAba('conteudo', 'Conteúdo') +
+              renderBotaoAba('questoes', 'Questões') +
+              renderBotaoAba('exercicio', 'Exercício') +
+              renderBotaoAba('desafio', 'Desafio') +
             '</div></div><button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--right" data-scroll-direction="right" aria-label="Ver mais abas" type="button">›</button></div></div>' +
             '<div class="step-section" data-step-section="conteudo" role="tabpanel"><h3>' + etapa.titulo + '</h3>' + etapa.texto + '</div>' +
-            '<div class="step-section" data-step-section="questoes" role="tabpanel" hidden><h3>Questões</h3><p>Revise o conteúdo desta etapa antes de seguir para o exercício.</p></div>' +
+            '<div class="step-section" data-step-section="questoes" role="tabpanel" hidden><h3>Questões</h3>' + renderSecaoQuestoes(etapa) + '</div>' +
             '<div class="step-section" data-step-section="exercicio" role="tabpanel" hidden><h3>Exercício</h3><div class="task-box"><strong>Missão:</strong> ' + etapa.missao + '</div></div>' +
             '<div class="step-section" data-step-section="desafio" role="tabpanel" hidden><h3>Desafio</h3>' + (etapa.desafio || desafioPadraoDaEtapa(etapa)) + '</div>' +
             btnAvancar +
@@ -449,11 +512,18 @@
     function atualizarAbasDaEtapa() {
       const card = theoryContentEl.querySelector('.step-card.active');
       if (!card) return;
+      const maximoDesbloqueado = indiceMaximoDesbloqueado();
       card.querySelectorAll('[data-step-tab]').forEach(function (tab) {
-        const ativa = tab.getAttribute('data-step-tab') === abaAtualDaEtapa;
+        const indice = ABAS_DA_ETAPA.indexOf(tab.getAttribute('data-step-tab'));
+        const desbloqueada = indice <= maximoDesbloqueado;
+        const ativa = desbloqueada && tab.getAttribute('data-step-tab') === abaAtualDaEtapa;
         tab.classList.toggle('is-active', ativa);
+        tab.classList.toggle('is-locked', !desbloqueada);
+        tab.disabled = !desbloqueada;
         tab.setAttribute('aria-selected', String(ativa));
+        tab.setAttribute('aria-disabled', String(!desbloqueada));
         tab.tabIndex = ativa ? 0 : -1;
+        tab.title = desbloqueada ? '' : 'Conclua “' + (ABAS_DA_ETAPA[indice - 1] || 'Conteúdo') + '” para liberar esta aba.';
       });
       card.querySelectorAll('[data-step-section]').forEach(function (section) {
         section.hidden = section.getAttribute('data-step-section') !== abaAtualDaEtapa;
@@ -508,6 +578,7 @@
     function avancarNaEtapa() {
       const indiceAba = ABAS_DA_ETAPA.indexOf(abaAtualDaEtapa);
       if (indiceAba < ABAS_DA_ETAPA.length - 1) {
+        liberarProximaAba();
         abaAtualDaEtapa = ABAS_DA_ETAPA[indiceAba + 1];
         atualizarAbasDaEtapa();
         return;
@@ -558,8 +629,36 @@
     // direita "avançar", ver renderEtapas). Delegado no container, já
     // que os cards são recriados a cada troca de módulo.
     theoryContentEl.addEventListener('click', function (e) {
+      const opcaoQuestao = e.target.closest('.step-question-opcao');
+      if (opcaoQuestao && theoryContentEl.contains(opcaoQuestao)) {
+        const blocoQuestao = opcaoQuestao.closest('[data-questao-indice]');
+        const etapa = getEtapasDoModulo()[currentStep - 1];
+        const questao = etapa && Array.isArray(etapa.questoes) && blocoQuestao
+          ? etapa.questoes[Number(blocoQuestao.getAttribute('data-questao-indice'))]
+          : null;
+        const indiceEscolhido = Number(opcaoQuestao.getAttribute('data-opcao-indice'));
+        if (!questao || !Number.isInteger(questao.correta) || opcaoQuestao.disabled) return;
+
+        const acertou = indiceEscolhido === questao.correta;
+        blocoQuestao.querySelectorAll('.step-question-opcao').forEach(function (opcao) {
+          const indiceOpcao = Number(opcao.getAttribute('data-opcao-indice'));
+          opcao.disabled = true;
+          opcao.setAttribute('aria-checked', String(indiceOpcao === indiceEscolhido));
+          if (indiceOpcao === questao.correta) opcao.classList.add('is-correta');
+        });
+        if (!acertou) opcaoQuestao.classList.add('is-incorreta');
+
+        const feedback = blocoQuestao.querySelector('.step-question-feedback');
+        if (feedback) {
+          feedback.textContent = questao.explicacao || (acertou ? 'Resposta correta.' : 'Resposta incorreta. Observe a alternativa destacada.');
+          feedback.classList.toggle('is-correto', acertou);
+          feedback.classList.toggle('is-incorreto', !acertou);
+          feedback.hidden = false;
+        }
+        return;
+      }
       const aba = e.target.closest('[data-step-tab]');
-      if (aba) {
+      if (aba && !aba.disabled) {
         abaAtualDaEtapa = aba.getAttribute('data-step-tab');
         atualizarAbasDaEtapa();
         return;
@@ -601,86 +700,12 @@
     // Preenchido no boot apenas com o índice das etapas que têm código.
     let exerciciosCache = exerciciosCarregado || {};
 
-    // Grava só a posição atual (módulo + etapa) no perfil. É chamada
-    // exclusivamente pelo salvamento manual, junto do código da etapa.
+    // Grava só a posição atual (módulo + etapa) no perfil.
     function salvarProgresso() {
       if (!CL.auth || typeof CL.auth.updateUser !== 'function') return Promise.resolve(false);
       return CL.auth.updateUser({
         idePosition: { moduloId: getModuloAtual().id, etapa: currentStep }
       });
-    }
-
-    window.salvarPosicaoDaIde = salvarProgresso;
-
-    function nomeArquivoBackup() {
-      const agora = new Date();
-      const dataArquivo = agora.getFullYear() + '-' + String(agora.getMonth() + 1).padStart(2, '0') + '-' + String(agora.getDate()).padStart(2, '0') + '-' + String(agora.getHours()).padStart(2, '0') + String(agora.getMinutes()).padStart(2, '0');
-      return 'coding-loop-progresso-' + dataArquivo + '.json';
-    }
-
-    function baixarBackup(data) {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = nomeArquivoBackup();
-      link.click();
-      setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
-    }
-
-    function abrirBancoDaPastaBackup() {
-      return new Promise(function (resolve, reject) {
-        if (!window.indexedDB) return reject(new Error('IndexedDB não disponível.'));
-        const request = indexedDB.open('coding-loop-backup', 1);
-        request.onupgradeneeded = function () {
-          if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
-        };
-        request.onsuccess = function () { resolve(request.result); };
-        request.onerror = function () { reject(request.error); };
-      });
-    }
-
-    async function guardarPastaBackup(handle) {
-      const banco = await abrirBancoDaPastaBackup();
-      await new Promise(function (resolve, reject) {
-        const transaction = banco.transaction('handles', 'readwrite');
-        transaction.objectStore('handles').put(handle, 'computer-folder');
-        transaction.oncomplete = resolve;
-        transaction.onerror = function () { reject(transaction.error); };
-      });
-      banco.close();
-    }
-
-    async function obterPastaBackup() {
-      try {
-        const banco = await abrirBancoDaPastaBackup();
-        const handle = await new Promise(function (resolve, reject) {
-          const request = banco.transaction('handles', 'readonly').objectStore('handles').get('computer-folder');
-          request.onsuccess = function () { resolve(request.result || null); };
-          request.onerror = function () { reject(request.error); };
-        });
-        banco.close();
-        return handle;
-      } catch (error) { return null; }
-    }
-
-    async function pastaTemPermissao(handle, solicitar) {
-      if (!handle) return false;
-      const options = { mode: 'readwrite' };
-      if (typeof handle.queryPermission === 'function' && await handle.queryPermission(options) === 'granted') return true;
-      return Boolean(solicitar && typeof handle.requestPermission === 'function' && await handle.requestPermission(options) === 'granted');
-    }
-
-    async function salvarBackupNoComputador(data) {
-      const pasta = await obterPastaBackup();
-      if (pasta && await pastaTemPermissao(pasta, true)) {
-        const arquivo = await pasta.getFileHandle(nomeArquivoBackup(), { create: true });
-        const gravacao = await arquivo.createWritable();
-        await gravacao.write(JSON.stringify(data, null, 2));
-        await gravacao.close();
-        return true;
-      }
-      baixarBackup(data);
-      return false;
     }
 
     function obterTokenGoogleDrive(interativo) {
@@ -733,7 +758,7 @@
       if (!fileId) throw new Error('Nenhum backup foi encontrado no Google Drive.');
       const response = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media', { headers: { Authorization: 'Bearer ' + token } });
       if (!response.ok) throw new Error('Não foi possível ler o backup do Google Drive.');
-      return response.json();
+      return CL.api.readStudyBackupResponse(response);
     }
 
     let clienteMicrosoft;
@@ -777,7 +802,7 @@
       const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/special/approot:/coding-loop-progresso.json:/content', { headers: { Authorization: 'Bearer ' + token } });
       if (response.status === 404) throw new Error('Nenhum backup foi encontrado no OneDrive.');
       if (!response.ok) throw new Error('Não foi possível ler o backup do OneDrive.');
-      return response.json();
+      return CL.api.readStudyBackupResponse(response);
     }
 
     function mensagemErroOneDrive(error) {
@@ -792,55 +817,131 @@
       if (btnBackupMenu) btnBackupMenu.setAttribute('aria-expanded', 'false');
     }
 
-    async function fazerBackup() {
-      const settings = CL.api.getBackupSettings();
-      const data = CL.api.exportStudyData();
-      const destinations = settings.destinations || [];
-      const tarefas = [];
+    let sincronizacaoNuvemPendente = Boolean(CL.api.getBackupSettings().cloudSyncPending);
+    let sincronizacaoNuvemEmAndamento = false;
+    let temporizadorSincronizacaoNuvem = null;
+    let avisoSaidaNuvemAtivo = false;
+    const INTERVALOS_NUVEM = { '5m': 5 * 60 * 1000, '10m': 10 * 60 * 1000, '15m': 15 * 60 * 1000, daily: 24 * 60 * 60 * 1000, weekly: 7 * 24 * 60 * 60 * 1000 };
+    const RETENTATIVAS_NUVEM = [60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000, 60 * 60 * 1000];
 
-      function adicionarTarefa(destino, executar) {
-        tarefas.push(Promise.resolve().then(executar).then(function () { return destino; }));
+    function avisoSaidaNuvem(event) {
+      event.preventDefault();
+      event.returnValue = true;
+    }
+
+    // A File System Access API guarda a permissão da pasta no IndexedDB.
+    // Assim, a cópia no aparelho continua automática sem abrir o seletor a
+    // cada autosave. A permissão nunca é solicitada sem uma ação explícita.
+    let pastaBackupAparelho = null;
+    let temporizadorBackupAparelho = null;
+    const ATRASO_BACKUP_APARELHO = 60 * 1000;
+
+    function abrirBancoBackupAparelho() {
+      return new Promise(function (resolve, reject) {
+        if (!window.indexedDB) return reject(new Error('O navegador não oferece armazenamento para a pasta escolhida.'));
+        const pedido = window.indexedDB.open('coding-loop-backup', 1);
+        pedido.onupgradeneeded = function () { pedido.result.createObjectStore('pastas'); };
+        pedido.onsuccess = function () { resolve(pedido.result); };
+        pedido.onerror = function () { reject(pedido.error || new Error('Não foi possível acessar a pasta de backup.')); };
+      });
+    }
+
+    function chavePastaBackupAparelho() {
+      return 'aparelho:' + (CL.api && typeof CL.api._uid === 'function' ? CL.api._uid() : 'usuario');
+    }
+
+    async function salvarPastaBackupAparelho(pasta) {
+      const banco = await abrirBancoBackupAparelho();
+      return new Promise(function (resolve, reject) {
+        const transacao = banco.transaction('pastas', 'readwrite');
+        transacao.objectStore('pastas').put(pasta, chavePastaBackupAparelho());
+        transacao.oncomplete = function () { banco.close(); resolve(); };
+        transacao.onerror = function () { banco.close(); reject(transacao.error || new Error('Não foi possível guardar a pasta escolhida.')); };
+      });
+    }
+
+    async function obterPastaBackupAparelho() {
+      if (pastaBackupAparelho) return pastaBackupAparelho;
+      const banco = await abrirBancoBackupAparelho();
+      return new Promise(function (resolve, reject) {
+        const transacao = banco.transaction('pastas', 'readonly');
+        const pedido = transacao.objectStore('pastas').get(chavePastaBackupAparelho());
+        pedido.onsuccess = function () { banco.close(); pastaBackupAparelho = pedido.result || null; resolve(pastaBackupAparelho); };
+        pedido.onerror = function () { banco.close(); reject(pedido.error || new Error('Não foi possível localizar a pasta de backup.')); };
+      });
+    }
+
+    async function pastaBackupTemPermissao(pasta, solicitar) {
+      if (!pasta || typeof pasta.queryPermission !== 'function') return false;
+      const opcoes = { mode: 'readwrite' };
+      if (await pasta.queryPermission(opcoes) === 'granted') return true;
+      return Boolean(solicitar && typeof pasta.requestPermission === 'function' && await pasta.requestPermission(opcoes) === 'granted');
+    }
+
+    async function salvarBackupNoAparelho() {
+      const pasta = await obterPastaBackupAparelho();
+      if (!pasta || !await pastaBackupTemPermissao(pasta, false)) throw new Error('Escolha a pasta novamente para permitir a cópia no aparelho.');
+      const arquivo = await pasta.getFileHandle('coding-loop-progresso.json', { create: true });
+      const gravacao = await arquivo.createWritable();
+      try {
+        await gravacao.write(JSON.stringify(CL.api.exportStudyData(), null, 2));
+      } finally {
+        await gravacao.close();
       }
+      CL.api.saveBackupSettings({ lastDeviceBackupAt: new Date().toISOString(), deviceBackupError: false });
+    }
 
-      if (destinations.includes('computer')) adicionarTarefa('computer', function () { return salvarBackupNoComputador(data); });
-      if (destinations.includes('local')) adicionarTarefa('local', function () { return CL.api.saveLocalBackup(); });
-      if (destinations.includes('drive')) adicionarTarefa('drive', function () { return enviarBackupGoogleDrive(data, true); });
-      if (destinations.includes('onedrive')) adicionarTarefa('onedrive', function () { return enviarBackupOneDrive(data, true); });
-
-      if (!tarefas.length) throw new Error('Selecione pelo menos um destino de backup.');
-
-      const resultados = await Promise.allSettled(tarefas);
-      const concluidos = resultados.filter(function (resultado) { return resultado.status === 'fulfilled'; })
-        .map(function (resultado) { return resultado.value; });
-      const falhas = resultados.filter(function (resultado) { return resultado.status === 'rejected'; });
-
-      if (concluidos.length) {
-        CL.api.saveBackupSettings({ lastBackupAt: data.exportedAt, lastBackupDestinations: concluidos });
-        sincronizacaoNuvemPendente = false;
-      }
-      fecharMenuBackup();
-
-      if (falhas.length) {
-        const detalhe = falhas.map(function (resultado) {
-          return resultado.reason && resultado.reason.message ? resultado.reason.message : 'Falha desconhecida.';
-        }).join(' ');
-        const prefixo = concluidos.length
-          ? 'Backup concluído em ' + concluidos.length + ' destino(s), mas houve falha nos demais. '
-          : 'Não foi possível concluir o backup. ';
-        throw new Error(prefixo + detalhe);
+    async function restaurarBackupDoAparelho() {
+      const pasta = await obterPastaBackupAparelho();
+      if (!pasta || !await pastaBackupTemPermissao(pasta, false)) throw new Error('Escolha novamente a pasta usada para este backup.');
+      try {
+        const arquivo = await pasta.getFileHandle('coding-loop-progresso.json');
+        const file = await arquivo.getFile();
+        if (file.size > CL.api.MAX_BACKUP_BYTES) throw new Error('Backup excede o limite de 8 MB.');
+        return CL.api.parseStudyBackup(await file.text());
+      } catch (error) {
+        throw new Error('Nenhum backup foi encontrado na pasta escolhida.');
       }
     }
 
-    let sincronizacaoNuvemPendente = false;
-    let sincronizacaoNuvemEmAndamento = false;
-    let temporizadorSincronizacaoNuvem = null;
-    const ATRASO_SINCRONIZACAO_NUVEM = 2 * 60 * 1000;
-    const INTERVALO_VERIFICACAO_NUVEM = 10 * 60 * 1000;
+    function agendarBackupNoAparelho() {
+      clearTimeout(temporizadorBackupAparelho);
+      const settings = CL.api.getBackupSettings();
+      if (!(settings.destinations || []).includes('device')) return;
+      temporizadorBackupAparelho = setTimeout(function () {
+        salvarBackupNoAparelho().then(atualizarStatusBackup).catch(function () {
+          CL.api.saveBackupSettings({ deviceBackupError: true });
+          atualizarStatusBackup();
+        });
+      }, ATRASO_BACKUP_APARELHO);
+    }
+
+    function atualizarAvisoSaidaNuvem() {
+      if (sincronizacaoNuvemPendente && !avisoSaidaNuvemAtivo) {
+        window.addEventListener('beforeunload', avisoSaidaNuvem);
+        avisoSaidaNuvemAtivo = true;
+      } else if (!sincronizacaoNuvemPendente && avisoSaidaNuvemAtivo) {
+        window.removeEventListener('beforeunload', avisoSaidaNuvem);
+        avisoSaidaNuvemAtivo = false;
+      }
+    }
+
+    function agendarTentativaNuvem(atraso) {
+      clearTimeout(temporizadorSincronizacaoNuvem);
+      temporizadorSincronizacaoNuvem = setTimeout(function () { sincronizarNuvemAutomaticamente(false); }, atraso);
+    }
 
     function agendarSincronizacaoNuvem() {
+      const settings = CL.api.getBackupSettings();
+      const destinos = settings.destinations || [];
+      const nuvemAtiva = (destinos.includes('drive') && settings.googleDriveConnected) || (destinos.includes('onedrive') && settings.oneDriveConnected);
+      if (!nuvemAtiva) return;
       sincronizacaoNuvemPendente = true;
-      clearTimeout(temporizadorSincronizacaoNuvem);
-      temporizadorSincronizacaoNuvem = setTimeout(function () { sincronizarNuvemAutomaticamente(false); }, ATRASO_SINCRONIZACAO_NUVEM);
+      CL.api.saveBackupSettings({ cloudSyncPending: true, cloudSyncRetryAt: null });
+      atualizarAvisoSaidaNuvem();
+      atualizarStatusBackup();
+      if (settings.cloudSyncSchedule === 'daily' || settings.cloudSyncSchedule === 'weekly') return;
+      agendarTentativaNuvem(INTERVALOS_NUVEM[settings.cloudSyncSchedule] || INTERVALOS_NUVEM['5m']);
     }
 
     async function sincronizarNuvemAutomaticamente(forcar) {
@@ -851,53 +952,86 @@
       const dados = CL.api.exportStudyData();
       if (destinos.includes('drive') && settings.googleDriveConnected) tarefas.push(enviarBackupGoogleDrive(dados, false));
       if (destinos.includes('onedrive') && settings.oneDriveConnected) tarefas.push(enviarBackupOneDrive(dados, false));
-      if (!tarefas.length) return false;
+      if (!tarefas.length) {
+        sincronizacaoNuvemPendente = false;
+        CL.api.saveBackupSettings({ cloudSyncPending: false, cloudSyncRetryAt: null });
+        atualizarAvisoSaidaNuvem();
+        atualizarStatusBackup();
+        return false;
+      }
       sincronizacaoNuvemEmAndamento = true;
       const resultados = await Promise.allSettled(tarefas);
       sincronizacaoNuvemEmAndamento = false;
-      if (resultados.some(function (resultado) { return resultado.status === 'fulfilled'; })) {
+      if (resultados.every(function (resultado) { return resultado.status === 'fulfilled'; })) {
         sincronizacaoNuvemPendente = false;
-        CL.api.saveBackupSettings({ lastCloudSyncAt: dados.exportedAt });
+        CL.api.saveBackupSettings({ cloudSyncPending: false, cloudSyncFailureCount: 0, cloudSyncRetryAt: null, lastCloudSyncAt: dados.exportedAt });
+        atualizarAvisoSaidaNuvem();
+        atualizarStatusBackup();
         return true;
       }
+      sincronizacaoNuvemPendente = true;
+      const tentativas = Math.min(Number(settings.cloudSyncFailureCount) || 0, RETENTATIVAS_NUVEM.length - 1);
+      const atraso = RETENTATIVAS_NUVEM[tentativas];
+      CL.api.saveBackupSettings({ cloudSyncPending: true, cloudSyncFailureCount: tentativas + 1, cloudSyncRetryAt: new Date(Date.now() + atraso).toISOString() });
+      atualizarAvisoSaidaNuvem();
+      atualizarStatusBackup();
+      agendarTentativaNuvem(atraso);
       return false;
     }
 
-    setInterval(function () { sincronizarNuvemAutomaticamente(false); }, INTERVALO_VERIFICACAO_NUVEM);
-
-    function importarArquivoDeBackup() {
-      inputImportProgress.click();
+    function iniciarSincronizacaoNuvem() {
+      const settings = CL.api.getBackupSettings();
+      const intervalo = INTERVALOS_NUVEM[settings.cloudSyncSchedule] || INTERVALOS_NUVEM['5m'];
+      const ultimo = settings.lastCloudSyncAt ? new Date(settings.lastCloudSyncAt).getTime() : 0;
+      const porAcesso = settings.cloudSyncSchedule === 'daily' || settings.cloudSyncSchedule === 'weekly';
+      atualizarAvisoSaidaNuvem();
+      if (sincronizacaoNuvemPendente) {
+        if (CL.ui && typeof CL.ui.showToast === 'function') CL.ui.showToast('Seu progresso está salvo em localStorage. A sincronização com a nuvem será tentada agora.', 'info');
+        sincronizarNuvemAutomaticamente(true);
+      } else if (porAcesso && Date.now() - ultimo >= intervalo) {
+        sincronizacaoNuvemPendente = true;
+        CL.api.saveBackupSettings({ cloudSyncPending: true });
+        sincronizarNuvemAutomaticamente(true);
+      }
     }
 
     function atualizarStatusBackup() {
       if (!backupStatus) return;
       backupStatus.classList.remove('is-error');
       const settings = CL.api.getBackupSettings();
-      if (!settings.lastBackupAt) { backupStatus.textContent = 'Último backup: ainda não realizado.'; return; }
+      if (!settings.lastBackupAt) {
+        if (settings.lastBackupPrincipalSaved === false) {
+          backupStatus.textContent = 'Não foi possível salvar o backup local: o armazenamento do navegador está cheio.';
+          backupStatus.classList.add('is-error');
+        } else backupStatus.textContent = 'Último backup: ainda não realizado.';
+        return;
+      }
       const locais = (settings.lastBackupDestinations || []).map(function (local) {
-        return { computer: 'Computador', local: 'LocalStorage', drive: 'Google Drive', onedrive: 'OneDrive' }[local] || local;
+        return { local: 'LocalStorage', device: 'Aparelho', drive: 'Google Drive', onedrive: 'OneDrive' }[local] || local;
       });
       backupStatus.textContent = 'Último backup: ' + new Date(settings.lastBackupAt).toLocaleString('pt-BR') + (locais.length ? ' — ' + locais.join(', ') : '');
-    }
-
-    async function testarConexoesBackup() {
-      const formData = new FormData(backupSettingsForm);
-      const destinos = formData.getAll('destinations');
-      const testes = [];
-      if (!destinos.length || (!destinos.includes('drive') && !destinos.includes('onedrive'))) {
-        return window.alert('Marque Google Drive ou OneDrive para testar a conexão.');
+      if (settings.lastBackupPrincipalSaved === false) {
+        backupStatus.textContent += ' — atenção: o backup local mais recente não pôde ser salvo.';
+        backupStatus.classList.add('is-error');
+      } else if (settings.lastBackupVersionsSaved === false) {
+        backupStatus.textContent += ' — atenção: o histórico de versões locais não coube no armazenamento do navegador.';
+        backupStatus.classList.add('is-error');
       }
-      if (destinos.includes('drive') && !await confirmarPermissaoNuvem('google')) return;
-      if (destinos.includes('onedrive') && !await confirmarPermissaoNuvem('microsoft')) return;
-      if (destinos.includes('drive')) testes.push(obterTokenGoogleDrive(true).then(function (token) {
-        const endpoint = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=1&fields=files(id)';
-        return fetch(endpoint, { headers: { Authorization: 'Bearer ' + token } }).then(function (resposta) { if (!resposta.ok) throw new Error(); return 'Google Drive'; });
-      }));
-      if (destinos.includes('onedrive')) testes.push(obterTokenOneDrive(true).then(function (token) {
-        return fetch('https://graph.microsoft.com/v1.0/me/drive', { headers: { Authorization: 'Bearer ' + token } }).then(function (resposta) { if (!resposta.ok) throw new Error(); return 'OneDrive'; });
-      }));
-      try { window.alert('Conexão confirmada: ' + (await Promise.all(testes)).join(' e ') + '.'); }
-      catch (error) { window.alert('Não foi possível confirmar a conexão. Verifique as permissões e as URLs autorizadas.'); }
+      if (settings.cloudSyncPending) {
+        const proxima = settings.cloudSyncRetryAt ? ' Nova tentativa: ' + new Date(settings.cloudSyncRetryAt).toLocaleString('pt-BR') + '.' : '';
+        backupStatus.textContent += ' — sincronização com a nuvem pendente.' + proxima;
+      } else if (settings.lastCloudSyncAt) {
+        backupStatus.textContent += ' — nuvem sincronizada em ' + new Date(settings.lastCloudSyncAt).toLocaleString('pt-BR') + '.';
+      }
+      if ((settings.destinations || []).includes('device')) {
+        backupStatus.textContent += settings.lastDeviceBackupAt
+          ? ' — aparelho atualizado em ' + new Date(settings.lastDeviceBackupAt).toLocaleString('pt-BR') + '.'
+          : ' — cópia no aparelho aguardando autorização da pasta.';
+        if (settings.deviceBackupError) {
+          backupStatus.textContent += ' Escolha novamente a pasta para retomar as cópias automáticas.';
+          backupStatus.classList.add('is-error');
+        }
+      }
     }
 
     function atualizarBotaoDestino(botao, texto, conectado) {
@@ -905,15 +1039,16 @@
       const rotulo = botao.querySelector('span');
       if (rotulo) rotulo.textContent = texto;
       botao.classList.toggle('is-connected', Boolean(conectado));
+      botao.setAttribute('aria-pressed', String(Boolean(conectado)));
       if (conectado) {
-        botao.classList.remove('is-sync-required', 'is-location-required');
+        botao.classList.remove('is-sync-required');
       }
     }
 
-    function marcarDestinoDoBotao(botao) {
+    function definirDestinoDoBotao(botao, ativo) {
       const opcao = botao && botao.closest('.backup-option');
       const campo = opcao && opcao.querySelector('input[name="destinations"]');
-      if (campo) campo.checked = true;
+      if (campo) campo.checked = Boolean(ativo);
     }
 
     function atualizarEstadoSincronizacao() {
@@ -932,13 +1067,13 @@
       atualizarEstadoBotaoSalvarBackup();
     }
 
-    function atualizarEstadoLocalBackup() {
+    function atualizarEstadoAparelho() {
       if (!btnSelectBackupFolder) return;
-      const opcao = btnSelectBackupFolder.closest('.backup-option');
-      const campo = opcao && opcao.querySelector('input[name="destinations"]');
+      const campo = btnSelectBackupFolder.closest('.backup-option').querySelector('input[name="destinations"]');
       const selecionado = Boolean(campo && campo.checked);
-      btnSelectBackupFolder.classList.toggle('is-location-required', selecionado && !pastaBackupSelecionada);
-      btnSelectBackupFolder.classList.toggle('is-connected', selecionado && Boolean(pastaBackupSelecionada));
+      const configurado = Boolean(pastaBackupAparelho);
+      atualizarBotaoDestino(btnSelectBackupFolder, selecionado ? 'Desativar salvamento' : (configurado ? 'Ativar salvamento' : 'Escolher pasta'), selecionado && configurado);
+      btnSelectBackupFolder.classList.toggle('is-location-required', selecionado && !configurado);
       atualizarEstadoBotaoSalvarBackup();
     }
 
@@ -947,11 +1082,11 @@
       const formData = new FormData(backupSettingsForm);
       const destinations = formData.getAll('destinations');
       if (!destinations.includes('local')) destinations.push('local');
-      if (!destinations.length || !formData.get('schedule') || !formData.get('mode')) return false;
+      if (!destinations.length || !formData.get('cloudSyncSchedule')) return false;
       const settings = CL.api.getBackupSettings();
-      if (destinations.includes('computer') && !pastaBackupSelecionada) return false;
       if (destinations.includes('drive') && !settings.googleDriveConnected) return false;
       if (destinations.includes('onedrive') && !settings.oneDriveConnected) return false;
+      if (destinations.includes('device') && !pastaBackupAparelho) return false;
       return true;
     }
 
@@ -962,51 +1097,23 @@
       btnSaveBackupSettings.setAttribute('aria-disabled', String(!configuracaoCompleta));
       btnSaveBackupSettings.title = configuracaoCompleta
         ? 'Salvar configurações'
-        : 'Conclua os destinos, a frequência e o tipo de backup';
+        : 'Conclua os destinos e escolha a frequência de sincronização';
     }
 
     async function atualizarAcoesDestino() {
-      const pasta = await obterPastaBackup();
-      pastaBackupSelecionada = pasta;
-      atualizarBotaoDestino(btnSelectBackupFolder, pasta ? pasta.name : 'Escolher Local', Boolean(pasta));
       const settings = CL.api.getBackupSettings();
-      atualizarBotaoDestino(btnSyncGoogleDrive, settings.googleDriveConnected ? 'Sincronizado' : 'Sincronizar', settings.googleDriveConnected);
-      atualizarBotaoDestino(btnSyncOneDrive, settings.oneDriveConnected ? 'Sincronizado' : 'Sincronizar', settings.oneDriveConnected);
-      atualizarEstadoLocalBackup();
+      const campoGoogle = btnSyncGoogleDrive && btnSyncGoogleDrive.closest('.backup-option').querySelector('input[name="destinations"]');
+      const campoOneDrive = btnSyncOneDrive && btnSyncOneDrive.closest('.backup-option').querySelector('input[name="destinations"]');
+      const campoAparelho = btnSelectBackupFolder && btnSelectBackupFolder.closest('.backup-option').querySelector('input[name="destinations"]');
+      if (campoGoogle) campoGoogle.checked = Boolean(settings.googleDriveConnected && (settings.destinations || []).includes('drive'));
+      if (campoOneDrive) campoOneDrive.checked = Boolean(settings.oneDriveConnected && (settings.destinations || []).includes('onedrive'));
+      try { pastaBackupAparelho = await obterPastaBackupAparelho(); } catch (error) { pastaBackupAparelho = null; }
+      if (campoAparelho) campoAparelho.checked = Boolean(pastaBackupAparelho && (settings.destinations || []).includes('device'));
+      atualizarBotaoDestino(btnSyncGoogleDrive, campoGoogle && campoGoogle.checked ? 'Desativar sincronização' : 'Ativar sincronização', campoGoogle && campoGoogle.checked);
+      atualizarBotaoDestino(btnSyncOneDrive, campoOneDrive && campoOneDrive.checked ? 'Desativar sincronização' : 'Ativar sincronização', campoOneDrive && campoOneDrive.checked);
       atualizarEstadoSincronizacao();
+      atualizarEstadoAparelho();
     }
-
-    async function escolherPastaBackup() {
-      if (typeof window.showDirectoryPicker !== 'function') {
-        window.alert('A escolha de pasta não é compatível com este navegador. O backup continuará usando o download padrão.');
-        return;
-      }
-      try {
-        const pastaEscolhida = await window.showDirectoryPicker({ id: 'coding-loop-backup', mode: 'readwrite', startIn: 'documents' });
-        const pasta = pastaEscolhida.name === 'Coding Loop Backups'
-          ? pastaEscolhida
-          : await pastaEscolhida.getDirectoryHandle('Coding Loop Backups', { create: true });
-        await guardarPastaBackup(pasta);
-        pastaBackupSelecionada = pasta;
-        marcarDestinoDoBotao(btnSelectBackupFolder);
-        atualizarBotaoDestino(btnSelectBackupFolder, pasta.name, true);
-        atualizarEstadoLocalBackup();
-      } catch (error) {
-        if (!error || error.name !== 'AbortError') {
-          window.alert('Não foi possível preparar a pasta exclusiva de backup. Verifique a permissão da pasta escolhida e tente novamente.');
-        }
-      }
-    }
-
-    if (btnSelectBackupFolder) btnSelectBackupFolder.addEventListener('click', function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (backupFolderGuide) backupFolderGuide.showModal();
-      else escolherPastaBackup();
-    });
-    if (backupFolderGuide) backupFolderGuide.addEventListener('close', function () {
-      if (backupFolderGuide.returnValue === 'continue') escolherPastaBackup();
-    });
 
     function confirmarPermissaoNuvem(servico) {
       const permissoes = {
@@ -1039,11 +1146,20 @@
       event.preventDefault();
       event.stopPropagation();
       try {
+        const opcao = btnSyncGoogleDrive.closest('.backup-option');
+        const campo = opcao && opcao.querySelector('input[name="destinations"]');
+        if (campo && campo.checked) {
+          definirDestinoDoBotao(btnSyncGoogleDrive, false);
+          CL.api.saveBackupSettings({ googleDriveConnected: false });
+          atualizarBotaoDestino(btnSyncGoogleDrive, 'Ativar sincronização', false);
+          atualizarEstadoSincronizacao();
+          return;
+        }
         if (!await confirmarPermissaoNuvem('google')) return;
         await obterTokenGoogleDrive(true);
         CL.api.saveBackupSettings({ googleDriveConnected: true });
-        marcarDestinoDoBotao(btnSyncGoogleDrive);
-        atualizarBotaoDestino(btnSyncGoogleDrive, 'Sincronizado', true);
+        definirDestinoDoBotao(btnSyncGoogleDrive, true);
+        atualizarBotaoDestino(btnSyncGoogleDrive, 'Desativar sincronização', true);
         atualizarEstadoSincronizacao();
       } catch (error) {
         window.alert('Não foi possível entrar na conta do Google Drive. Verifique as permissões e tente novamente.');
@@ -1054,18 +1170,63 @@
       event.preventDefault();
       event.stopPropagation();
       try {
+        const opcao = btnSyncOneDrive.closest('.backup-option');
+        const campo = opcao && opcao.querySelector('input[name="destinations"]');
+        if (campo && campo.checked) {
+          definirDestinoDoBotao(btnSyncOneDrive, false);
+          CL.api.saveBackupSettings({ oneDriveConnected: false });
+          atualizarBotaoDestino(btnSyncOneDrive, 'Ativar sincronização', false);
+          atualizarEstadoSincronizacao();
+          return;
+        }
         if (!await confirmarPermissaoNuvem('microsoft')) return;
         await obterTokenOneDrive(true);
         CL.api.saveBackupSettings({ oneDriveConnected: true });
-        marcarDestinoDoBotao(btnSyncOneDrive);
-        atualizarBotaoDestino(btnSyncOneDrive, 'Sincronizado', true);
+        definirDestinoDoBotao(btnSyncOneDrive, true);
+        atualizarBotaoDestino(btnSyncOneDrive, 'Desativar sincronização', true);
         atualizarEstadoSincronizacao();
       } catch (error) {
         window.alert(mensagemErroOneDrive(error));
       }
     });
 
+    if (btnSelectBackupFolder) btnSelectBackupFolder.addEventListener('click', async function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const campo = btnSelectBackupFolder.closest('.backup-option').querySelector('input[name="destinations"]');
+      if (campo && campo.checked) {
+        definirDestinoDoBotao(btnSelectBackupFolder, false);
+        atualizarEstadoAparelho();
+        return;
+      }
+      if (!window.showDirectoryPicker) {
+        window.alert('A escolha de pasta é compatível com navegadores baseados em Chromium, como Chrome e Edge.');
+        return;
+      }
+      try {
+        const pastaEscolhida = await window.showDirectoryPicker({ id: 'coding-loop-backup', mode: 'readwrite', startIn: 'documents' });
+        const pastaDestino = pastaEscolhida.name === 'Coding Loop Backups'
+          ? pastaEscolhida
+          : await pastaEscolhida.getDirectoryHandle('Coding Loop Backups', { create: true });
+        if (!await pastaBackupTemPermissao(pastaDestino, true)) throw new Error('A permissão para gravar nesta pasta não foi concedida.');
+        pastaBackupAparelho = pastaDestino;
+        await salvarPastaBackupAparelho(pastaDestino);
+        definirDestinoDoBotao(btnSelectBackupFolder, true);
+        await salvarBackupNoAparelho();
+        atualizarEstadoAparelho();
+        atualizarStatusBackup();
+      } catch (error) {
+        if (error && error.name === 'AbortError') return;
+        window.alert(error.message || 'Não foi possível configurar a pasta de backup.');
+      }
+    });
+
     if (backupSettingsForm) {
+      backupSettingsForm.querySelectorAll('.backup-option--with-action').forEach(function (opcao) {
+        opcao.addEventListener('click', function (event) {
+          if (!event.target.closest('.backup-destination-action')) event.preventDefault();
+        });
+      });
       backupSettingsForm.querySelectorAll('input[name="destinations"]').forEach(function (campo) {
         campo.addEventListener('change', function () {
           if (!campo.checked && (campo.value === 'drive' || campo.value === 'onedrive')) {
@@ -1075,8 +1236,8 @@
               return;
             }
           }
-          atualizarEstadoLocalBackup();
           atualizarEstadoSincronizacao();
+          atualizarEstadoAparelho();
         });
       });
       backupSettingsForm.addEventListener('change', atualizarEstadoBotaoSalvarBackup);
@@ -1084,6 +1245,7 @@
 
     function confirmarERestaurar(backup, origem, criarCopia, conflito) {
       if (!backup) return window.alert('Nenhum backup foi encontrado em ' + origem + '.');
+      if (!CL.api.validateStudyData(backup)) return window.alert('Arquivo de progresso inválido. Seus dados não foram alterados.');
       if (conflito === 'newest') {
         const atual = CL.api._studyIndex && CL.api._studyIndex();
         const dataAtual = atual && atual.updatedAt ? new Date(atual.updatedAt).getTime() : 0;
@@ -1092,8 +1254,10 @@
       }
       const dataBackup = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString('pt-BR') : 'data não informada';
       if (!window.confirm('Restaurar o backup de ' + origem + ' (' + dataBackup + ') substituirá o progresso atual. Continuar?')) return;
-      if (criarCopia) CL.api.saveLocalBackup();
-      CL.api.importStudyData(backup);
+      try {
+        if (criarCopia) CL.api.saveLocalBackup();
+        CL.api.importStudyData(backup);
+      } catch (error) { window.alert(error.message); return; }
       window.location.reload();
     }
 
@@ -1114,41 +1278,25 @@
         backupMenuOptions.hidden = aberto;
         btnBackupMenu.setAttribute('aria-expanded', String(!aberto));
       });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !backupMenuOptions.hidden) {
+          fecharMenuBackup();
+          btnBackupMenu.focus();
+        }
+      });
       document.addEventListener('click', function (event) {
         if (!event.target.closest('.backup-menu')) fecharMenuBackup();
       });
     }
-    if (btnBackupNow) btnBackupNow.addEventListener('click', function () {
-      const concluir = function () { fazerBackup().catch(function (error) { window.alert(error.message); }); };
-      if (typeof window.salvarRascunhoAtualDaIde === 'function') window.salvarRascunhoAtualDaIde().then(concluir);
-      else concluir();
-    });
     if (btnRestoreBackup) btnRestoreBackup.addEventListener('click', function () {
       const settings = CL.api.getBackupSettings();
       const destinations = settings.destinations || [];
       fecharMenuBackup();
-      if (restoreBackupDialog && restoreBackupSource) {
-        const nomes = { computer: 'Computador (arquivo .json)', local: 'LocalStorage deste navegador', drive: 'Google Drive (privado do app)', onedrive: 'OneDrive' };
-        restoreBackupSource.innerHTML = destinations.map(function (destino) { return '<option value="' + destino + '">' + nomes[destino] + '</option>'; }).join('');
-        if (!destinations.length) return window.alert('Escolha ao menos um local de backup nas configurações.');
-        atualizarVersoesDeRestauracao();
-        restoreBackupDialog.showModal();
-        return;
-      }
-      if (destinations.includes('local')) {
-        const backup = CL.api.getLocalBackup();
-        if (!backup) return window.alert('Nenhum backup local foi encontrado.');
-        if (window.confirm('Restaurar o backup local substituirá o progresso atual. Continuar?')) { CL.api.importStudyData(backup); window.location.reload(); }
-      } else if (destinations.includes('computer')) importarArquivoDeBackup();
-      else if (destinations.includes('drive')) {
-        restaurarBackupGoogleDrive().then(function (backup) {
-          if (window.confirm('Restaurar o backup do Google Drive substituirá o progresso atual. Continuar?')) { CL.api.importStudyData(backup); window.location.reload(); }
-        }).catch(function (error) { window.alert(error.message); });
-      } else if (destinations.includes('onedrive')) {
-        restaurarBackupOneDrive().then(function (backup) {
-          if (window.confirm('Restaurar o backup do OneDrive substituirá o progresso atual. Continuar?')) { CL.api.importStudyData(backup); window.location.reload(); }
-        }).catch(function (error) { window.alert(error.message); });
-      } else window.alert('Escolha um local de backup nas configurações.');
+      if (!destinations.length) return window.alert('Escolha ao menos um local de backup nas configurações.');
+      const nomes = { local: 'LocalStorage', device: 'Aparelho (pasta escolhida)', drive: 'Google Drive (privado do app)', onedrive: 'OneDrive' };
+      restoreBackupSource.innerHTML = destinations.map(function (destino) { return '<option value="' + destino + '">' + nomes[destino] + '</option>'; }).join('');
+      atualizarVersoesDeRestauracao();
+      restoreBackupDialog.showModal();
     });
 
     function mostrarErroConfiguracaoBackup(mensagem) {
@@ -1165,17 +1313,8 @@
         mostrarErroConfiguracaoBackup('Selecione pelo menos um destino de backup.');
         return false;
       }
-      if (!formData.get('schedule')) {
-        mostrarErroConfiguracaoBackup('Selecione uma opção de frequência.');
-        return false;
-      }
-      if (!formData.get('mode')) {
-        mostrarErroConfiguracaoBackup('Selecione um tipo de atualização.');
-        return false;
-      }
-      if (destinations.includes('computer') && !pastaBackupSelecionada) {
-        mostrarErroConfiguracaoBackup('Escolha uma pasta para concluir a configuração do backup no computador.');
-        atualizarEstadoLocalBackup();
+      if (!formData.get('cloudSyncSchedule')) {
+        mostrarErroConfiguracaoBackup('Selecione uma frequência de sincronização em nuvem.');
         return false;
       }
       const settings = CL.api.getBackupSettings();
@@ -1189,22 +1328,36 @@
         atualizarEstadoSincronizacao();
         return false;
       }
+      if (destinations.includes('device') && !pastaBackupAparelho) {
+        mostrarErroConfiguracaoBackup('Escolha uma pasta no aparelho antes de salvar.');
+        atualizarEstadoAparelho();
+        return false;
+      }
       backupStatus.classList.remove('is-error');
       return true;
     }
 
-    if (btnBackupSettings && backupSettingsDialog) btnBackupSettings.addEventListener('click', function () {
+    if (btnBackupSettings && backupSettingsDialog) btnBackupSettings.addEventListener('click', async function () {
       fecharMenuBackup();
       const settings = CL.api.getBackupSettings();
       Object.keys(settings).forEach(function (key) {
         const field = backupSettingsForm.querySelector('[name="' + key + '"][value="' + settings[key] + '"]');
         if (field) field.checked = true;
       });
+      // "retentionCount" é um <select>: <option> não tem propriedade
+      // .checked (isso é só de radio/checkbox), então o loop acima nunca
+      // restaurava o valor salvo — reabrir o painel e salvar de novo
+      // silenciosamente resetava a retenção para "1". Corrigido aqui:
+      const retentionField = backupSettingsForm.querySelector('select[name="retentionCount"]');
+      if (retentionField) retentionField.value = String(settings.retentionCount || 1);
       backupSettingsForm.querySelectorAll('[name="destinations"]').forEach(function (field) {
-        field.checked = settings.destinations.includes(field.value);
+        if (field.value === 'drive') field.checked = Boolean(settings.googleDriveConnected && settings.destinations.includes('drive'));
+        else if (field.value === 'onedrive') field.checked = Boolean(settings.oneDriveConnected && settings.destinations.includes('onedrive'));
+        else if (field.value === 'device') field.checked = Boolean(settings.destinations.includes('device'));
+        else field.checked = false;
       });
+      await atualizarAcoesDestino();
       atualizarEstadoBotaoSalvarBackup();
-      atualizarAcoesDestino();
       atualizarStatusBackup();
       backupSettingsDialog.showModal();
     });
@@ -1216,7 +1369,17 @@
         return;
       }
       const desejaSalvar = event.submitter && event.submitter.value === 'save';
-      if (desejaSalvar && !validarConfiguracaoBackup()) {
+      if (!desejaSalvar) return;
+      event.preventDefault();
+      if (!validarConfiguracaoBackup()) {
+        return;
+      }
+      // Fecha explicitamente após validar. Isso evita depender do submit
+      // nativo de <dialog>, que alguns navegadores tratavam de forma
+      // inconsistente e fazia o botão Salvar parecer inoperante.
+      if (backupSettingsDialog && backupSettingsDialog.open) {
+        backupSettingsDialog.close('save');
+      } else {
         event.preventDefault();
       }
     });
@@ -1226,10 +1389,10 @@
       const formData = new FormData(backupSettingsForm);
       const destinations = formData.getAll('destinations');
       if (!destinations.includes('local')) destinations.push('local');
-      CL.api.saveBackupSettings({ destinations: destinations, schedule: formData.get('schedule'), mode: formData.get('mode'), retentionCount: Number(formData.get('retentionCount')) || 1, configurationCompleted: true });
+      CL.api.saveBackupSettings({ destinations: destinations, cloudSyncSchedule: formData.get('cloudSyncSchedule'), retentionCount: Number(formData.get('retentionCount')) || 1, configurationCompleted: true });
+      if (sincronizacaoNuvemPendente) agendarSincronizacaoNuvem();
       atualizarStatusBackup();
     });
-    if (btnTestBackupConnection) btnTestBackupConnection.addEventListener('click', testarConexoesBackup);
 
     function chaveAvisoBackup() {
       const uid = CL.state && CL.state.user && CL.state.user.uid ? CL.state.user.uid : 'usuario';
@@ -1238,6 +1401,8 @@
 
     function abrirAvisoBackupSeNecessario() {
       if (!backupReminderDialog || typeof backupReminderDialog.showModal !== 'function') return;
+      // Quem já concluiu a configuração de backup não precisa mais do lembrete.
+      if (CL.api.getBackupSettings().configurationCompleted) return;
       const dispensado = CL.storage && typeof CL.storage.get === 'function'
         ? CL.storage.get(chaveAvisoBackup(), false)
         : false;
@@ -1267,46 +1432,19 @@
       const origem = restoreBackupSource.value;
       criarCopiaAntesRestaurar = restoreBackupForm.elements.backupBeforeRestore.checked;
       const conflito = restoreBackupForm.elements.conflict.value;
-      if (origem === 'computer') return importarArquivoDeBackup();
       if (origem === 'local') {
         const versoes = CL.api.getLocalBackupVersions ? CL.api.getLocalBackupVersions() : [];
         return confirmarERestaurar(versoes[Number(restoreBackupVersion.value)] || CL.api.getLocalBackup(), 'LocalStorage', criarCopiaAntesRestaurar, conflito);
       }
-      const leitura = origem === 'drive' ? restaurarBackupGoogleDrive() : restaurarBackupOneDrive();
-      const nome = origem === 'drive' ? 'Google Drive' : 'OneDrive';
+      const leitura = origem === 'device' ? restaurarBackupDoAparelho() : (origem === 'drive' ? restaurarBackupGoogleDrive() : restaurarBackupOneDrive());
+      const nome = origem === 'device' ? 'Aparelho' : (origem === 'drive' ? 'Google Drive' : 'OneDrive');
       leitura.then(function (backup) { confirmarERestaurar(backup, nome, criarCopiaAntesRestaurar, conflito); }).catch(function (error) { window.alert(error.message); });
     });
     if (restoreBackupSource) restoreBackupSource.addEventListener('change', atualizarVersoesDeRestauracao);
-    if (inputImportProgress) inputImportProgress.addEventListener('change', function () {
-      const file = inputImportProgress.files && inputImportProgress.files[0];
-      inputImportProgress.value = '';
-      if (!file) return;
-      const LIMITE_BACKUP_BYTES = 5 * 1024 * 1024;
-      if (file.size > LIMITE_BACKUP_BYTES) return window.alert('Este arquivo é maior que 5 MB e foi bloqueado por segurança.');
-      if (file.type && file.type !== 'application/json' && !file.name.toLowerCase().endsWith('.json')) return window.alert('Escolha apenas um arquivo de backup .json do Coding Loop.');
-      const reader = new FileReader();
-      reader.onload = function () {
-        try {
-          const backup = JSON.parse(reader.result);
-          if (!CL.api.validateStudyData || !CL.api.validateStudyData(backup)) throw new Error('Arquivo inválido');
-          confirmarERestaurar(backup, 'Computador', criarCopiaAntesRestaurar, restoreBackupForm ? restoreBackupForm.elements.conflict.value : 'replace');
-        } catch (error) { window.alert('Não foi possível importar este arquivo de progresso.'); }
-      };
-      reader.readAsText(file);
-    });
-
-    function executarBackupAgendado() {
-      const settings = CL.api.getBackupSettings();
-      if (!(settings.destinations || []).includes('local')) return;
-      const agora = Date.now();
-      const ultimo = settings.lastBackupAt ? new Date(settings.lastBackupAt).getTime() : 0;
-      const intervalo = settings.schedule === 'weekly' ? 7 * 24 * 60 * 60 * 1000 : settings.schedule === 'monthly' ? 30 * 24 * 60 * 60 * 1000 : 0;
-      if (intervalo && agora - ultimo >= intervalo) CL.api.saveLocalBackup();
-    }
-    executarBackupAgendado();
     window.addEventListener('pagehide', function () {
-      const settings = CL.api.getBackupSettings();
-      if (settings.schedule === 'exit' && (settings.destinations || []).includes('local')) CL.api.saveLocalBackup();
+      CL.api.saveLocalBackup();
+      if ((CL.api.getBackupSettings().destinations || []).includes('device')) salvarBackupNoAparelho().catch(function () {});
+      if (sincronizacaoNuvemPendente) CL.api.saveBackupSettings({ cloudSyncPending: true });
     });
 
     window.salvarCodigoDoAluno = function (codigo) {
@@ -1384,6 +1522,7 @@
     if (indiceSolicitadoNaUrl === 'trilha' || indiceSolicitadoNaUrl === 'lista') {
       abrirIndice();
     }
+    iniciarSincronizacaoNuvem();
     setTimeout(abrirAvisoBackupSeNecessario, 350);
   } // fim de iniciarTeoria
   // Chamada pelo bootIde() depois que os dados locais estiverem prontos e
@@ -2518,10 +2657,11 @@
         // Usado pelo índice para calcular o percentual de acerto de cada
         // etapa (ver função `verificar` de cada etapa em MODULOS).
         window.obterCodigoAtualDoEditor = function () {
+          var codigoFonte = obterCodigoFonteAgregado();
           return {
-            html: htmlEditor.getValue(),
-            css: cssEditor.getValue(),
-            js: jsEditor.getValue(),
+            html: codigoFonte.html,
+            css: codigoFonte.css,
+            js: codigoFonte.js,
             files: arquivosExtras.map(function (arquivo) {
               return { nome: arquivo.nome, linguagem: arquivo.linguagem, conteudo: arquivo.editor.getValue() };
             })
@@ -2553,10 +2693,11 @@
 
         function salvarCodigoAgora() {
           if (!window.salvarCodigoDoAluno) return Promise.resolve(false);
+          var codigoFonte = obterCodigoFonteAgregado();
           var resultado = window.salvarCodigoDoAluno({
-            html: htmlEditor.getValue(),
-            css: cssEditor.getValue(),
-            js: jsEditor.getValue(),
+            html: codigoFonte.html,
+            css: codigoFonte.css,
+            js: codigoFonte.js,
             files: arquivosExtras.map(function (arquivo) {
               return { nome: arquivo.nome, linguagem: arquivo.linguagem, conteudo: arquivo.editor.getValue() };
             })
@@ -2578,6 +2719,7 @@
             if (salvou) {
               marcarComoSalvo();
               agendarSincronizacaoNuvem();
+              agendarBackupNoAparelho();
             }
             return salvou;
           }).catch(function () {
@@ -2598,21 +2740,6 @@
           if (document.visibilityState === 'hidden') salvarRascunhoAtual();
         });
 
-        function salvarEstadoGeral() {
-          var salvarPosicao = window.salvarPosicaoDaIde || function () { return Promise.resolve(false); };
-          return Promise.all([salvarCodigoAgora(), salvarPosicao()]).then(function (resultados) {
-            if (!resultados[0] || !resultados[1]) throw new Error('Não foi possível confirmar o salvamento.');
-            marcarComoSalvo();
-            mostrarToast('Progresso salvo!');
-            return true;
-          }).catch(function () {
-            marcarComoNaoSalvo();
-            mostrarToast('Não foi possível salvar o progresso.');
-            return false;
-          });
-        }
-
-        window.salvarEstadoGeralDaIde = salvarEstadoGeral;
         window.addEventListener('ide:estado-alterado', marcarComoNaoSalvo);
 
         function redimensionarEditores() {
@@ -2637,10 +2764,18 @@
 
         function atualizarIndicadoresRolagem() {
           if (!tabsScrollWrapper || !tabsScrollViewport) return;
-          var limite = Math.max(0, tabsScrollViewport.scrollWidth - tabsScrollViewport.clientWidth);
           var margem = 2;
-          tabsScrollWrapper.classList.toggle('can-scroll-left', tabsScrollViewport.scrollLeft > margem);
-          tabsScrollWrapper.classList.toggle('can-scroll-right', tabsScrollViewport.scrollLeft < limite - margem);
+          var larguraDasSetas = 0;
+          if (tabsScrollWrapper.classList.contains('has-horizontal-overflow')) {
+            tabsScrollWrapper.querySelectorAll('[data-scroll-direction]').forEach(function (botao) {
+              larguraDasSetas += botao.offsetWidth;
+            });
+          }
+          var temOverflow = tabsScrollViewport.scrollWidth > tabsScrollViewport.clientWidth + larguraDasSetas + margem;
+          tabsScrollWrapper.classList.toggle('has-horizontal-overflow', temOverflow);
+          var limite = Math.max(0, tabsScrollViewport.scrollWidth - tabsScrollViewport.clientWidth);
+          tabsScrollWrapper.classList.toggle('can-scroll-left', temOverflow && tabsScrollViewport.scrollLeft > margem);
+          tabsScrollWrapper.classList.toggle('can-scroll-right', temOverflow && tabsScrollViewport.scrollLeft < limite - margem);
         }
 
         var TAGS_VAZIAS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
@@ -3028,6 +3163,25 @@
           }).sort(function (a, b) {
             return ordemDasAbas.indexOf(a.idPane) - ordemDasAbas.indexOf(b.idPane);
           });
+        }
+
+        // Fonte única de "código-fonte atual" por linguagem (html/css/js),
+        // usada por window.obterCodigoAtualDoEditor e (quando ajustado)
+        // salvarCodigoAgora. Mesma regra do preview (montarCodigoPreview):
+        // concatena TODOS os arquivos da linguagem, não só o primeiro — o
+        // espelho legado (htmlEditor/cssEditor/jsEditor) só reflete o
+        // primeiro arquivo de cada linguagem (ver sincronizarArquivosPrincipais),
+        // então usá-lo direto corta conteúdo silenciosamente em etapas com
+        // múltiplos arquivos CSS/JS.
+        function obterCodigoFonteAgregado() {
+          var arquivosHtml = obterArquivosPorLinguagem(['html']);
+          var arquivosCss = obterArquivosPorLinguagem(['css']);
+          var arquivosJs = obterArquivosPorLinguagem(['javascript']);
+          return {
+            html: arquivosHtml.length ? arquivosHtml[0].editor.getValue() : htmlEditor.getValue(),
+            css: arquivosCss.length ? arquivosCss.map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n\n') : cssEditor.getValue(),
+            js: arquivosJs.length ? arquivosJs.map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n\n') : jsEditor.getValue()
+          };
         }
 
         function montarCodigoPreview() {
@@ -3738,9 +3892,10 @@
         }
 
         function exportarCodigosSeparados() {
-          var html = htmlEditor.getValue();
-          var css = cssEditor.getValue();
-          var js = jsEditor.getValue();
+          var codigoFonte = obterCodigoFonteAgregado();
+          var html = codigoFonte.html;
+          var css = codigoFonte.css;
+          var js = codigoFonte.js;
           var indexHtml = '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <link rel="stylesheet" href="style.css">\n  <title>Código editado</title>\n</head>\n<body>\n' + html + '\n  <script src="script.js"></script>\n</body>\n</html>\n';
           baixarArquivo(indexHtml, 'index.html', 'text/html;charset=utf-8');
           baixarArquivo(css, 'style.css', 'text/css;charset=utf-8');
@@ -3749,22 +3904,22 @@
         }
 
         function exportarCodigoHtml() {
-          baixarArquivo(htmlEditor.getValue(), 'index.html', 'text/html;charset=utf-8');
+          baixarArquivo(obterCodigoFonteAgregado().html, 'index.html', 'text/html;charset=utf-8');
           mostrarToast('Arquivo HTML exportado!');
         }
 
         function exportarCodigoCss() {
-          baixarArquivo(cssEditor.getValue(), 'style.css', 'text/css;charset=utf-8');
+          baixarArquivo(obterCodigoFonteAgregado().css, 'style.css', 'text/css;charset=utf-8');
           mostrarToast('Arquivo CSS exportado!');
         }
 
         function exportarCodigoJs() {
-          baixarArquivo(jsEditor.getValue(), 'script.js', 'text/javascript;charset=utf-8');
+          baixarArquivo(obterCodigoFonteAgregado().js, 'script.js', 'text/javascript;charset=utf-8');
           mostrarToast('Arquivo JavaScript exportado!');
         }
 
         function exportarCodigoSvg() {
-          var documento = new DOMParser().parseFromString(htmlEditor.getValue(), 'text/html');
+          var documento = new DOMParser().parseFromString(obterCodigoFonteAgregado().html, 'text/html');
           var svg = documento.querySelector('svg');
           if (!svg) {
             mostrarToast('Nenhum SVG foi encontrado no editor HTML.');

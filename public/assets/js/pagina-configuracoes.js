@@ -43,6 +43,13 @@
         const layoutAprendizagem = document.getElementById("cl-settings-layout-aprendizagem");
         const reset = document.getElementById("cl-settings-password-reset");
         const deleteButton = document.getElementById("cl-settings-delete-account");
+        const clearLocal = document.getElementById("cl-settings-clear-local");
+        if (clearLocal) clearLocal.addEventListener("click", async function () {
+            if (!window.confirm("Sair e apagar deste navegador seu perfil, progresso, exercícios e backups locais? Exporte um backup antes se quiser preservar seus estudos. Arquivos baixados e backups em nuvem serão mantidos.")) return;
+            clearLocal.disabled = true;
+            await CL.auth.logout({ clearLocal: true });
+            clearLocal.disabled = false;
+        });
         const deleteDialog = document.getElementById("cl-delete-account-dialog");
         const deleteForm = document.getElementById("cl-delete-account-form");
         const deleteInput = document.getElementById("cl-delete-account-confirmation");
@@ -98,14 +105,29 @@
             deleteConfirm.disabled = true;
             deleteCancel.disabled = true;
             deleteStatus.textContent = "Excluindo seus dados e conta…";
-            const deleted = await CL.auth.deleteAccount();
-            if (deleted) {
-                window.location.href = CL.config.landingUrl + "?reason=account-deleted";
-                return;
+            try {
+                // Firestore ou o provedor de login podem ficar aguardando a
+                // rede indefinidamente. A interface precisa recuperar o
+                // controle em vez de manter o aluno preso nesta tela.
+                const deleted = await Promise.race([
+                    CL.auth.deleteAccount(),
+                    new Promise(function (_, reject) {
+                        window.setTimeout(function () {
+                            reject(new Error("A exclusão demorou mais que o esperado."));
+                        }, 30000);
+                    })
+                ]);
+                if (deleted) {
+                    window.location.href = CL.config.landingUrl + "?reason=account-deleted";
+                    return;
+                }
+                deleteStatus.textContent = "Não foi possível concluir. Entre novamente e tente de novo.";
+            } catch (error) {
+                deleteStatus.textContent = "Não foi possível concluir a exclusão agora. Verifique a conexão e tente novamente.";
+            } finally {
+                deleteConfirm.disabled = false;
+                deleteCancel.disabled = false;
             }
-            deleteStatus.textContent = "Não foi possível concluir. Entre novamente e tente de novo.";
-            deleteConfirm.disabled = false;
-            deleteCancel.disabled = false;
         });
     });
 })();

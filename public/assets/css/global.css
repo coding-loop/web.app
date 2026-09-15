@@ -1092,9 +1092,13 @@
                área visível, sem competir com os próprios controles. */
             .cl-scrollable-controls {
                 display: grid;
-                grid-template-columns: 26px minmax(0, 1fr) 26px;
+                grid-template-columns: minmax(0, 1fr);
                 align-items: center;
                 min-width: 0;
+            }
+
+            .cl-scrollable-controls.has-horizontal-overflow {
+                grid-template-columns: 26px minmax(0, 1fr) 26px;
             }
 
             .cl-scrollable-controls [data-scroll-viewport] {
@@ -1116,7 +1120,7 @@
             #cl-sidebar .cl-course-tabs-viewport { height: 100%; }
 
             .cl-scroll-hint-arrow {
-                display: grid;
+                display: none;
                 width: 26px;
                 height: 2rem;
                 place-items: center;
@@ -1133,6 +1137,10 @@
                 cursor: pointer;
                 transform: scaleX(1.18);
                 transition: opacity .2s ease;
+            }
+
+            .cl-scrollable-controls.has-horizontal-overflow .cl-scroll-hint-arrow {
+                display: grid;
             }
 
             .cl-scrollable-controls.can-scroll-left .cl-scroll-hint-arrow--left,

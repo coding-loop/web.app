@@ -239,6 +239,30 @@ body:has(#cl-app[data-page="course"]) {
   transform: translateX(var(--trilha-deslocamento, 0px));
 }
 
+/* Grade exclusiva das etapas da Learn Platform. O motor escolhe 3, 2 ou
+   1 colunas conforme a largura atual do painel; os módulos não usam esta
+   regra e preservam a sua trilha original. */
+.trilha-caminho--etapas {
+  display: grid;
+  grid-template-columns: repeat(var(--trilha-colunas, 1), minmax(0, 1fr));
+  grid-auto-rows: minmax(132px, auto);
+  align-items: start;
+  justify-items: center;
+  row-gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 1rem 1.25rem 7rem;
+  position: relative;
+}
+
+.trilha-item--etapas {
+  grid-column: var(--trilha-coluna);
+  grid-row: var(--trilha-linha);
+  justify-self: center;
+  align-self: start;
+}
+
 /* Trilha-rio de três faixas: ocupa a largura disponível, começa no canto
    superior esquerdo e segue apenas para baixo na página. */
 .trilha-caminho--rio {

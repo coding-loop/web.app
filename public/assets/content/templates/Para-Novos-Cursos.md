@@ -64,6 +64,14 @@ Na mesma pasta do módulo, crie `etapa-01.js`:
   window.CL.curso.registrarEtapa('python-modulo-01', 1, {
     titulo: 'Olá, Python',
     texto: '<p>Conheça os primeiros comandos.</p>',
+    questoes: [
+      {
+        pergunta: 'Qual comando exibe uma mensagem no console?',
+        opcoes: ['console.log()', 'print()', 'alert()'],
+        correta: 1,
+        explicacao: 'Em Python, print() exibe texto no console.'
+      }
+    ],
     missao: 'Exiba uma mensagem no console.',
     codigoInicial: {
       html: '',
@@ -76,6 +84,11 @@ Na mesma pasta do módulo, crie `etapa-01.js`:
   });
 })();
 ```
+
+`questoes` é opcional. Cada questão precisa ter ao menos duas `opcoes` e
+`correta` deve ser o índice (começando em `0`) da resposta correta. Use
+`pergunta` e `explicacao` como texto simples; quando precisar de marcação HTML
+no enunciado, use o campo opcional `perguntaHtml`.
 
 Para mais aulas, crie `etapa-02.js`, `etapa-03.js` etc. O segundo argumento de `registrarEtapa` deve acompanhar o número da etapa.
 

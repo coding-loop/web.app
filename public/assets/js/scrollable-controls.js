@@ -5,9 +5,21 @@
     var viewport = controle.querySelector('[data-scroll-viewport]');
     if (!viewport) return;
     var margem = 2;
-    var limite = viewport.scrollWidth - viewport.clientWidth;
-    controle.classList.toggle('can-scroll-left', viewport.scrollLeft > margem);
-    controle.classList.toggle('can-scroll-right', viewport.scrollLeft < limite - margem);
+    // Com setas visíveis, soma a largura delas à área disponível na medida.
+    // Isso impede um falso overflow quando os controles caberiam sem reservar
+    // os 52 px usados pelos indicadores.
+    var larguraDasSetas = 0;
+    if (controle.classList.contains('has-horizontal-overflow')) {
+      controle.querySelectorAll('[data-scroll-direction]').forEach(function (botao) {
+        larguraDasSetas += botao.offsetWidth;
+      });
+    }
+    var temOverflow = viewport.scrollWidth > viewport.clientWidth + larguraDasSetas + margem;
+    controle.classList.toggle('has-horizontal-overflow', temOverflow);
+
+    var limite = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    controle.classList.toggle('can-scroll-left', temOverflow && viewport.scrollLeft > margem);
+    controle.classList.toggle('can-scroll-right', temOverflow && viewport.scrollLeft < limite - margem);
   }
 
   function preparar(controle) {

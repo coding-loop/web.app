@@ -1,0 +1,4 @@
+/private-backups/
+**/coding-loop-progresso*.json
+**/*debug.log
+**/.firebase/

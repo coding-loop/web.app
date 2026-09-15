@@ -7,12 +7,32 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
+    function validAnnouncement() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['title', 'message', 'level', 'audience', 'status', 'createdAt', 'updatedAt', 'publishedAt', 'authorId'])
+        && d.keys().hasOnly(['title', 'message', 'level', 'audience', 'status', 'createdAt', 'updatedAt', 'publishedAt', 'authorId'])
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 100
+        && d.message is string && d.message.size() > 0 && d.message.size() <= 1000
+        && d.level in ['info', 'success', 'urgent']
+        && d.audience in ['all', 'html', 'css', 'js']
+        && d.status in ['published', 'draft']
+        && d.createdAt is timestamp && d.publishedAt is timestamp
+        && d.authorId is string && d.updatedAt == request.time;
+    }
+
     /* Comunicados publicados podem ser lidos por alunos autenticados;
        criar, editar e remover exige a custom claim admin. */
     match /announcements/{announcementId} {
       allow read: if request.auth != null && (resource.data.status == 'published' || isAdmin());
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow create: if isAdmin() && validAnnouncement()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.publishedAt == request.time;
+      allow update: if isAdmin() && validAnnouncement()
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.publishedAt == resource.data.publishedAt;
+      allow delete: if isAdmin();
     }
 
     /* users/{uid} -> perfil do aluno.
@@ -20,16 +40,17 @@ service cloud.firestore {
        ao id do documento) pode ler ou escrever seus dados. Ninguém
        lê o perfil de outra pessoa. */
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Modelo local: somente leitura/limpeza de dados legados. Sem novas escritas.
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
 
       /* users/{uid}/progress/{progressId} -> progresso de aulas/cursos */
       match /progress/{progressId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
       }
 
       /* users/{uid}/exercises/{exerciseId} -> código salvo na IDE */
       match /exercises/{exerciseId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
 

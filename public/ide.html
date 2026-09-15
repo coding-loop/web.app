@@ -53,21 +53,17 @@
           <h2 id="module-title">Módulo 1: Introdução ao HTML</h2>
 
           <div class="backup-header-actions">
-            <button aria-label="Progress Backup" class="header-save-btn backup-now-header" id="btn-backup-now" title="Progress Backup" type="button">
-              <span class="save-btn-dot" id="save-progress-dot" aria-hidden="true"></span>
-              <img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/export-progress-light.svg" data-icon-light="assets/images/icons.svg/export-progress-dark.svg" src="assets/images/icons.svg/export-progress-light.svg">
-            </button>
             <div class="backup-menu">
               <button aria-controls="backup-menu-options" aria-expanded="false" aria-label="Configurações de backup" class="header-save-btn" id="btn-backup-menu" title="Configurações de Backup" type="button">
+              <span class="save-btn-dot" id="save-progress-dot" aria-hidden="true"></span>
               <img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/config-backup-light.svg" data-icon-light="assets/images/icons.svg/config-backup-dark.svg" src="assets/images/icons.svg/config-backup-light.svg">
               </button>
               <div class="backup-menu-options" hidden id="backup-menu-options">
-                <button id="btn-restore-backup" type="button" aria-label="Restaurar Progress Backup" title="Restaurar Progress Backup"><img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/import-progress-light.svg" data-icon-light="assets/images/icons.svg/import-progress-dark.svg" src="assets/images/icons.svg/import-progress-light.svg"><span>Restaurar Progress Backup</span></button>
+                <button id="btn-restore-backup" type="button" aria-label="Restaurar backup" title="Restaurar backup"><img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/import-progress-light.svg" data-icon-light="assets/images/icons.svg/import-progress-dark.svg" src="assets/images/icons.svg/import-progress-light.svg"><span>Restaurar backup</span></button>
                 <button id="btn-backup-settings" type="button"><img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/config-backup-light.svg" data-icon-light="assets/images/icons.svg/config-backup-dark.svg" src="assets/images/icons.svg/config-backup-light.svg"><span>Configurar backup</span></button>
               </div>
             </div>
           </div>
-          <input accept="application/json,.json" hidden id="input-import-progress" type="file">
           <dialog aria-labelledby="restore-backup-title" class="backup-settings-dialog" id="restore-backup-dialog">
             <form id="restore-backup-form" method="dialog">
               <div class="backup-dialog-header">
@@ -91,42 +87,29 @@
               </div>
               <fieldset class="backup-option-section"><legend>Destino</legend>
                 <div class="backup-option-grid">
-                  <div class="backup-option backup-option--fixed" aria-label="Backup no navegador sempre disponível"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"/><line x1="2" y1="8" x2="22" y2="8"/><circle cx="6" cy="5.5" r="0.5" fill="currentColor"/><circle cx="8" cy="5.5" r="0.5" fill="currentColor"/><circle cx="10" cy="5.5" r="0.5" fill="currentColor"/></svg></span><span class="backup-option-copy"><strong>Navegador</strong><small>Sempre disponível no LocalStorage</small></span></div>
-                  <label class="backup-option backup-option--with-action"><input checked name="destinations" type="checkbox" value="computer"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg></span><span class="backup-option-copy"><strong>Computador</strong><small>Cria “Coding Loop Backups” no local escolhido</small></span><button class="backup-destination-action" id="btn-select-backup-folder" type="button" title="Escolher Local"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v12H3V6Z"/></svg><span>Escolher Local</span></button></label>
+                  <div class="backup-option backup-option--fixed" aria-label="localStorage ativado por padrão"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"/><line x1="2" y1="8" x2="22" y2="8"/><circle cx="6" cy="5.5" r="0.5" fill="currentColor"/><circle cx="8" cy="5.5" r="0.5" fill="currentColor"/><circle cx="10" cy="5.5" r="0.5" fill="currentColor"/></svg></span><span class="backup-option-copy"><strong>localStorage</strong><small>Ativado por padrão</small></span></div>
+                  <label class="backup-option backup-option--with-action"><input name="destinations" type="checkbox" value="device"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="12.5" height="9" rx="1.2"/><path d="M1.5 17h14.5M6.5 17v1.5h4V17"/><rect x="17" y="7" width="5.5" height="11" rx="1.1"/><path d="M19.2 15.8h1.1"/></svg></span><span class="backup-option-copy"><strong>Aparelho</strong><small>Cópia automática na pasta escolhida</small></span><button class="backup-destination-action" id="btn-select-backup-folder" type="button" title="Escolher pasta para salvar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v10H3z"/><path d="M12 11v5m0 0-2-2m2 2 2-2"/></svg><span>Escolher pasta</span></button></label>
                   <label class="backup-option backup-option--with-action"><input checked name="destinations" type="checkbox" value="drive"><span class="backup-option-icon backup-google-drive-icon" aria-hidden="true"><img src="assets/images/icons.svg/logo-google-drive.svg" alt=""></span><span class="backup-option-copy"><strong>Google Drive</strong></span><button class="backup-destination-action" id="btn-sync-google-drive" type="button" title="Sincronizar Google Drive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12a4 4 0 0 1 4-4h3m1 0-2-2m2 2-2 2M16 12a4 4 0 0 1-4 4H9m-1 0 2 2m-2-2 2-2"/></svg><span>Sincronizar</span></button></label>
-                  <label class="backup-option backup-option--with-action"><input name="destinations" type="checkbox" value="onedrive"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 18H19a3 3 0 0 0 .44-5.97A5.5 5.5 0 0 0 9.1 9.55 4.25 4.25 0 0 0 8.5 18Z"/><path d="M5.5 18A3.5 3.5 0 0 1 5 11.04"/></svg></span><span class="backup-option-copy"><strong>OneDrive</strong></span><button class="backup-destination-action" id="btn-sync-onedrive" type="button" title="Sincronizar OneDrive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12a4 4 0 0 1 4-4h3m1 0-2-2m2 2-2 2M16 12a4 4 0 0 1 4-4H9m-1 0 2 2m-2-2 2-2"/></svg><span>Sincronizar</span></button></label>
+                  <label class="backup-option backup-option--with-action"><input name="destinations" type="checkbox" value="onedrive"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 18H19a3 3 0 0 0 .44-5.97A5.5 5.5 0 0 0 9.1 9.55 4.25 4.25 0 0 0 8.5 18Z"/><path d="M5.5 18A3.5 3.5 0 0 1 5 11.04"/></svg></span><span class="backup-option-copy"><strong>OneDrive</strong></span><button class="backup-destination-action" id="btn-sync-onedrive" type="button" title="Sincronizar OneDrive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-4"/><path d="M6 3v4h4M4 13a8 8 0 0 0 14 4"/><path d="M18 21v-4h-4"/></svg><span>Sincronizar</span></button></label>
                 </div>
               </fieldset>
-              <fieldset class="backup-option-section"><legend>Frequência</legend>
+              <fieldset class="backup-option-section"><legend>Sincronização em nuvem</legend>
                 <div class="backup-option-grid">
-                  <div class="backup-option backup-option--fixed" aria-label="Backup manual sempre disponível"><span class="backup-option-icon backup-manual-icon" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="manual-file" d="M3 38v82q0 7 7 7h80q7 0 7-7V10q0-7-7-7H38v27q0 8-8 8H3Z"/><path class="manual-fold" d="M3 34 34 3v26q0 6-6 6H3Z"/><path class="manual-symbol" d="m50 38 16.5 23.5H57V80q0 2.5-2.5 2.5h-9Q43 82.5 43 80V61.5h-9.5L50 38ZM20 90v8q0 8 7 8h46q7 0 7-8v-8h-8.5v8.5h-43V90H20Z"/></svg></span><span class="backup-option-copy"><strong>Manual</strong><small>Sempre disponível</small></span></div>
-                  <label class="backup-option"><input checked name="schedule" type="radio" value="exit"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5m4-4 4-4-4-4m4 4H9"/></svg></span><span class="backup-option-copy"><strong>Ao sair</strong><small>Quando fechar o curso</small></span></label>
-                  <label class="backup-option"><input name="schedule" type="radio" value="weekly"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-12 5 2 2 4-4"/></svg></span><span class="backup-option-copy"><strong>Semanal</strong><small>Uma vez por semana</small></span></label>
-                  <label class="backup-option"><input name="schedule" type="radio" value="monthly"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18M8 15h2m4 0h2"/></svg></span><span class="backup-option-copy"><strong>Mensal</strong><small>Uma vez por mês</small></span></label>
-                </div>
-              </fieldset>
-              <fieldset class="backup-option-section"><legend>Tipo de atualização</legend>
-                <div class="backup-option-grid">
-                  <label class="backup-option"><input checked name="mode" type="radio" value="incremental"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h4M9 14h6m-3-3v6"/></svg></span><span class="backup-option-copy"><strong>Incremental</strong><small>Salvar somente alterações</small></span></label>
-                  <label class="backup-option"><input name="mode" type="radio" value="full"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4zM3 3h18v4H3zM9 11h6"/></svg></span><span class="backup-option-copy"><strong>Completo</strong><small>Salvar todo o progresso</small></span></label>
+                  <label class="backup-option"><input checked name="cloudSyncSchedule" type="radio" value="5m"><span class="backup-option-copy"><strong>A cada 5 minutos</strong><small>Após alterações pendentes</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="10m"><span class="backup-option-copy"><strong>A cada 10 minutos</strong><small>Após alterações pendentes</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="15m"><span class="backup-option-copy"><strong>A cada 15 minutos</strong><small>Após alterações pendentes</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="daily"><span class="backup-option-copy"><strong>No próximo acesso diário</strong><small>Após pelo menos 24 horas</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="weekly"><span class="backup-option-copy"><strong>No próximo acesso semanal</strong><small>Após pelo menos 7 dias</small></span></label>
                 </div>
               </fieldset>
               <fieldset class="backup-option-section backup-retention-section"><legend>Histórico de versões</legend>
                 <label class="backup-retention"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg></span><span>Manter somente</span><select name="retentionCount"><option selected value="1">a última versão</option><option value="3">as últimas 3 versões</option><option value="5">as últimas 5 versões</option><option value="10">as últimas 10 versões</option></select><span>no navegador</span></label>
               </fieldset>
               <p class="backup-status" id="backup-status" aria-live="polite"></p>
-              <p class="backup-privacy-note">Privacidade: o backup fica neste navegador e, se você escolher, na sua própria pasta do computador, Google Drive ou OneDrive. O Coding Loop usa somente as permissões necessárias.</p>
+              <p class="backup-privacy-note">Privacidade: o progresso é salvo em localStorage e, se você escolher, copiado para uma pasta do aparelho ou sincronizado na área privada do Coding Loop no Google Drive ou OneDrive. O Coding Loop usa somente as permissões necessárias.</p>
               <div class="backup-dialog-actions">
-                <button class="cl-btn backup-test-button" id="btn-test-backup-connection" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h11a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.1 9.5 4.5 4.5 0 0 0 7 18Z"/><path d="m9 13 2 2 4-4"/></svg><span>Testar conexão</span></button>
                 <button class="cl-btn backup-save-button" id="btn-save-backup-settings" title="Salvar configurações" value="save" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h14l4 4v14H3V3Z"/><path d="M7 3v7h10V3M7 21v-8h10v8M14 6h1"/></svg><span>Salvar configurações</span></button>
               </div>
-            </form>
-          </dialog>
-
-          <dialog aria-label="Permissão para pasta de backup" class="backup-folder-guide" id="backup-folder-guide">
-            <form method="dialog">
-              <p class="backup-folder-guide-notice">Os Backups só podem ser realizados em <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v12H3V6Z"/></svg> <strong>Pastas</strong>.</p>
-              <div class="backup-folder-guide-actions"><button class="backup-folder-guide-continue" value="continue" type="submit">Permitir</button><button class="backup-folder-guide-cancel" value="cancel" type="submit">Não Permitir</button></div>
             </form>
           </dialog>
 
@@ -205,9 +188,9 @@
               </button>
             </div>
 
-            <div class="browser-tabs-scroll-wrapper cl-scrollable-controls" id="tabs-scroll-wrapper">
+            <div class="browser-tabs-scroll-wrapper cl-scrollable-controls" data-scrollable-controls id="tabs-scroll-wrapper">
               <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--left" data-scroll-direction="left" aria-label="Ver botões anteriores" type="button">‹</button>
-              <div class="browser-tabs-viewport" data-scroll-viewport"><div class="browser-tabs-right" id="tabs-draggable-container">
+              <div class="browser-tabs-viewport" data-scroll-viewport><div class="browser-tabs-right" id="tabs-draggable-container">
                 <button aria-label="Desfazer última alteração" class="toolbar-btn" id="btn-undo" title="Ctrl+Z" type="button" disabled>
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 7 4 12l5.5 5M5 12h8a5 5 0 0 1 5 5v1"/></svg>
                 </button>

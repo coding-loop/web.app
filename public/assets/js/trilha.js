@@ -121,14 +121,18 @@
   var PASSO_HORIZONTAL_LOGPROG = 255;
   var PASSO_VERTICAL_LOGPROG = 170;
   var MARGEM_LATERAL_LOGPROG = 40;
-  var MARGEM_SUPERIOR_TRILHA = 240;
+  var MARGEM_SUPERIOR_MODULOS = 240;
+  var MARGEM_SUPERIOR_ETAPAS = 24;
 
   function limiteLateralLogProg(largura) {
     var espacoDeUmLado = (Number(largura) || 0) / 2 - MARGEM_LATERAL_LOGPROG;
     return Math.max(0, Math.min(3, Math.floor(espacoDeUmLado / PASSO_HORIZONTAL_LOGPROG)));
   }
 
-  function pontoLogProg(indice, limiteLateral, cursoId) {
+  /* Geometria-base compartilhada. Os dois chamadores abaixo mantêm a
+     configuração dos módulos e das etapas separada, para que uma não
+     herde os ajustes visuais da outra. */
+  function pontoBaseLogProg(indice, limiteLateral, cursoId) {
     var ponto = { x: 0, y: 0 };
     var segmentosGerados = 0;
     var ciclo = 0;
@@ -165,6 +169,26 @@
     }
   }
 
+  function pontoModuloLogProg(indice, limiteLateral, cursoId) {
+    return pontoBaseLogProg(indice, limiteLateral, cursoId);
+  }
+
+  function pontoEtapaLogProg(indice, limiteLateral, cursoId) {
+    return pontoBaseLogProg(indice, limiteLateral, cursoId);
+  }
+
+  function configuracaoDePosicionamento(options) {
+    var etapas = options && options.tipoTrilha === 'etapas';
+    return {
+      margemSuperior: etapas ? MARGEM_SUPERIOR_ETAPAS : MARGEM_SUPERIOR_MODULOS,
+      ponto: etapas ? pontoEtapaLogProg : pontoModuloLogProg,
+      /* POSICOES contém exclusivamente os ajustes manuais do mapa de
+         módulos. Etapas podem ganhar ajustes próprios em POSICOES_ETAPAS,
+         sem nunca alterar o mapa do curso. */
+      ajustes: etapas ? (CL.trilha.POSICOES_ETAPAS || {}) : (CL.trilha.POSICOES || {})
+    };
+  }
+
   function nodeHTML(node, index, options) {
     var logoUrl = CL.trilha.LOGOS[node.linguagem] || '';
     var statusClass = 'trilha-node--' + (node.status || 'available');
@@ -176,6 +200,7 @@
     var trilhaQuatroColunas = options && options.layout === 'quatro-colunas';
     var trilhaVinteUm = options && options.layout === 'vinte-um-por-tela';
     var trilhaLogProg = options && options.layout === 'logprog-ziguezague';
+    var trilhaEtapas = options && options.layout === 'etapas-responsivas';
     var colunas = Math.max(1, Number(options && options.columns) || 10);
     var indiceLinha = Math.floor(index / colunas);
     var linha = indiceLinha + 1;
@@ -223,11 +248,22 @@
     }
 
     if (trilhaLogProg) {
-      var pontoDaLogica = pontoLogProg(index, options.logprogLimiteLateral, options.cursoId);
+      var configuracaoLogProg = configuracaoDePosicionamento(options);
+      var pontoDaLogica = configuracaoLogProg.ponto(index, options.logprogLimiteLateral, options.cursoId);
       colunas = 13;
       coluna = pontoDaLogica.x + 7;
       linha = pontoDaLogica.y + 1;
       indiceLinha = pontoDaLogica.y;
+    }
+
+    if (trilhaEtapas) {
+      colunas = Math.max(1, Number(options.colunasEtapas) || 1);
+      indiceLinha = Math.floor(index / colunas);
+      linha = indiceLinha + 1;
+      posicaoNaLinha = index % colunas;
+      /* A ordem alterna nas linhas para que o caminho conecte a última
+         etapa de uma linha à primeira da próxima sem cruzar a grade. */
+      coluna = indiceLinha % 2 === 0 ? posicaoNaLinha + 1 : colunas - posicaoNaLinha;
     }
 
     /* Zigue-zague: alterna pra cima/baixo por CLASSE (não por
@@ -255,10 +291,16 @@
     }
     if (trilhaLogProg) {
       classePosicao = 'trilha-item--logprog';
-      estiloPosicao = ' style="--trilha-x:calc(50% + ' + (pontoDaLogica.x * PASSO_HORIZONTAL_LOGPROG) + 'px);--trilha-y:' + (MARGEM_SUPERIOR_TRILHA + (pontoDaLogica.y * PASSO_VERTICAL_LOGPROG)) + 'px"';
+      estiloPosicao = ' style="--trilha-x:calc(50% + ' + (pontoDaLogica.x * PASSO_HORIZONTAL_LOGPROG) + 'px);--trilha-y:' + (configuracaoLogProg.margemSuperior + (pontoDaLogica.y * PASSO_VERTICAL_LOGPROG)) + 'px"';
+    }
+    if (trilhaEtapas) {
+      classePosicao = 'trilha-item--etapas';
+      estiloPosicao = ' style="--trilha-coluna:' + coluna + ';--trilha-linha:' + linha + '"';
     }
 
-    var posicoesDoCurso = CL.trilha.POSICOES && CL.trilha.POSICOES[options && options.cursoId];
+    var posicoesDoCurso = configuracaoLogProg
+      ? configuracaoLogProg.ajustes[options && options.cursoId]
+      : (CL.trilha.POSICOES && CL.trilha.POSICOES[options && options.cursoId]);
     var ajuste = posicoesDoCurso && posicoesDoCurso[index];
     if (ajuste) {
       /* A string sempre termina na aspas do atributo style. Acrescentar
@@ -557,13 +599,21 @@
     };
   }
 
+  /* As etapas ocupam o painel estreito da Learn Platform. A largura útil
+     determina a grade: três colunas no painel largo, duas no médio e uma
+     coluna vertical no estreito. */
+  function calcularGradeEtapas(container) {
+    var largura = Math.max(0, container.clientWidth || 0);
+    return { colunas: largura >= 520 ? 3 : (largura >= 340 ? 2 : 1) };
+  }
+
   function agendarRedesenho() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
       containersAtivos.forEach(function (container) {
         if (container.isConnected) {
           var usaMapaComAjusteResponsivo = container.querySelector('.trilha-caminho--vinte-um, .trilha-caminho--logprog');
-          if ((container._trilhaAutoColunas || usaMapaComAjusteResponsivo) && container._trilhaSourceOptions) {
+          if ((container._trilhaAutoColunas || container._trilhaEtapasResponsiva || usaMapaComAjusteResponsivo) && container._trilhaSourceOptions) {
             CL.trilha.render(container, container._trilhaSourceOptions);
           } else {
             desenharCaminho(container);
@@ -615,6 +665,12 @@
     var optionsOriginais = options;
     var usaColunasAutomaticas = options.layout === 'serpente' && options.columns === 'auto';
 
+    if (options.layout === 'etapas-responsivas') {
+      options = Object.assign({}, options, {
+        colunasEtapas: calcularGradeEtapas(container).colunas
+      });
+    }
+
     if (usaColunasAutomaticas) {
       var grade = calcularGradeSerpente(container);
       options = Object.assign({}, options, {
@@ -640,6 +696,10 @@
         ';--trilha-meio-passo:' + (Number(options.meioPasso) || 84) + 'px' +
         ';--trilha-passo-y:' + (Number(options.passoY) || 145.49) + 'px"';
     }
+    if (options.layout === 'etapas-responsivas') {
+      classeLayout = ' trilha-caminho--etapas';
+      estiloLayout = ' style="--trilha-colunas:' + options.colunasEtapas + '"';
+    }
     if (options.layout === 'rio') {
       classeLayout = ' trilha-caminho--rio';
       estiloLayout = ' style="--trilha-colunas:3"';
@@ -657,7 +717,8 @@
         logprogLimiteLateral: limiteLateralLogProg(container.clientWidth)
       });
       classeLayout = ' trilha-caminho--logprog';
-      estiloLayout = ' style="height:' + (Math.max(1, pontoLogProg(Math.max(0, nodes.length - 1), options.logprogLimiteLateral, options.cursoId).y) * PASSO_VERTICAL_LOGPROG + 360) + 'px"';
+      var configuracaoLogProg = configuracaoDePosicionamento(options);
+      estiloLayout = ' style="height:' + (Math.max(1, configuracaoLogProg.ponto(Math.max(0, nodes.length - 1), options.logprogLimiteLateral, options.cursoId).y) * PASSO_VERTICAL_LOGPROG + configuracaoLogProg.margemSuperior + 120) + 'px"';
     }
 
     container.innerHTML = '<div class="trilha-caminho' + classeLayout + '"' + estiloLayout + '>' +
@@ -668,6 +729,7 @@
     container._trilhaOptions = options;
     container._trilhaSourceOptions = optionsOriginais;
     container._trilhaAutoColunas = usaColunasAutomaticas;
+    container._trilhaEtapasResponsiva = options.layout === 'etapas-responsivas';
 
     if (containersAtivos.indexOf(container) === -1) {
       containersAtivos.push(container);
