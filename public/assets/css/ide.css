@@ -18,8 +18,9 @@
     .learning-platform-root {
       position: relative;
       display: flex;
-      overflow-y: auto;
+      overflow: hidden;
       height: 100vh;
+      height: 100dvh;
       width: 100vw;
       /* A cor do curso é definida por data-curso em ide.js. */
       --course-accent: #e44d26;
@@ -2289,7 +2290,11 @@
 
     .learning-platform-root.is-resizing-panels .theory-pane,
     .learning-platform-root.is-resizing-panels .ide-container-pane {
-      transition: none;
+      transition: none !important;
+    }
+
+    .learning-platform-root.is-resizing-panels iframe {
+      pointer-events: none !important;
     }
 
     .learning-platform-root.ide-recolhido .theory-pane {
@@ -2341,6 +2346,7 @@
       transform: translateX(-1px);
       background: var(--ide-control-contrast);
       cursor: col-resize;
+      touch-action: none;
       z-index: 20;
       transition: background-color 0.15s ease;
     }
@@ -3278,6 +3284,7 @@
         height: var(--ide-splitter-size);
         transform: translateY(-1px);
         cursor: row-resize;
+        touch-action: none;
       }
 
       .pane-resizer::before {
@@ -3286,7 +3293,7 @@
       }
 
       .pane-resizer::after {
-        inset: -7px 0;
+        inset: -14px 0;
       }
     }
 

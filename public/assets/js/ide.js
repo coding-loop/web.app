@@ -4229,7 +4229,7 @@
 
 })();
 
-/* ==========================================================
+/* ========================================================== 
    REDIMENSIONADOR DE PAINÉIS (Teoria <-> IDE)
    Não depende de autenticação nem de dados de estudo.
    ========================================================== */
@@ -4241,13 +4241,16 @@
 
       if (!root || !theoryPane || !idePane || !resizer) return;
 
-      var MIN_THEORY = 260;
-      var MIN_IDE = 300;
+      var MIN_THEORY_HORIZONTAL = 260;
+      var MIN_IDE_HORIZONTAL = 300;
       var DEFAULT_RATIO = 1 / 3;
       var ratioAtual = DEFAULT_RATIO;
       var arrastando = false;
       var vertical = false;
       var frameAgendado = null;
+      var inicioCoord = 0;
+      var tamanhoInicial = 0;
+      var pointerIdCapturado = null;
 
       function atualizarOrientacao() {
         vertical = getComputedStyle(root).flexDirection === 'column';
@@ -4256,16 +4259,21 @@
       }
 
       function limites(total) {
-        var minimoTeoria = Math.min(MIN_THEORY, total * 0.45);
-        var minimoIde = Math.min(MIN_IDE, total * 0.45);
-        return { min: minimoTeoria, max: Math.max(minimoTeoria, total - minimoIde) };
+        if (vertical) {
+          var minimoTeoria = Math.max(60, Math.min(100, total * 0.2));
+          var minimoIde = Math.max(80, Math.min(120, total * 0.25));
+          return { min: minimoTeoria, max: Math.max(minimoTeoria, total - minimoIde) };
+        }
+        var minimoTeoriaH = Math.min(MIN_THEORY_HORIZONTAL, total * 0.45);
+        var minimoIdeH = Math.min(MIN_IDE_HORIZONTAL, total * 0.45);
+        return { min: minimoTeoriaH, max: Math.max(minimoTeoriaH, total - minimoIdeH) };
       }
 
-      function posicionarResizer() {
+      function posicionarResizer(tamanhoTeoriaDefinido) {
         atualizarOrientacao();
-        var tamanhoTeoria = vertical
-          ? theoryPane.getBoundingClientRect().height
-          : theoryPane.getBoundingClientRect().width;
+        var tamanhoTeoria = typeof tamanhoTeoriaDefinido === 'number'
+          ? tamanhoTeoriaDefinido
+          : (vertical ? theoryPane.getBoundingClientRect().height : theoryPane.getBoundingClientRect().width);
         if (vertical) {
           resizer.style.left = '0';
           resizer.style.top = tamanhoTeoria + 'px';
@@ -4298,13 +4306,8 @@
 
         if (atualizarRatio !== false) ratioAtual = tamanhoTeoria / total;
         resizer.setAttribute('aria-valuenow', String(Math.round(ratioAtual * 100)));
-        posicionarResizer();
+        posicionarResizer(tamanhoTeoria);
         window.dispatchEvent(new Event('ide:resize'));
-      }
-
-      function tamanhoPeloPonteiro(clientX, clientY) {
-        var rect = root.getBoundingClientRect();
-        return vertical ? clientY - rect.top : clientX - rect.left;
       }
 
       function agendarTamanho(px) {
@@ -4315,33 +4318,60 @@
         });
       }
 
+      function onPointerMove(event) {
+        if (!arrastando) return;
+        var coordAtual = vertical ? event.clientY : event.clientX;
+        var delta = coordAtual - inicioCoord;
+        agendarTamanho(tamanhoInicial + delta);
+        if (event.cancelable) event.preventDefault();
+      }
+
       function finalizarArraste() {
         if (!arrastando) return;
         arrastando = false;
+        if (pointerIdCapturado !== null) {
+          try {
+            if (resizer.hasPointerCapture && resizer.hasPointerCapture(pointerIdCapturado)) {
+              resizer.releasePointerCapture(pointerIdCapturado);
+            }
+          } catch (_) {}
+          pointerIdCapturado = null;
+        }
         resizer.classList.remove('is-dragging');
         root.classList.remove('is-resizing-panels');
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', finalizarArraste);
+        window.removeEventListener('pointercancel', finalizarArraste);
       }
 
       resizer.addEventListener('pointerdown', function (event) {
         if (root.classList.contains('ide-recolhido')) return;
         atualizarOrientacao();
         arrastando = true;
+        inicioCoord = vertical ? event.clientY : event.clientX;
+        tamanhoInicial = vertical
+          ? theoryPane.getBoundingClientRect().height
+          : theoryPane.getBoundingClientRect().width;
+        pointerIdCapturado = event.pointerId;
+
         resizer.classList.add('is-dragging');
         root.classList.add('is-resizing-panels');
         document.body.style.userSelect = 'none';
         document.body.style.cursor = vertical ? 'row-resize' : 'col-resize';
-        if (resizer.setPointerCapture) resizer.setPointerCapture(event.pointerId);
+
+        if (resizer.setPointerCapture) {
+          try {
+            resizer.setPointerCapture(event.pointerId);
+          } catch (_) {}
+        }
+
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', finalizarArraste);
+        window.addEventListener('pointercancel', finalizarArraste);
         event.preventDefault();
       });
-
-      resizer.addEventListener('pointermove', function (event) {
-        if (!arrastando) return;
-        agendarTamanho(tamanhoPeloPonteiro(event.clientX, event.clientY));
-      });
-      resizer.addEventListener('pointerup', finalizarArraste);
-      resizer.addEventListener('pointercancel', finalizarArraste);
 
       resizer.addEventListener('keydown', function (event) {
         atualizarOrientacao();
@@ -4358,8 +4388,10 @@
       });
 
       resizer.addEventListener('dblclick', function () {
+        atualizarOrientacao();
         var rect = root.getBoundingClientRect();
-        aplicarTamanho((vertical ? rect.height : rect.width) * DEFAULT_RATIO);
+        var total = vertical ? rect.height : rect.width;
+        aplicarTamanho(total * DEFAULT_RATIO);
       });
 
       window.addEventListener('resize', function () {
