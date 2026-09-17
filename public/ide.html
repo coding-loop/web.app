@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="solarized-dark">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDE — Coding Loop</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDE — Coding Loop</title>
 
-    <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
-    <link rel="stylesheet" href="assets/css/ide.css?v=step-tabs-20260829-1">
-    <link rel="stylesheet" href="assets/css/trilha.css?v=trilha-opacidade-indice-20260829-1">
+  <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
+  <link rel="stylesheet" href="assets/css/ide.css?v=step-tabs-20260829-1">
+  <link rel="stylesheet" href="assets/css/trilha.css?v=trilha-opacidade-indice-20260829-1">
 
-    <!-- Preconnect: economiza o tempo de DNS/TLS antes dos downloads
+  <!-- Preconnect: economiza o tempo de DNS/TLS antes dos downloads
          do Firebase e do Monaco, que carregam logo abaixo. -->
-    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
-    <!-- Firebase SDK (compat) -->
-    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-    <!-- Bibliotecas opcionais de backup não podem bloquear a IDE. -->
-    <script async src="https://accounts.google.com/gsi/client"></script>
-    <script async src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+  <!-- Firebase SDK (compat) -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+  <!-- Bibliotecas opcionais de backup não podem bloquear a IDE. -->
+  <script async src="https://accounts.google.com/gsi/client"></script>
+  <script async src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 
-    <!-- O Monaco é carregado por ide.js com CDNs alternativas. Uma falha
+  <!-- O Monaco é carregado por ide.js com CDNs alternativas. Uma falha
          externa não bloqueia mais a execução dos scripts locais. -->
 
 </head>
+
 <body>
 
   <div class="learning-platform-root">
@@ -33,103 +35,234 @@
     <!-- Painel Esquerdo: Guia Teórico e Aulas Interativas -->
     <aside class="theory-pane">
       <header class="theory-header">
-        
+
         <!-- 1. Retorno fixo à dashboard -->
         <div class="dashboard-fixed-section">
           <!-- Botão A: ícone do HTML + seta "<" colada na borda esquerda -> volta para a dashboard -->
-          <button aria-label="Voltar ao painel de trilha" class="back-to-dashboard-btn" id="btn-voltar-dashboard" title="Voltar ao Painel de Trilha" type="button">
-            <svg class="seta-retorno" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-            
-            <img id="course-dashboard-icon" src="assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4" alt="LogProg"/>
+          <button aria-label="Voltar ao painel de trilha" class="back-to-dashboard-btn" id="btn-voltar-dashboard"
+            title="Voltar ao Painel de Trilha" type="button">
+            <svg class="seta-retorno" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+            </svg>
+
+            <img id="course-dashboard-icon" src="assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4"
+              alt="LogProg" />
           </button>
-          <button aria-label="Abrir índice do curso" class="toggle-indice-btn" id="toggle-indice" title="Índice do Curso" type="button" aria-expanded="false" aria-controls="indice-etapas">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/></svg>
+          <button aria-label="Abrir índice do curso" class="toggle-indice-btn" id="toggle-indice"
+            title="Índice do Curso" type="button" aria-expanded="false" aria-controls="indice-etapas">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z" />
+            </svg>
           </button>
 
         </div>
 
         <!-- 2. Barra Dinâmica do Módulo -->
         <div class="module-nav-bar">
-          <h2 id="module-title">Módulo 1: Introdução ao HTML</h2>
+          <div class="module-nav-title" id="module-nav-title" aria-live="polite"></div>
+          <div class="step-tabs-scroll-wrapper header-step-tabs cl-scrollable-controls" data-scrollable-controls
+            id="header-step-tabs-wrapper">
+            <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--left" data-scroll-direction="left"
+              aria-label="Ver abas anteriores" type="button">‹</button>
+            <div class="step-tabs-viewport" data-scroll-viewport>
+              <div class="step-tabs" role="tablist" aria-label="Seções da etapa" id="header-step-tabs"></div>
+            </div>
+            <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--right" data-scroll-direction="right"
+              aria-label="Ver mais abas" type="button">›</button>
+          </div>
 
           <div class="backup-header-actions">
             <div class="backup-menu">
-              <button aria-controls="backup-menu-options" aria-expanded="false" aria-label="Configurações de backup" class="header-save-btn" id="btn-backup-menu" title="Configurações de Backup" type="button">
-              <span class="save-btn-dot" id="save-progress-dot" aria-hidden="true"></span>
-              <img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/config-backup-light.svg" data-icon-light="assets/images/icons.svg/config-backup-dark.svg" src="assets/images/icons.svg/config-backup-light.svg">
+              <button aria-controls="backup-menu-options" aria-expanded="false" aria-label="Configurações de backup"
+                class="header-save-btn" id="btn-backup-menu" title="Configurações de Backup" type="button">
+                <span class="save-btn-dot" id="save-progress-dot" aria-hidden="true"></span>
+                <img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/config-backup-light.svg"
+                  data-icon-light="assets/images/icons.svg/config-backup-dark.svg"
+                  src="assets/images/icons.svg/config-backup-light.svg">
               </button>
               <div class="backup-menu-options" hidden id="backup-menu-options">
-                <button id="btn-restore-backup" type="button" aria-label="Restaurar backup" title="Restaurar backup"><img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/import-progress-light.svg" data-icon-light="assets/images/icons.svg/import-progress-dark.svg" src="assets/images/icons.svg/import-progress-light.svg"><span>Restaurar backup</span></button>
-                <button id="btn-backup-settings" type="button"><img alt="" aria-hidden="true" data-icon-dark="assets/images/icons.svg/config-backup-light.svg" data-icon-light="assets/images/icons.svg/config-backup-dark.svg" src="assets/images/icons.svg/config-backup-light.svg"><span>Configurar backup</span></button>
+                <button id="btn-restore-backup" type="button" aria-label="Restaurar backup"
+                  title="Restaurar backup"><img alt="" aria-hidden="true"
+                    data-icon-dark="assets/images/icons.svg/import-progress-light.svg"
+                    data-icon-light="assets/images/icons.svg/import-progress-dark.svg"
+                    src="assets/images/icons.svg/import-progress-light.svg"><span>Restaurar backup</span></button>
+                <button id="btn-backup-settings" type="button"><img alt="" aria-hidden="true"
+                    data-icon-dark="assets/images/icons.svg/config-backup-light.svg"
+                    data-icon-light="assets/images/icons.svg/config-backup-dark.svg"
+                    src="assets/images/icons.svg/config-backup-light.svg"><span>Configurar backup</span></button>
               </div>
             </div>
           </div>
           <dialog aria-labelledby="restore-backup-title" class="backup-settings-dialog" id="restore-backup-dialog">
             <form id="restore-backup-form" method="dialog">
               <div class="backup-dialog-header">
-                <div class="backup-dialog-title"><span class="backup-dialog-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v10m0-10-4 4m4-4 4 4M5 13v6h14v-6"/></svg></span><div><h2 id="restore-backup-title">Restaurar backup</h2><p>Recupere seu progresso salvo com segurança.</p></div></div>
-                <button aria-label="Fechar" class="backup-dialog-close" value="cancel" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+                <div class="backup-dialog-title"><span class="backup-dialog-title-icon" aria-hidden="true"><svg
+                      viewBox="0 0 24 24">
+                      <path d="M12 4v10m0-10-4 4m4-4 4 4M5 13v6h14v-6" />
+                    </svg></span>
+                  <div>
+                    <h2 id="restore-backup-title">Restaurar backup</h2>
+                    <p>Recupere seu progresso salvo com segurança.</p>
+                  </div>
+                </div>
+                <button aria-label="Fechar" class="backup-dialog-close" value="cancel" type="submit"><svg
+                    viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m6 6 12 12M18 6 6 18" />
+                  </svg></button>
               </div>
               <div class="restore-backup-options">
-                <label class="restore-backup-field"><span>Origem do backup</span><select id="restore-backup-source" name="source"></select></label>
-                <label class="restore-backup-field" hidden id="restore-backup-version-row"><span>Versão local</span><select id="restore-backup-version" name="version"></select></label>
-                <label class="restore-backup-field"><span>Como lidar com o progresso atual</span><select name="conflict"><option value="replace">Substituir o progresso atual</option><option value="newest">Manter o progresso mais recente</option></select></label>
-                <label class="restore-backup-copy"><input checked name="backupBeforeRestore" type="checkbox"><span>Criar uma cópia local antes de restaurar</span></label>
+                <label class="restore-backup-field"><span>Origem do backup</span><select id="restore-backup-source"
+                    name="source"></select></label>
+                <label class="restore-backup-field" hidden id="restore-backup-version-row"><span>Versão
+                    local</span><select id="restore-backup-version" name="version"></select></label>
+                <label class="restore-backup-field"><span>Como lidar com o progresso atual</span><select
+                    name="conflict">
+                    <option value="replace">Substituir o progresso atual</option>
+                    <option value="newest">Manter o progresso mais recente</option>
+                  </select></label>
+                <label class="restore-backup-copy"><input checked name="backupBeforeRestore" type="checkbox"><span>Criar
+                    uma cópia local antes de restaurar</span></label>
               </div>
-              <div class="backup-dialog-actions restore-backup-actions"><button class="cl-btn" value="cancel" type="submit">Cancelar</button><button class="cl-btn backup-save-button" value="restore" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0-10-4 4m4-4 4 4M5 13v6h14v-6"/></svg><span>Restaurar backup</span></button></div>
+              <div class="backup-dialog-actions restore-backup-actions"><button class="cl-btn" value="cancel"
+                  type="submit">Cancelar</button><button class="cl-btn backup-save-button" value="restore"
+                  type="submit"><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 4v10m0-10-4 4m4-4 4 4M5 13v6h14v-6" />
+                  </svg><span>Restaurar backup</span></button></div>
             </form>
           </dialog>
           <dialog aria-labelledby="backup-settings-title" class="backup-settings-dialog" id="backup-settings-dialog">
             <form id="backup-settings-form" method="dialog">
               <div class="backup-dialog-header">
-                <div class="backup-dialog-title"><span class="backup-dialog-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 19h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 9.5 4.5 4.5 0 0 0 6 19Z"/><path d="M12 10v7m0-7-3 3m3-3 3 3"/></svg></span><div><h2 id="backup-settings-title">Configurar backup</h2><p>Escolha onde, quando e como proteger seu progresso.</p></div></div>
-                <button aria-label="Fechar" class="backup-dialog-close" value="cancel" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+                <div class="backup-dialog-title"><span class="backup-dialog-title-icon" aria-hidden="true"><svg
+                      viewBox="0 0 24 24">
+                      <path d="M6 19h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 9.5 4.5 4.5 0 0 0 6 19Z" />
+                      <path d="M12 10v7m0-7-3 3m3-3 3 3" />
+                    </svg></span>
+                  <div>
+                    <h2 id="backup-settings-title">Configurar backup</h2>
+                    <p>Escolha onde, quando e como proteger seu progresso.</p>
+                  </div>
+                </div>
+                <button aria-label="Fechar" class="backup-dialog-close" value="cancel" type="submit"><svg
+                    viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m6 6 12 12M18 6 6 18" />
+                  </svg></button>
               </div>
-              <fieldset class="backup-option-section"><legend>Destino</legend>
+              <fieldset class="backup-option-section">
+                <legend>Destino</legend>
                 <div class="backup-option-grid">
-                  <div class="backup-option backup-option--fixed" aria-label="localStorage ativado por padrão"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"/><line x1="2" y1="8" x2="22" y2="8"/><circle cx="6" cy="5.5" r="0.5" fill="currentColor"/><circle cx="8" cy="5.5" r="0.5" fill="currentColor"/><circle cx="10" cy="5.5" r="0.5" fill="currentColor"/></svg></span><span class="backup-option-copy"><strong>localStorage</strong><small>Ativado por padrão</small></span></div>
-                  <label class="backup-option backup-option--with-action"><input name="destinations" type="checkbox" value="device"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="12.5" height="9" rx="1.2"/><path d="M1.5 17h14.5M6.5 17v1.5h4V17"/><rect x="17" y="7" width="5.5" height="11" rx="1.1"/><path d="M19.2 15.8h1.1"/></svg></span><span class="backup-option-copy"><strong>Aparelho</strong><small>Cópia automática na pasta escolhida</small></span><button class="backup-destination-action" id="btn-select-backup-folder" type="button" title="Escolher pasta para salvar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v10H3z"/><path d="M12 11v5m0 0-2-2m2 2 2-2"/></svg><span>Escolher pasta</span></button></label>
-                  <label class="backup-option backup-option--with-action"><input checked name="destinations" type="checkbox" value="drive"><span class="backup-option-icon backup-google-drive-icon" aria-hidden="true"><img src="assets/images/icons.svg/logo-google-drive.svg" alt=""></span><span class="backup-option-copy"><strong>Google Drive</strong></span><button class="backup-destination-action" id="btn-sync-google-drive" type="button" title="Sincronizar Google Drive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12a4 4 0 0 1 4-4h3m1 0-2-2m2 2-2 2M16 12a4 4 0 0 1-4 4H9m-1 0 2 2m-2-2 2-2"/></svg><span>Sincronizar</span></button></label>
-                  <label class="backup-option backup-option--with-action"><input name="destinations" type="checkbox" value="onedrive"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 18H19a3 3 0 0 0 .44-5.97A5.5 5.5 0 0 0 9.1 9.55 4.25 4.25 0 0 0 8.5 18Z"/><path d="M5.5 18A3.5 3.5 0 0 1 5 11.04"/></svg></span><span class="backup-option-copy"><strong>OneDrive</strong></span><button class="backup-destination-action" id="btn-sync-onedrive" type="button" title="Sincronizar OneDrive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-4"/><path d="M6 3v4h4M4 13a8 8 0 0 0 14 4"/><path d="M18 21v-4h-4"/></svg><span>Sincronizar</span></button></label>
+                  <div class="backup-option backup-option--fixed" aria-label="localStorage ativado por padrão"><span
+                      class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                        <rect x="2" y="3" width="20" height="18" rx="2" ry="2" />
+                        <line x1="2" y1="8" x2="22" y2="8" />
+                        <circle cx="6" cy="5.5" r="0.5" fill="currentColor" />
+                        <circle cx="8" cy="5.5" r="0.5" fill="currentColor" />
+                        <circle cx="10" cy="5.5" r="0.5" fill="currentColor" />
+                      </svg></span><span class="backup-option-copy"><strong>localStorage</strong><small>Ativado por
+                        padrão</small></span></div>
+                  <label class="backup-option backup-option--with-action"><input name="destinations" type="checkbox"
+                      value="device"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                        <rect x="2.5" y="5" width="12.5" height="9" rx="1.2" />
+                        <path d="M1.5 17h14.5M6.5 17v1.5h4V17" />
+                        <rect x="17" y="7" width="5.5" height="11" rx="1.1" />
+                        <path d="M19.2 15.8h1.1" />
+                      </svg></span><span class="backup-option-copy"><strong>Aparelho</strong><small>Cópia automática na
+                        pasta escolhida</small></span><button class="backup-destination-action"
+                      id="btn-select-backup-folder" type="button" title="Escolher pasta para salvar"><svg
+                        viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 6h7l2 2h9v10H3z" />
+                        <path d="M12 11v5m0 0-2-2m2 2 2-2" />
+                      </svg><span>Escolher pasta</span></button></label>
+                  <label class="backup-option backup-option--with-action"><input checked name="destinations"
+                      type="checkbox" value="drive"><span class="backup-option-icon backup-google-drive-icon"
+                      aria-hidden="true"><img src="assets/images/icons.svg/logo-google-drive.svg" alt=""></span><span
+                      class="backup-option-copy"><strong>Google Drive</strong></span><button
+                      class="backup-destination-action" id="btn-sync-google-drive" type="button"
+                      title="Sincronizar Google Drive"><svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M8 12a4 4 0 0 1 4-4h3m1 0-2-2m2 2-2 2M16 12a4 4 0 0 1-4 4H9m-1 0 2 2m-2-2 2-2" />
+                      </svg><span>Sincronizar</span></button></label>
+                  <label class="backup-option backup-option--with-action"><input name="destinations" type="checkbox"
+                      value="onedrive"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                        <path d="M8.5 18H19a3 3 0 0 0 .44-5.97A5.5 5.5 0 0 0 9.1 9.55 4.25 4.25 0 0 0 8.5 18Z" />
+                        <path d="M5.5 18A3.5 3.5 0 0 1 5 11.04" />
+                      </svg></span><span class="backup-option-copy"><strong>OneDrive</strong></span><button
+                      class="backup-destination-action" id="btn-sync-onedrive" type="button"
+                      title="Sincronizar OneDrive"><svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 11a8 8 0 0 0-14-4" />
+                        <path d="M6 3v4h4M4 13a8 8 0 0 0 14 4" />
+                        <path d="M18 21v-4h-4" />
+                      </svg><span>Sincronizar</span></button></label>
                 </div>
               </fieldset>
-              <fieldset class="backup-option-section"><legend>Sincronização em nuvem</legend>
+              <fieldset class="backup-option-section">
+                <legend>Sincronização em nuvem</legend>
                 <div class="backup-option-grid">
-                  <label class="backup-option"><input checked name="cloudSyncSchedule" type="radio" value="5m"><span class="backup-option-copy"><strong>A cada 5 minutos</strong><small>Após alterações pendentes</small></span></label>
-                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="10m"><span class="backup-option-copy"><strong>A cada 10 minutos</strong><small>Após alterações pendentes</small></span></label>
-                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="15m"><span class="backup-option-copy"><strong>A cada 15 minutos</strong><small>Após alterações pendentes</small></span></label>
-                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="daily"><span class="backup-option-copy"><strong>No próximo acesso diário</strong><small>Após pelo menos 24 horas</small></span></label>
-                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="weekly"><span class="backup-option-copy"><strong>No próximo acesso semanal</strong><small>Após pelo menos 7 dias</small></span></label>
+                  <label class="backup-option"><input checked name="cloudSyncSchedule" type="radio" value="5m"><span
+                      class="backup-option-copy"><strong>A cada 5 minutos</strong><small>Após alterações
+                        pendentes</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="10m"><span
+                      class="backup-option-copy"><strong>A cada 10 minutos</strong><small>Após alterações
+                        pendentes</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="15m"><span
+                      class="backup-option-copy"><strong>A cada 15 minutos</strong><small>Após alterações
+                        pendentes</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="daily"><span
+                      class="backup-option-copy"><strong>No próximo acesso diário</strong><small>Após pelo menos 24
+                        horas</small></span></label>
+                  <label class="backup-option"><input name="cloudSyncSchedule" type="radio" value="weekly"><span
+                      class="backup-option-copy"><strong>No próximo acesso semanal</strong><small>Após pelo menos 7
+                        dias</small></span></label>
                 </div>
               </fieldset>
-              <fieldset class="backup-option-section backup-retention-section"><legend>Histórico de versões</legend>
-                <label class="backup-retention"><span class="backup-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg></span><span>Manter somente</span><select name="retentionCount"><option selected value="1">a última versão</option><option value="3">as últimas 3 versões</option><option value="5">as últimas 5 versões</option><option value="10">as últimas 10 versões</option></select><span>no navegador</span></label>
+              <fieldset class="backup-option-section backup-retention-section">
+                <legend>Histórico de versões</legend>
+                <label class="backup-retention"><span class="backup-option-icon" aria-hidden="true"><svg
+                      viewBox="0 0 24 24">
+                      <path d="m12 3 9 5-9 5-9-5 9-5Z" />
+                      <path d="m3 12 9 5 9-5M3 16l9 5 9-5" />
+                    </svg></span><span>Manter somente</span><select name="retentionCount">
+                    <option selected value="1">a última versão</option>
+                    <option value="3">as últimas 3 versões</option>
+                    <option value="5">as últimas 5 versões</option>
+                    <option value="10">as últimas 10 versões</option>
+                  </select><span>no navegador</span></label>
               </fieldset>
               <p class="backup-status" id="backup-status" aria-live="polite"></p>
-              <p class="backup-privacy-note">Privacidade: o progresso é salvo em localStorage e, se você escolher, copiado para uma pasta do aparelho ou sincronizado na área privada do Coding Loop no Google Drive ou OneDrive. O Coding Loop usa somente as permissões necessárias.</p>
+              <p class="backup-privacy-note">Privacidade: o progresso é salvo em localStorage e, se você escolher,
+                copiado para uma pasta do aparelho ou sincronizado na área privada do Coding Loop no Google Drive ou
+                OneDrive. O Coding Loop usa somente as permissões necessárias.</p>
               <div class="backup-dialog-actions">
-                <button class="cl-btn backup-save-button" id="btn-save-backup-settings" title="Salvar configurações" value="save" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h14l4 4v14H3V3Z"/><path d="M7 3v7h10V3M7 21v-8h10v8M14 6h1"/></svg><span>Salvar configurações</span></button>
+                <button class="cl-btn backup-save-button" id="btn-save-backup-settings" title="Salvar configurações"
+                  value="save" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 3h14l4 4v14H3V3Z" />
+                    <path d="M7 3v7h10V3M7 21v-8h10v8M14 6h1" />
+                  </svg><span>Salvar configurações</span></button>
               </div>
             </form>
           </dialog>
 
           <dialog aria-labelledby="cloud-permission-title" class="cloud-permission-dialog" id="cloud-permission-dialog">
             <form method="dialog">
-              <h2 id="cloud-permission-title">Antes de conectar ao <span id="cloud-permission-service">serviço de nuvem</span></h2>
-              <p>O backup em nuvem é opcional. Ao continuar, você será direcionado à tela segura de autorização do <strong id="cloud-permission-service-copy">serviço escolhido</strong>.</p>
+              <h2 id="cloud-permission-title">Antes de conectar ao <span id="cloud-permission-service">serviço de
+                  nuvem</span></h2>
+              <p>O backup em nuvem é opcional. Ao continuar, você será direcionado à tela segura de autorização do
+                <strong id="cloud-permission-service-copy">serviço escolhido</strong>.</p>
               <section class="cloud-permission-summary" aria-labelledby="cloud-permission-summary-title">
                 <h3 id="cloud-permission-summary-title">O que o Coding Loop poderá fazer</h3>
                 <p id="cloud-permission-scope"></p>
               </section>
               <p class="cloud-permission-limits" id="cloud-permission-limits"></p>
-              <p>Você pode cancelar agora, desconectar o backup depois ou revogar o acesso diretamente nas configurações da sua conta.</p>
+              <p>Você pode cancelar agora, desconectar o backup depois ou revogar o acesso diretamente nas configurações
+                da sua conta.</p>
               <details>
                 <summary>Importante sobre privacidade e segurança</summary>
-                <p>Nenhum serviço na web consegue garantir segurança absoluta contra incidentes. Evite incluir dados sensíveis no backup. Se preferir, use uma conta exclusiva para este serviço.</p>
+                <p>Nenhum serviço na web consegue garantir segurança absoluta contra incidentes. Evite incluir dados
+                  sensíveis no backup. Se preferir, use uma conta exclusiva para este serviço.</p>
               </details>
               <div class="cloud-permission-actions">
                 <button class="cloud-permission-cancel" value="cancel" type="submit">Cancelar</button>
-                <button class="cl-btn cloud-permission-continue" value="continue" type="submit">Continuar para autorização</button>
+                <button class="cl-btn cloud-permission-continue" value="continue" type="submit">Continuar para
+                  autorização</button>
               </div>
             </form>
           </dialog>
@@ -137,19 +270,42 @@
           <dialog aria-labelledby="backup-reminder-title" class="backup-reminder-dialog" id="backup-reminder-dialog">
             <form method="dialog">
               <div class="backup-reminder-header">
-                <span class="backup-reminder-icon" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/config-backup-light.svg" data-icon-light="assets/images/icons.svg/config-backup-dark.svg" src="assets/images/icons.svg/config-backup-light.svg"></span>
-                <div><h2 id="backup-reminder-title">Configure e salve seu Progresso</h2><p>Para que, ao trocar de aparelho ou de navegador, possa restaurar e continuar de onde parou.</p></div>
+                <span class="backup-reminder-icon" aria-hidden="true"><img alt=""
+                    data-icon-dark="assets/images/icons.svg/config-backup-light.svg"
+                    data-icon-light="assets/images/icons.svg/config-backup-dark.svg"
+                    src="assets/images/icons.svg/config-backup-light.svg"></span>
+                <div>
+                  <h2 id="backup-reminder-title">Configure e salve seu Progresso</h2>
+                  <p>Para que, ao trocar de aparelho ou de navegador, possa restaurar e continuar de onde parou.</p>
+                </div>
               </div>
-              <label class="backup-reminder-dismiss"><input id="backup-reminder-dismiss" type="checkbox"> <span>Não Mostrar Novamente</span></label>
+              <label class="backup-reminder-dismiss"><input id="backup-reminder-dismiss" type="checkbox"> <span>Não
+                  Mostrar Novamente</span></label>
               <div class="backup-reminder-actions">
-                <button class="cl-btn backup-reminder-later" value="later" type="submit" title="Agora Não">Agora Não</button>
-                <button class="cl-btn backup-reminder-configure" id="btn-reminder-configure-backup" type="button" title="Configurar Backup"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 8.5 4.5 4.5 0 0 0 6 18Z"/><path d="M12 9v6m0-6-3 3m3-3 3 3"/></svg><span>Configurar Backup</span></button>
+                <button class="cl-btn backup-reminder-later" value="later" type="submit" title="Agora Não">Agora
+                  Não</button>
+                <button class="cl-btn backup-reminder-configure" id="btn-reminder-configure-backup" type="button"
+                  title="Configurar Backup"><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 18h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 8.5 4.5 4.5 0 0 0 6 18Z" />
+                    <path d="M12 9v6m0-6-3 3m3-3 3 3" />
+                  </svg><span>Configurar Backup</span></button>
               </div>
             </form>
           </dialog>
 
-          <button aria-label="Alternar tema claro e escuro" class="toggle-theme-btn" id="toggle-theme" title="Alternar Tema" type="button">
-            <svg id="theme-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(180 12 12)"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></g></svg>
+          <button aria-label="Alternar tema claro e escuro" class="toggle-theme-btn" id="toggle-theme"
+            title="Alternar Tema" type="button">
+            <svg id="theme-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">
+              <g transform="rotate(180 12 12)">
+                <path d="M9 18h6"></path>
+                <path d="M10 22h4"></path>
+                <path
+                  d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14">
+                </path>
+              </g>
+            </svg>
           </button>
         </div>
 
@@ -169,7 +325,8 @@
       </div>
     </aside>
 
-    <div aria-label="Redimensionar painéis de teoria e IDE" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33" class="pane-resizer" id="pane-resizer" role="separator" tabindex="0"></div>
+    <div aria-label="Redimensionar painéis de teoria e IDE" aria-orientation="vertical" aria-valuemin="0"
+      aria-valuemax="100" aria-valuenow="33" class="pane-resizer" id="pane-resizer" role="separator" tabindex="0"></div>
 
     <!-- Painel Direito: IDE avançado -->
     <main class="ide-container-pane">
@@ -178,91 +335,181 @@
           <div class="save-toast" id="save-toast" aria-live="polite" role="status"></div>
           <div class="browser-tabs">
             <div class="browser-tabs-left">
-              <button aria-label="Recolher ou expandir IDE" aria-pressed="false" class="collapse-btn" id="btn-ide-collapse" title="Recolher/Expandir IDE" type="button"> 
+              <button aria-label="Recolher ou expandir IDE" aria-pressed="false" class="collapse-btn"
+                id="btn-ide-collapse" title="Recolher/Expandir IDE" type="button">
                 ⌨
               </button>
 
-              <button aria-label="Alternar tela cheia do IDE" aria-pressed="false" class="maximize-btn" id="btn-maximize-toggle" title="Alternar Tela Cheia do IDE" type="button">
-                <svg id="icon-maximize" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-                <svg id="icon-minimize" style="display:none;" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+              <button aria-label="Alternar tela cheia do IDE" aria-pressed="false" class="maximize-btn"
+                id="btn-maximize-toggle" title="Alternar Tela Cheia do IDE" type="button">
+                <svg id="icon-maximize" viewBox="0 0 24 24">
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                </svg>
+                <svg id="icon-minimize" style="display:none;" viewBox="0 0 24 24">
+                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                </svg>
               </button>
             </div>
 
-            <div class="browser-tabs-scroll-wrapper cl-scrollable-controls" data-scrollable-controls id="tabs-scroll-wrapper">
-              <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--left" data-scroll-direction="left" aria-label="Ver botões anteriores" type="button">‹</button>
-              <div class="browser-tabs-viewport" data-scroll-viewport><div class="browser-tabs-right" id="tabs-draggable-container">
-                <button aria-label="Desfazer última alteração" class="toolbar-btn" id="btn-undo" title="Ctrl+Z" type="button" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 7 4 12l5.5 5M5 12h8a5 5 0 0 1 5 5v1"/></svg>
-                </button>
+            <div class="browser-tabs-scroll-wrapper cl-scrollable-controls" data-scrollable-controls
+              id="tabs-scroll-wrapper">
+              <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--left" data-scroll-direction="left"
+                aria-label="Ver botões anteriores" type="button">‹</button>
+              <div class="browser-tabs-viewport" data-scroll-viewport>
+                <div class="browser-tabs-right" id="tabs-draggable-container">
+                  <button aria-label="Desfazer última alteração" class="toolbar-btn" id="btn-undo" title="Ctrl+Z"
+                    type="button" disabled>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M9.5 7 4 12l5.5 5M5 12h8a5 5 0 0 1 5 5v1" />
+                    </svg>
+                  </button>
 
-                <button aria-label="Refazer última alteração" class="toolbar-btn" id="btn-redo" title="Ctrl+Y" type="button" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 7 5.5 5-5.5 5M19 12h-8a5 5 0 0 0-5 5v1"/></svg>
-                </button>
+                  <button aria-label="Refazer última alteração" class="toolbar-btn" id="btn-redo" title="Ctrl+Y"
+                    type="button" disabled>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m14.5 7 5.5 5-5.5 5M19 12h-8a5 5 0 0 0-5 5v1" />
+                    </svg>
+                  </button>
 
-                <button aria-controls="new-file-menu" aria-expanded="false" aria-haspopup="menu" aria-label="Adicionar arquivo" class="toolbar-btn" id="btn-new-file" title="Adicionar Arquivo" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                </button>
+                  <button aria-controls="new-file-menu" aria-expanded="false" aria-haspopup="menu"
+                    aria-label="Adicionar arquivo" class="toolbar-btn" id="btn-new-file" title="Adicionar Arquivo"
+                    type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </button>
 
-                <button aria-label="Importar por tipo de arquivo" class="toolbar-btn" id="btn-import-file" title="Importar por tipo de arquivo" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
-                </button>
+                  <button aria-label="Importar por tipo de arquivo" class="toolbar-btn" id="btn-import-file"
+                    title="Importar por tipo de arquivo" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" />
+                    </svg>
+                  </button>
 
-                <button aria-label="Exportar arquivo ou projeto" class="toolbar-btn" id="btn-export-file" title="Exportar arquivo ou projeto" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zM10 16h4V9h4l-6-6-6 6h4v7z"/></svg>
-                </button>
+                  <button aria-label="Exportar arquivo ou projeto" class="toolbar-btn" id="btn-export-file"
+                    title="Exportar arquivo ou projeto" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M5 20h14v-2H5v2zM10 16h4V9h4l-6-6-6 6h4v7z" />
+                    </svg>
+                  </button>
 
-                <div aria-label="Escolha o tipo de arquivo" class="new-file-menu" hidden id="new-file-menu" role="menu">
-                  <button data-language="html" role="menuitem" type="button">HTML</button><button data-language="css" role="menuitem" type="button">CSS</button><button data-language="javascript" role="menuitem" type="button">JavaScript</button><button data-language="svg" role="menuitem" type="button">SVG</button><button data-language="markdown" role="menuitem" type="button">Markdown</button><button data-language="json" role="menuitem" type="button">JSON</button><button data-language="xml" role="menuitem" type="button">XML</button><button data-language="typescript" role="menuitem" type="button">TypeScript</button><button data-language="scss" role="menuitem" type="button">SCSS</button><button data-language="javascriptreact" role="menuitem" type="button">JSX / React</button>
-                </div>
+                  <div aria-label="Escolha o tipo de arquivo" class="new-file-menu" hidden id="new-file-menu"
+                    role="menu">
+                    <button data-language="html" role="menuitem" type="button">HTML</button><button data-language="css"
+                      role="menuitem" type="button">CSS</button><button data-language="javascript" role="menuitem"
+                      type="button">JavaScript</button><button data-language="svg" role="menuitem"
+                      type="button">SVG</button><button data-language="markdown" role="menuitem"
+                      type="button">Markdown</button><button data-language="json" role="menuitem"
+                      type="button">JSON</button><button data-language="xml" role="menuitem"
+                      type="button">XML</button><button data-language="typescript" role="menuitem"
+                      type="button">TypeScript</button><button data-language="scss" role="menuitem"
+                      type="button">SCSS</button><button data-language="javascriptreact" role="menuitem"
+                      type="button">JSX / React</button>
+                  </div>
 
-                <dialog aria-labelledby="export-code-title" class="export-code-dialog" id="export-code-dialog">
-                  <form method="dialog">
-                    <div class="backup-dialog-header export-code-dialog-header">
-                      <div class="backup-dialog-title">
-                        <span class="backup-dialog-title-icon export-code-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM10 16h4V9h4l-6-6-6 6h4v7z"/></svg></span>
-                        <div><h2 id="export-code-title">Exportar Código-Fonte</h2></div>
+                  <dialog aria-labelledby="export-code-title" class="export-code-dialog" id="export-code-dialog">
+                    <form method="dialog">
+                      <div class="backup-dialog-header export-code-dialog-header">
+                        <div class="backup-dialog-title">
+                          <span class="backup-dialog-title-icon export-code-title-icon" aria-hidden="true"><svg
+                              viewBox="0 0 24 24">
+                              <path d="M5 20h14v-2H5v2zM10 16h4V9h4l-6-6-6 6h4v7z" />
+                            </svg></span>
+                          <div>
+                            <h2 id="export-code-title">Exportar Código-Fonte</h2>
+                          </div>
+                        </div>
+                        <button aria-label="Cancelar exportação" class="backup-dialog-close export-code-dialog-cancel"
+                          value="cancel" type="submit" title="Fechar"><svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18" />
+                          </svg></button>
                       </div>
-                      <button aria-label="Cancelar exportação" class="backup-dialog-close export-code-dialog-cancel" value="cancel" type="submit" title="Fechar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-                    </div>
-                    <div class="export-code-dialog-actions" aria-label="Formato da exportação">
-                      <button class="cl-btn export-code-option" value="internal" type="submit">
-                        <span class="export-code-option-icon" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-js-css-html-dark.svg" data-icon-light="assets/images/icons.svg/file-js-css-html-light.svg" src="assets/images/icons.svg/file-js-css-html-dark.svg"></span>
-                        <span class="export-code-option-copy"><strong id="export-internal-title">CSS e JavaScript internos</strong><small id="export-internal-description">Um HTML único com style e script internos</small></span>
-                      </button>
-                      <button class="cl-btn export-code-option" value="external" type="submit">
-                        <span class="export-code-option-icon export-code-option-icon--multiple" aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-html-dark.svg" data-icon-light="assets/images/icons.svg/file-html-light.svg" src="assets/images/icons.svg/file-html-dark.svg"><img alt="" data-icon-dark="assets/images/icons.svg/file-css-dark.svg" data-icon-light="assets/images/icons.svg/file-css-light.svg" src="assets/images/icons.svg/file-css-dark.svg"><img alt="" data-icon-dark="assets/images/icons.svg/file-Js-dark.svg" data-icon-light="assets/images/icons.svg/file-Js-light.svg" src="assets/images/icons.svg/file-Js-dark.svg"></span>
-                        <span class="export-code-option-copy"><strong id="export-external-title">CSS e JavaScript externos</strong><small id="export-external-description">HTML, style.css e script.js separados</small></span>
-                      </button>
-                      <button class="cl-btn export-code-option" value="by-type" type="submit">
-                        <span class="export-code-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M8 15h8M8 11h5"/></svg></span>
-                        <span class="export-code-option-copy"><strong>Selecionar extensões</strong><small>Exporta somente os tipos de arquivo escolhidos</small></span>
-                      </button>
-                    </div>
-                  </form>
-                </dialog>
+                      <div class="export-code-dialog-actions" aria-label="Formato da exportação">
+                        <button class="cl-btn export-code-option" value="internal" type="submit">
+                          <span class="export-code-option-icon" aria-hidden="true"><img alt=""
+                              data-icon-dark="assets/images/icons.svg/file-js-css-html-dark.svg"
+                              data-icon-light="assets/images/icons.svg/file-js-css-html-light.svg"
+                              src="assets/images/icons.svg/file-js-css-html-dark.svg"></span>
+                          <span class="export-code-option-copy"><strong id="export-internal-title">CSS e JavaScript
+                              internos</strong><small id="export-internal-description">Um HTML único com style e script
+                              internos</small></span>
+                        </button>
+                        <button class="cl-btn export-code-option" value="external" type="submit">
+                          <span class="export-code-option-icon export-code-option-icon--multiple"
+                            aria-hidden="true"><img alt="" data-icon-dark="assets/images/icons.svg/file-html-dark.svg"
+                              data-icon-light="assets/images/icons.svg/file-html-light.svg"
+                              src="assets/images/icons.svg/file-html-dark.svg"><img alt=""
+                              data-icon-dark="assets/images/icons.svg/file-css-dark.svg"
+                              data-icon-light="assets/images/icons.svg/file-css-light.svg"
+                              src="assets/images/icons.svg/file-css-dark.svg"><img alt=""
+                              data-icon-dark="assets/images/icons.svg/file-Js-dark.svg"
+                              data-icon-light="assets/images/icons.svg/file-Js-light.svg"
+                              src="assets/images/icons.svg/file-Js-dark.svg"></span>
+                          <span class="export-code-option-copy"><strong id="export-external-title">CSS e JavaScript
+                              externos</strong><small id="export-external-description">HTML, style.css e script.js
+                              separados</small></span>
+                        </button>
+                        <button class="cl-btn export-code-option" value="by-type" type="submit">
+                          <span class="export-code-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                              <path d="M6 3h8l4 4v14H6z" />
+                              <path d="M14 3v5h4M8 15h8M8 11h5" />
+                            </svg></span>
+                          <span class="export-code-option-copy"><strong>Selecionar extensões</strong><small>Exporta
+                              somente os tipos de arquivo escolhidos</small></span>
+                        </button>
+                      </div>
+                    </form>
+                  </dialog>
 
-                <dialog aria-labelledby="export-types-title" class="export-code-dialog" id="export-types-dialog">
-                  <form id="export-types-form" method="dialog">
-                    <div class="backup-dialog-header export-code-dialog-header">
-                      <div class="backup-dialog-title"><span class="backup-dialog-title-icon export-code-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4"/></svg></span><div><h2 id="export-types-title">Exportar por extensão</h2></div></div>
-                      <button aria-label="Cancelar exportação" class="backup-dialog-close export-code-dialog-cancel" value="cancel" type="submit" title="Fechar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-                    </div>
-                    <div class="export-extension-options" aria-label="Tipos de arquivo para exportar">
-                      <label><input checked name="extensions" type="checkbox" value="html"> HTML</label><label><input checked name="extensions" type="checkbox" value="css"> CSS / SCSS</label><label><input checked name="extensions" type="checkbox" value="javascript"> JavaScript / TypeScript / JSX</label><label><input checked name="extensions" type="checkbox" value="svg"> SVG</label><label><input checked name="extensions" type="checkbox" value="json"> JSON</label><label><input checked name="extensions" type="checkbox" value="xml"> XML</label><label><input checked name="extensions" type="checkbox" value="markdown"> Markdown</label>
-                    </div>
-                    <div class="export-code-dialog-actions"><button class="cl-btn export-code-option" value="selected" type="submit"><span class="export-code-option-copy"><strong>Exportar extensões selecionadas</strong><small>Um download para cada arquivo correspondente</small></span></button></div>
-                  </form>
-                </dialog>
+                  <dialog aria-labelledby="export-types-title" class="export-code-dialog" id="export-types-dialog">
+                    <form id="export-types-form" method="dialog">
+                      <div class="backup-dialog-header export-code-dialog-header">
+                        <div class="backup-dialog-title"><span class="backup-dialog-title-icon export-code-title-icon"
+                            aria-hidden="true"><svg viewBox="0 0 24 24">
+                              <path d="M6 3h8l4 4v14H6z" />
+                              <path d="M14 3v5h4" />
+                            </svg></span>
+                          <div>
+                            <h2 id="export-types-title">Exportar por extensão</h2>
+                          </div>
+                        </div>
+                        <button aria-label="Cancelar exportação" class="backup-dialog-close export-code-dialog-cancel"
+                          value="cancel" type="submit" title="Fechar"><svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18" />
+                          </svg></button>
+                      </div>
+                      <div class="export-extension-options" aria-label="Tipos de arquivo para exportar">
+                        <label><input checked name="extensions" type="checkbox" value="html"> HTML</label><label><input
+                            checked name="extensions" type="checkbox" value="css"> CSS / SCSS</label><label><input
+                            checked name="extensions" type="checkbox" value="javascript"> JavaScript / TypeScript /
+                          JSX</label><label><input checked name="extensions" type="checkbox" value="svg">
+                          SVG</label><label><input checked name="extensions" type="checkbox" value="json">
+                          JSON</label><label><input checked name="extensions" type="checkbox" value="xml">
+                          XML</label><label><input checked name="extensions" type="checkbox" value="markdown">
+                          Markdown</label>
+                      </div>
+                      <div class="export-code-dialog-actions"><button class="cl-btn export-code-option" value="selected"
+                          type="submit"><span class="export-code-option-copy"><strong>Exportar extensões
+                              selecionadas</strong><small>Um download para cada arquivo
+                              correspondente</small></span></button></div>
+                    </form>
+                  </dialog>
 
-                <input accept=".html,.htm,.css,.js,.svg,.md,.markdown,.json,.xml,.ts,.scss,.jsx" class="file-input-hidden" id="input-import-file" type="file"/>
-              </div></div>
-              <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--right" data-scroll-direction="right" aria-label="Ver mais botões" type="button">›</button>
+                  <input accept=".html,.htm,.css,.js,.svg,.md,.markdown,.json,.xml,.ts,.scss,.jsx"
+                    class="file-input-hidden" id="input-import-file" type="file" />
+                </div>
+              </div>
+              <button class="cl-scroll-hint-arrow cl-scroll-hint-arrow--right" data-scroll-direction="right"
+                aria-label="Ver mais botões" type="button">›</button>
             </div>
 
             <div class="browser-tabs-fixed-right">
-              <label class="tab-btn live-toggle-btn" draggable="false" id="btn-run" for="chk-toggle-preview" title="Habilitar Preview">
-                <input checked="checked" class="editor-toggle-checkbox" id="chk-toggle-preview" type="checkbox"/>
-                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <label class="tab-btn live-toggle-btn" draggable="false" id="btn-run" for="chk-toggle-preview"
+                title="Habilitar Preview">
+                <input checked="checked" class="editor-toggle-checkbox" id="chk-toggle-preview" type="checkbox" />
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
                 <span class="tab-text">Live</span>
               </label>
             </div>
@@ -271,24 +518,46 @@
           <div class="window-content" id="window-content-wrapper">
             <div class="editors-area" id="editors-container"></div>
             <div aria-hidden="true" class="legacy-editor-state">
-              <div id="html-editor"></div><div id="css-editor"></div><div id="js-editor"></div>
+              <div id="html-editor"></div>
+              <div id="css-editor"></div>
+              <div id="js-editor"></div>
             </div>
 
-            <div aria-label="Redimensionar editores e Preview" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" class="preview-split-resizer" id="preview-split-resizer" role="separator" tabindex="-1"></div>
+            <div aria-label="Redimensionar editores e Preview" aria-orientation="horizontal" aria-valuemin="0"
+              aria-valuemax="100" aria-valuenow="50" class="preview-split-resizer" id="preview-split-resizer"
+              role="separator" tabindex="-1"></div>
             <div class="preview-area" id="preview-container">
               <div class="preview-controls-left">
-                <button aria-label="Maximizar preview" aria-pressed="false" class="preview-btn preview-btn-max" id="btn-preview-maximize" title="Maximizar Preview" type="button">
-                  <svg id="icon-preview-max" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-                  <svg id="icon-preview-restore" style="display:none;" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+                <button aria-label="Maximizar preview" aria-pressed="false" class="preview-btn preview-btn-max"
+                  id="btn-preview-maximize" title="Maximizar Preview" type="button">
+                  <svg id="icon-preview-max" viewBox="0 0 24 24">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                  </svg>
+                  <svg id="icon-preview-restore" style="display:none;" viewBox="0 0 24 24">
+                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                  </svg>
                 </button>
               </div>
               <div class="preview-controls">
-                <button aria-label="Alternar tema claro e escuro do preview" aria-pressed="false" class="preview-btn preview-btn-theme" id="btn-preview-theme" title="Tema Escuro do Preview" type="button">
-                  <svg id="icon-preview-theme-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4V2m0 20v-2m5.66-13.66 1.42-1.42m-14.16 14.16 1.42-1.42M20 12h2M2 12h2m14.16 5.66 1.42 1.42M4.76 4.76l1.42 1.42M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg>
-                  <svg id="icon-preview-theme-dark" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z"/></svg>
+                <button aria-label="Alternar tema claro e escuro do preview" aria-pressed="false"
+                  class="preview-btn preview-btn-theme" id="btn-preview-theme" title="Tema Escuro do Preview"
+                  type="button">
+                  <svg id="icon-preview-theme-light" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" aria-hidden="true">
+                    <path
+                      d="M12 4V2m0 20v-2m5.66-13.66 1.42-1.42m-14.16 14.16 1.42-1.42M20 12h2M2 12h2m14.16 5.66 1.42 1.42M4.76 4.76l1.42 1.42M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
+                  </svg>
+                  <svg id="icon-preview-theme-dark" style="display:none" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z" />
+                  </svg>
                 </button>
-                <button aria-label="Alternar preview vertical" aria-pressed="false" class="preview-btn preview-btn-layout" id="btn-preview-layout" title="Alternar Preview Vertical" type="button">
-                  <svg viewBox="0 0 24 24"><path d="M4 5h7v14H4V5zm9 0h7v14h-7V5zM6 7v10h3V7H6zm9 0v10h3V7h-3z"/></svg>
+                <button aria-label="Alternar preview vertical" aria-pressed="false"
+                  class="preview-btn preview-btn-layout" id="btn-preview-layout" title="Alternar Preview Vertical"
+                  type="button">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 5h7v14H4V5zm9 0h7v14h-7V5zM6 7v10h3V7H6zm9 0v10h3V7h-3z" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -381,12 +650,13 @@
   <script defer src="assets/content/catalogo-manual.js"></script>
   <script defer src="assets/content/modo.js"></script>
   <script defer src="assets/js/curso-etapas-loader.js"></script>
-    <script defer src="assets/js/trilha.js?v=local-study-20260901-1"></script>
+  <script defer src="assets/js/trilha.js?v=local-study-20260901-1"></script>
 
   <!-- Diagnósticos oficiais do TypeScript em pt-BR. Deve carregar antes da IDE. -->
   <script defer src="assets/js/dicionario-typescript-pt-br.js?v=ts-diagnostics-20260824-1"></script>
   <script defer src="assets/js/scrollable-controls.js"></script>
-    <script defer src="assets/js/ide.js?v=ide-buttons-20260902-1"></script>
+  <script defer src="assets/js/ide.js?v=ide-buttons-20260902-1"></script>
 
 </body>
+
 </html>

@@ -492,18 +492,108 @@
       padding-left: 2px;
     }
 
-    .module-nav-bar h2 {
+    .module-nav-title {
+      display: none;
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      padding: 0 8px;
+      color: var(--ide-control-contrast, #fdf6e3);
+      font-size: .72rem;
+      font-weight: 700;
+      line-height: 28px;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .module-nav-title.is-visible {
+      display: block;
+    }
+
+    /* Barra de abas Conteúdo/Questões/Exercício/Desafio, movida para o
+       header no lugar do título do módulo (que já aparece no Índice do
+       curso). A altura do header (28px) não muda — o espaço apertado é
+       resolvido na LARGURA, reaproveitando o mesmo componente de rolagem
+       horizontal com setas (.cl-scrollable-controls) já usado em outros
+       lugares da IDE (ex.: abas de arquivo do editor). Os overrides
+       abaixo só encolhem a altura interna das abas o suficiente pra
+       caber nos 28px existentes; não alteram .theory-header. */
+    /* Seletor composto (2 classes) de propósito: a regra base
+       .step-tabs-scroll-wrapper (mais abaixo neste arquivo, usada
+       dentro de cada etapa) define min-height:32px com a mesma
+       especificidade de ".header-step-tabs" sozinha — como vem depois
+       no arquivo, venceria por ordem. Combinando as duas classes no
+       mesmo seletor garante que o override do header sempre valha. */
+    .step-tabs-scroll-wrapper.header-step-tabs {
       flex: 1;
       min-width: 0;
-      font-size: 0.82rem;
-      font-weight: 600;
-      text-align: center;
-      margin: 0;
-      padding: 0 8px;
-      color: #3385FF;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .step-tabs-scroll-wrapper.header-step-tabs[hidden] {
+      display: none;
+    }
+
+    .header-step-tabs .step-tabs-viewport,
+    .header-step-tabs .step-tabs {
+      height: 100%;
+      min-height: 0;
+    }
+
+    .header-step-tabs .step-tabs {
+      border-bottom: 0;
+      gap: 2px;
+      justify-content: stretch;
+      width: 100%;
+      min-width: max-content;
+    }
+
+    .step-tabs-scroll-wrapper.header-step-tabs .cl-scroll-hint-arrow {
+      height: 100%;
+    }
+
+    .header-step-tabs .step-tab {
+      flex: 1 1 0;
+      min-width: max-content;
+      justify-content: center;
+      padding: 0 7px;
+      font-size: .7rem;
+      gap: 3px;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+
+    .header-step-tabs .step-tab-lock {
+      width: 11px;
+      height: 11px;
+    }
+
+    .header-step-tabs .step-tab.is-locked .step-tab-lock {
+      display: block;
+    }
+
+    /* Prefixadas com .theory-header para vencer .step-tab.is-locked /
+       .step-tab:disabled (mesma especificidade, mas definidas mais
+       abaixo no arquivo) e acompanhar o contraste do tema atual. */
+    .theory-header .header-step-tabs .step-tab {
+      color: var(--ide-control-contrast, #fdf6e3);
+    }
+
+    .theory-header .header-step-tabs .step-tab.is-locked,
+    .theory-header .header-step-tabs .step-tab:disabled {
+      color: var(--ide-control-contrast, #fdf6e3);
+      opacity: .5;
+    }
+
+    .theory-header .header-step-tabs .step-tab:hover:not(:disabled),
+    .theory-header .header-step-tabs .step-tab:focus-visible:not(:disabled),
+    .theory-header .header-step-tabs .step-tab.is-active {
+      color: #3385FF;
+    }
+
+    .header-step-tabs .step-tab.is-active::after {
+      background: #3385FF;
     }
 
     .header-nav-btn,
@@ -559,6 +649,13 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    .toggle-theme-btn {
+      flex-shrink: 0;
+      margin-left: 0;
     }
 
     .backup-menu {
@@ -1989,14 +2086,6 @@
       display: block;
     }
 
-    .step-navigation {
-      display: grid;
-      grid-template-columns: 32px minmax(0, 1fr);
-      gap: 10px;
-      align-items: start;
-      margin-bottom: 18px;
-    }
-
     .step-tabs-scroll-wrapper {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -2057,30 +2146,7 @@
     }
 
     .step-tab-lock {
-      width: 13px;
-      height: 13px;
-      fill: currentColor;
-    }
-
-    .step-tab:not(.is-locked) .step-tab-lock {
       display: none;
-    }
-
-    .step-tab.is-locked,
-    .step-tab:disabled {
-      color: var(--cl-text-muted, #6a737d);
-      opacity: .62;
-      cursor: not-allowed;
-    }
-
-    .step-tab::after {
-      content: '';
-      position: absolute;
-      right: 8px;
-      bottom: -1px;
-      left: 8px;
-      height: 2px;
-      background: transparent;
     }
 
     .step-tab:hover:not(:disabled),
@@ -2208,37 +2274,6 @@
       font-size: 0.9rem;
       border-radius: 0 4px 4px 0;
       color: #333;
-    }
-
-    /* Botão "voltar" no canto superior esquerdo de cada etapa. Na 1ª
-       etapa do módulo leva pra trilha de módulos (Dashboard); nas
-       demais, volta pra etapa anterior — ver renderEtapas()/
-       voltarNaEtapa() em ide.js. */
-    .step-nav-btn--back {
-      position: static;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 1px solid #d0d7de;
-      background: #f6f8fa;
-      color: #444;
-      cursor: pointer;
-      transition: background .15s ease, border-color .15s ease;
-    }
-
-    .step-nav-btn--back:hover {
-      background: #eaeef2;
-      border-color: #0366d6;
-      color: #0366d6;
-    }
-
-    .step-nav-btn--back svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
     }
 
     /* Botão "avançar", depois do fim do conteúdo (missão), alinhado à
@@ -3271,6 +3306,15 @@
       .ide-container-pane {
         flex: 1 1 auto;
         height: auto;
+        min-height: 0;
+        /* sem isso o item flex não encolhe abaixo do
+        conteúdo (Monaco/preview) e extrapola os ~60vh disponíveis;
+        o excesso fica cortado pelo overflow:hidden do .learning-platform-root — visualmente "some" na borda */
+      }
+
+      .ide-container-pane {
+        flex: 1 1 auto;
+        height: auto;
       }
 
       .browser-window:not(.is-fullscreen) {
@@ -3325,7 +3369,6 @@
       background: var(--cl-surface);
     }
 
-    .module-nav-bar h2,
     .step-card h3 {
       color: var(--cl-primary);
     }
@@ -3346,18 +3389,6 @@
     .task-box {
       background: var(--cl-surface-2);
       border-left-color: var(--course-accent);
-    }
-
-    .step-nav-btn--back {
-      background: var(--cl-surface);
-      border-color: var(--cl-border);
-      color: var(--cl-text);
-    }
-
-    .step-nav-btn--back:hover {
-      background: var(--cl-surface-hover);
-      border-color: var(--cl-primary);
-      color: var(--cl-primary);
     }
 
     .step-nav-btn--next {
