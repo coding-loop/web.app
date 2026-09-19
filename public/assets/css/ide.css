@@ -3303,6 +3303,14 @@
         flex: 0 0 40vh;
       }
 
+      .indice-panel[data-curso] {
+        /* Trava a arte de fundo pela LARGURA — o background-size:contain
+        original (ide.css:1567) também reage à altura, e encolher o
+        .theory-pane verticalmente no pane-resizer mobile espremia a
+        imagem em vez de só cortar a parte de baixo. */
+        background-size: 100% auto;
+      }
+
       .ide-container-pane {
         flex: 1 1 auto;
         height: auto;

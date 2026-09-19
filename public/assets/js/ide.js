@@ -1721,6 +1721,7 @@
           var mostrarDivisorPreview = comPreview && !modoLateral && !prefPreviewMaximized;
           previewSplitResizer.classList.toggle('is-visible', mostrarDivisorPreview);
           previewSplitResizer.tabIndex = mostrarDivisorPreview ? 0 : -1;
+          previewSplitResizer.setAttribute('aria-orientation', 'horizontal');
           previewSplitResizer.setAttribute('data-before', 'editors-container');
           previewSplitResizer.setAttribute('data-after', 'preview-container');
         }
@@ -1784,41 +1785,43 @@
         var total = tamanhoAntes + tamanhoDepois;
         var minimo = Math.min(140, total * 0.42);
         var tamanhoLimitado = Math.max(minimo, Math.min(novoAntes, total - minimo));
-
-        // Trava específica do par editores/Preview: o rodapé do Preview
-        // nunca fica a menos de 10px da borda inferior da viewport, mesmo
-        // que a altura visível mude no meio do arrasto (ex.: barra de
-        // endereço do navegador mobile recolhendo/expandindo). O espaço
-        // recuperado vai pro editor (antes), que é quem deve absorver a
-        // sobra — mesmo comportamento pedido pro arrasto no item 2.
-        if (eixo === 'y' && depois === previewContainer) {
-          var margemInferior = 10;
-          var alturaViewport = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ide-vh')) || window.innerHeight;
-          var topoDoDepois = depois.getBoundingClientRect().top;
-          var alturaMaximaDepois = Math.max(minimo, alturaViewport - margemInferior - topoDoDepois);
-          if (total - tamanhoLimitado > alturaMaximaDepois) {
-            tamanhoLimitado = total - alturaMaximaDepois;
-          }
-        }
-
         var novoDepois = total - tamanhoLimitado;
         antes.style.flex = '0 0 ' + tamanhoLimitado + 'px';
         depois.style.flex = '0 0 ' + novoDepois + 'px';
         divisor.setAttribute('aria-valuenow', String(Math.round((tamanhoLimitado / total) * 100)));
         redimensionarEditores();
       }
-      function aplicarTamanhoAoPar(divisor, antes, depois, eixo, novoAntes) {
-        if (!antes || !depois) return;
-        var tamanhoAntes = eixo === 'x' ? antes.getBoundingClientRect().width : antes.getBoundingClientRect().height;
-        var tamanhoDepois = eixo === 'x' ? depois.getBoundingClientRect().width : depois.getBoundingClientRect().height;
-        var total = tamanhoAntes + tamanhoDepois;
-        var minimo = Math.min(140, total * 0.42);
-        var tamanhoLimitado = Math.max(minimo, Math.min(novoAntes, total - minimo));
-        var novoDepois = total - tamanhoLimitado;
-        antes.style.flex = '0 0 ' + tamanhoLimitado + 'px';
-        depois.style.flex = '0 0 ' + novoDepois + 'px';
-        divisor.setAttribute('aria-valuenow', String(Math.round((tamanhoLimitado / total) * 100)));
-        redimensionarEditores();
+
+      // Reencaixa editores/Preview quando o CONTAINER do IDE muda de
+      // tamanho por causa externa ao divisor interno (o pane-resizer
+      // Teoria<->IDE, no mobile, dispara 'ide:resize'). Sem isso, os dois
+      // painéis ficam com flex-basis em px CONGELADO (flex-shrink:0) do
+      // último ajuste manual: ou ultrapassam o espaço disponível quando o
+      // #window-content-wrapper encolhe, ou sobra vão vazio embaixo do
+      // Preview quando ele cresce. Reescala os dois mantendo a proporção
+      // atual entre eles, nos dois sentidos.
+      function reencaixarSplitEditorPreview() {
+        if (!previewContainer.classList.contains('show-preview')) return;
+        if (contentWrapper.classList.contains('preview-vertical') || prefPreviewMaximized) return;
+
+        var disponivel = contentWrapper.clientHeight;
+        if (!disponivel) return;
+
+        var alturaEditores = editorsContainer.getBoundingClientRect().height;
+        var alturaPreview = previewContainer.getBoundingClientRect().height;
+        var total = alturaEditores + alturaPreview;
+        if (Math.abs(total - disponivel) <= 1) return; // já preenche certinho, nada a corrigir
+
+        var minimo = Math.min(140, disponivel * 0.42);
+        var proporcao = alturaEditores / total;
+        var novaAlturaEditores = Math.max(minimo, Math.min(disponivel - minimo, disponivel * proporcao));
+        var novaAlturaPreview = disponivel - novaAlturaEditores;
+
+        editorsContainer.style.flex = '0 0 ' + novaAlturaEditores + 'px';
+        previewContainer.style.flex = '0 0 ' + novaAlturaPreview + 'px';
+        if (previewSplitResizer) {
+          previewSplitResizer.setAttribute('aria-valuenow', String(Math.round((novaAlturaEditores / disponivel) * 100)));
+        }
       }
 
       function iniciarRedimensionamento(divisor, antes, depois, eixo, evento) {
@@ -3151,6 +3154,7 @@
       }
 
       window.addEventListener('ide:resize', function () {
+        reencaixarSplitEditorPreview();
         redimensionarEditores();
       });
 
