@@ -1784,7 +1784,7 @@
         var tamanhoDepois = eixo === 'x' ? depois.getBoundingClientRect().width : depois.getBoundingClientRect().height;
         var total = tamanhoAntes + tamanhoDepois;
         var minimoEditor = Math.min(140, total * 0.42);
-        var minimoDepois = eixo === 'y' && depois === previewContainer ? 0 : minimoEditor;
+        var minimoDepois = eixo === 'y' && depois === previewContainer ? 2 : minimoEditor;
         var minimoAntes = eixo === 'y' && depois === previewContainer ? Math.min(minimoEditor, total) : minimoEditor;
         var tamanhoLimitado = Math.max(minimoAntes, Math.min(novoAntes, total - minimoDepois));
         var novoDepois = total - tamanhoLimitado;
