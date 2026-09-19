@@ -1839,10 +1839,12 @@
         var alturaEditores = editorsContainer.getBoundingClientRect().height;
         var alturaPreview = previewContainer.getBoundingClientRect().height;
         var total = alturaEditores + alturaPreview;
+        if (total <= 0) return;
         if (Math.abs(total - disponivel) <= 1) return; // já preenche certinho, nada a corrigir
 
         var minimo = Math.min(140, disponivel * 0.42);
         var proporcao = alturaEditores / total;
+        if (!Number.isFinite(proporcao)) proporcao = 0.5;
         var novaAlturaEditores = Math.max(minimo, Math.min(disponivel - minimo, disponivel * proporcao));
         var novaAlturaPreview = disponivel - novaAlturaEditores;
 
