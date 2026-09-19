@@ -1778,6 +1778,9 @@
         };
       }
 
+      var previewDesativadoPorLimite = false;
+      var ultimaProporcaoPreviewAntesDoLimite = null; // fração (0–1) da altura do Preview, guardada pra restaurar ao reativar pelo "Live"
+
       function aplicarTamanhoAoPar(divisor, antes, depois, eixo, novoAntes) {
         if (!antes || !depois) return;
         var tamanhoAntes = eixo === 'x' ? antes.getBoundingClientRect().width : antes.getBoundingClientRect().height;
@@ -1786,6 +1789,32 @@
         var minimo = Math.min(140, total * 0.42);
         var tamanhoLimitado = Math.max(minimo, Math.min(novoAntes, total - minimo));
         var novoDepois = total - tamanhoLimitado;
+
+        // Quando o PREVIEW (não o editor) chega no tamanho mínimo dele —
+        // ou seja, o botão de redimensionamento encostou no limite de
+        // baixo da tela —, desativa o Preview em vez de deixá-lo
+        // espremido ali. A página não tem como saber se algo do sistema
+        // está cobrindo aquele canto (barra de tarefas, overlay etc.),
+        // então em vez de adivinhar uma margem, devolve a decisão pro
+        // usuário: reativa manualmente pelo "Live" quando quiser.
+        if (eixo === 'y' && depois === previewContainer && novoDepois <= minimo + 0.5) {
+          if (!previewDesativadoPorLimite) {
+            previewDesativadoPorLimite = true;
+            fecharPreview();
+            if (CL.ui && typeof CL.ui.showToast === 'function') {
+              CL.ui.showToast('Preview desativado ao chegar no limite — clique em "Live" pra reativar.', 'warning', 8000);
+            }
+          }
+          return;
+        }
+
+        // Grava a proporção só fora do limite mínimo, pra guardar o
+        // tamanho de ANTES de chegar lá (não o mínimo em si) — é isso
+        // que volta quando reativar pelo "Live".
+        if (eixo === 'y' && depois === previewContainer) {
+          ultimaProporcaoPreviewAntesDoLimite = novoDepois / total;
+        }
+
         antes.style.flex = '0 0 ' + tamanhoLimitado + 'px';
         depois.style.flex = '0 0 ' + novoDepois + 'px';
         divisor.setAttribute('aria-valuenow', String(Math.round((tamanhoLimitado / total) * 100)));
@@ -3154,8 +3183,10 @@
       }
 
       window.addEventListener('ide:resize', function () {
-        reencaixarSplitEditorPreview();
-        redimensionarEditores();
+        requestAnimationFrame(function () {
+          reencaixarSplitEditorPreview();
+          redimensionarEditores();
+        });
       });
 
       function alternarIcones(iconeExpandir, iconeRecolher, expandido) {
@@ -3289,6 +3320,10 @@
         novoIframe.setAttribute('sandbox', 'allow-scripts');
         previewContainer.appendChild(novoIframe);
         novoIframe.srcdoc = montarCodigoPreview();
+        requestAnimationFrame(function () {
+          reencaixarSplitEditorPreview();
+          redimensionarEditores();
+        });
       }
 
       var MAX_ANOTACOES_EXECUCAO = 20;
@@ -3405,6 +3440,7 @@
 
       function mostrarPreview() {
         abrirJanela();
+        previewDesativadoPorLimite = false;
         chkTogglePreview.checked = true;
         btnRun.classList.add('active');
         contentWrapper.classList.add('with-preview');
@@ -3427,10 +3463,25 @@
         renderizarPreview();
         limparTamanhosDosPaineis();
         configurarRedimensionadores();
+
+        // Se o Preview foi desativado por ter batido no limite mínimo
+        // dele, volta com a mesma proporção de antes em vez do padrão
+        // 50/50 que limparTamanhosDosPaineis() acabou de aplicar.
+        if (ultimaProporcaoPreviewAntesDoLimite != null && !contentWrapper.classList.contains('preview-vertical') && !prefPreviewMaximized) {
+          var disponivelAoReativar = contentWrapper.clientHeight;
+          if (disponivelAoReativar) {
+            var minimoAoReativar = Math.min(140, disponivelAoReativar * 0.42);
+            var alturaPreviewRestaurada = Math.max(minimoAoReativar, Math.min(disponivelAoReativar - minimoAoReativar, disponivelAoReativar * ultimaProporcaoPreviewAntesDoLimite));
+            editorsContainer.style.flex = '0 0 ' + (disponivelAoReativar - alturaPreviewRestaurada) + 'px';
+            previewContainer.style.flex = '0 0 ' + alturaPreviewRestaurada + 'px';
+          }
+        }
+
         setTimeout(redimensionarEditores, 50);
       }
 
       function fecharPreview() {
+        if (!previewDesativadoPorLimite) ultimaProporcaoPreviewAntesDoLimite = null;
         chkTogglePreview.checked = false;
         btnRun.classList.remove('active');
         removerIframePreview();
