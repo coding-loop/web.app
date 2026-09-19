@@ -1778,7 +1778,7 @@
         };
       }
 
-      var previewDesativadoPorLimite = false;
+      var ALTURA_MINIMA_PREVIEW = 2;
 
       function aplicarTamanhoAoPar(divisor, antes, depois, eixo, novoAntes) {
         if (!antes || !depois) return;
@@ -1786,21 +1786,10 @@
         var tamanhoDepois = eixo === 'x' ? depois.getBoundingClientRect().width : depois.getBoundingClientRect().height;
         var total = tamanhoAntes + tamanhoDepois;
         var minimoEditor = Math.min(140, total * 0.42);
-        var minimoDepois = eixo === 'y' && depois === previewContainer ? 2 : minimoEditor;
+        var minimoDepois = eixo === 'y' && depois === previewContainer ? ALTURA_MINIMA_PREVIEW : minimoEditor;
         var minimoAntes = eixo === 'y' && depois === previewContainer ? Math.min(minimoEditor, total) : minimoEditor;
         var tamanhoLimitado = Math.max(minimoAntes, Math.min(novoAntes, total - minimoDepois));
         var novoDepois = total - tamanhoLimitado;
-
-        if (eixo === 'y' && depois === previewContainer && novoDepois <= 2.5) {
-          if (!previewDesativadoPorLimite) {
-            previewDesativadoPorLimite = true;
-            fecharPreview();
-            if (CL.ui && typeof CL.ui.showToast === 'function') {
-              CL.ui.showToast('Preview desativado ao chegar no limite — clique em "Live" pra reativar.', 'warning', 8000);
-            }
-          }
-          return;
-        }
 
         antes.style.flex = '0 0 ' + tamanhoLimitado + 'px';
         depois.style.flex = '0 0 ' + novoDepois + 'px';
@@ -1832,7 +1821,8 @@
         if (total <= 0) return;
         if (Math.abs(total - disponivel) <= 1) return; // já preenche certinho, nada a corrigir
 
-        var minimo = Math.min(140, disponivel * 0.42);
+        var minimoPreview = ALTURA_MINIMA_PREVIEW;
+        var minimo = Math.min(Math.min(140, disponivel * 0.42), Math.max(0, disponivel - minimoPreview));
         var proporcao = alturaEditores / total;
         if (!Number.isFinite(proporcao)) proporcao = 0.5;
         var novaAlturaEditores = Math.max(minimo, Math.min(disponivel - minimo, disponivel * proporcao));
@@ -3432,7 +3422,6 @@
 
       function mostrarPreview() {
         abrirJanela();
-        previewDesativadoPorLimite = false;
         chkTogglePreview.checked = true;
         btnRun.classList.add('active');
         contentWrapper.classList.add('with-preview');
