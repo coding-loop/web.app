@@ -155,25 +155,25 @@
   */
 
   CL.curso.CURSOS = {
-  html: {
-    id: 'html',
-    nome: 'HTML',
-    linguagem: 'html',
-    modulos: [
-    {
-      id: 'html-modulo-1',
+    html: {
+      id: 'html',
+      nome: 'HTML',
       linguagem: 'html',
-      nome: 'Introdução ao HTML',
-      etapas: [
+      modulos: [
         {
-          titulo: '<p> Bem Vindo ao Curso de HTML </p> <br>',
-          texto: `<p> 1- Começe a mexer no ⌨ para aprender. </p> <br>
+          id: 'html-modulo-1',
+          linguagem: 'html',
+          nome: 'Introdução ao HTML',
+          etapas: [
+            {
+              titulo: '<p> Bem Vindo ao Curso de HTML </p> <br>',
+              texto: `<p> 1- Começe a mexer no ⌨ para aprender. </p> <br>
           <p> 2- Front-End Developer é Projeto Piloto de Coding-Loop, e para continuar de onde parou você precisará usar o mesmo aparelho e o mesmo navegador, pois esté é um site estático e não possui </p><br>
           <p> 3- Cline em 💾 para salvar o código e continuar de onde parou.</p> <br>
           <p> 4- Se você estiver em um 📱, para acessar todos os botões do IDE você precisará rolar para esquerda 🔙 e 🔜 direita. </p>    `,
-          missao: `Mude o conteúdo do texto dentro do elemento <code>&lt;h1&gt;</code> no editor de código para o seu nome e observe o preview atualizar ao lado.`,
-          codigoInicial: {
-            html: `<!DOCTYPE html>
+              missao: `Mude o conteúdo do texto dentro do elemento <code>&lt;h1&gt;</code> no editor de código para o seu nome e observe o preview atualizar ao lado.`,
+              codigoInicial: {
+                html: `<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -185,504 +185,504 @@
 	<p>This is a simple paragraph of text on my webpage.</p>
 </body>
 </html>`,
-            css: 'body {\n  font-family: sans-serif;\n  background-color: #f9f9f9;\n  padding: 20px;\n  color: #333;\n}',
-            js: 'console.log("Ambiente carregado com sucesso!");'
-          },
-          // Dá 100% se o texto do <h1> foi alterado (a missão pede pra
-          // trocar pelo nome do aluno).
-          verificar: function (codigo) {
-            var html = codigo.html || '';
-            var match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-            var textoH1 = match ? match[1].trim() : '';
-            return (textoH1 && textoH1 !== 'Welcome to My Website') ? 100 : 0;
-          }
+                css: 'body {\n  font-family: sans-serif;\n  background-color: #f9f9f9;\n  padding: 20px;\n  color: #333;\n}',
+                js: 'console.log("Ambiente carregado com sucesso!");'
+              },
+              // Dá 100% se o texto do <h1> foi alterado (a missão pede pra
+              // trocar pelo nome do aluno).
+              verificar: function (codigo) {
+                var html = codigo.html || '';
+                var match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+                var textoH1 = match ? match[1].trim() : '';
+                return (textoH1 && textoH1 !== 'Welcome to My Website') ? 100 : 0;
+              }
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'html-modulo-2',
+          linguagem: 'html',
+          nome: 'Estrutura do Documento',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'html-modulo-3',
+          linguagem: 'html',
+          nome: 'Textos e Formatação',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'html-modulo-4',
+          linguagem: 'html',
+          nome: 'Links e Navegação',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Introdução ao HTML" (HTML · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'html-modulo-5',
+          linguagem: 'html',
+          nome: 'Imagens e Mídia',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'html-modulo-6',
+          linguagem: 'html',
+          nome: 'Listas',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'html-modulo-7',
+          linguagem: 'html',
+          nome: 'Tabelas',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'html-modulo-8',
+          linguagem: 'html',
+          nome: 'Formulários',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'html-modulo-9',
+          linguagem: 'html',
+          nome: 'Elementos Semânticos',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'html-modulo-10',
+          linguagem: 'html',
+          nome: 'Projeto Final de HTML',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         }
       ]
     },
 
-    {
-      id: 'html-modulo-2',
-      linguagem: 'html',
-      nome: 'Estrutura do Documento',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Estrutura do Documento" (HTML · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-3',
-      linguagem: 'html',
-      nome: 'Textos e Formatação',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Textos e Formatação" (HTML · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-4',
-      linguagem: 'html',
-      nome: 'Links e Navegação',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Links e Navegação" (HTML · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-5',
-      linguagem: 'html',
-      nome: 'Imagens e Mídia',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Imagens e Mídia" (HTML · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-6',
-      linguagem: 'html',
-      nome: 'Listas',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Listas" (HTML · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-7',
-      linguagem: 'html',
-      nome: 'Tabelas',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Tabelas" (HTML · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-8',
-      linguagem: 'html',
-      nome: 'Formulários',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Formulários" (HTML · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-9',
-      linguagem: 'html',
-      nome: 'Elementos Semânticos',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Elementos Semânticos" (HTML · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'html-modulo-10',
-      linguagem: 'html',
-      nome: 'Projeto Final de HTML',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Projeto Final de HTML" (HTML · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    }
-    ]
-  },
-
-  css: {
-    id: 'css',
-    nome: 'CSS',
-    linguagem: 'css',
-    modulos: [
-    {
-      id: 'css-modulo-1',
+    css: {
+      id: 'css',
+      nome: 'CSS',
       linguagem: 'css',
-      nome: 'Introdução ao CSS',
-      etapas: [
+      modulos: [
         {
-          titulo: 'Bem-vindo à trilha de CSS',
-          texto: `<p>Aqui você aprende a estilizar páginas HTML: cores, espaçamentos, tipografia e layout.</p>
+          id: 'css-modulo-1',
+          linguagem: 'css',
+          nome: 'Introdução ao CSS',
+          etapas: [
+            {
+              titulo: 'Bem-vindo à trilha de CSS',
+              texto: `<p>Aqui você aprende a estilizar páginas HTML: cores, espaçamentos, tipografia e layout.</p>
           <p>Use a aba <strong>CSS</strong> do editor para escrever seus estilos — o preview atualiza em tempo real.</p>`,
-          missao: `Na aba CSS do editor, altere a cor de fundo (<code>background-color</code>) do <code>&lt;body&gt;</code> para um tom diferente do atual.`,
-          codigoInicial: {
-            html: `<!DOCTYPE html>
+              missao: `Na aba CSS do editor, altere a cor de fundo (<code>background-color</code>) do <code>&lt;body&gt;</code> para um tom diferente do atual.`,
+              codigoInicial: {
+                html: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -693,503 +693,503 @@
   <p>Edite o CSS ao lado para estilizar este conteúdo.</p>
 </body>
 </html>`,
-            css: 'body {\n  font-family: sans-serif;\n  background-color: #ffffff;\n  padding: 20px;\n  color: #333;\n}',
-            js: ''
-          },
-          // Dá 100% se o background-color do body foi alterado.
-          verificar: function (codigo) {
-            var css = codigo.css || '';
-            var match = css.match(/body\s*\{[^}]*background-color\s*:\s*([^;]+);/i);
-            var cor = match ? match[1].trim() : '';
-            return (cor && cor !== '#ffffff') ? 100 : 0;
-          }
+                css: 'body {\n  font-family: sans-serif;\n  background-color: #ffffff;\n  padding: 20px;\n  color: #333;\n}',
+                js: ''
+              },
+              // Dá 100% se o background-color do body foi alterado.
+              verificar: function (codigo) {
+                var css = codigo.css || '';
+                var match = css.match(/body\s*\{[^}]*background-color\s*:\s*([^;]+);/i);
+                var cor = match ? match[1].trim() : '';
+                return (cor && cor !== '#ffffff') ? 100 : 0;
+              }
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'css-modulo-2',
+          linguagem: 'css',
+          nome: 'Seletores CSS',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'css-modulo-3',
+          linguagem: 'css',
+          nome: 'Cores e Fundos',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'css-modulo-4',
+          linguagem: 'css',
+          nome: 'Box Model',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Introdução ao CSS" (CSS · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'css-modulo-5',
+          linguagem: 'css',
+          nome: 'Tipografia',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'css-modulo-6',
+          linguagem: 'css',
+          nome: 'Flexbox',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'css-modulo-7',
+          linguagem: 'css',
+          nome: 'Grid Layout',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'css-modulo-8',
+          linguagem: 'css',
+          nome: 'Posicionamento',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'css-modulo-9',
+          linguagem: 'css',
+          nome: 'Responsividade',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'css-modulo-10',
+          linguagem: 'css',
+          nome: 'Projeto Final de CSS',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         }
       ]
     },
 
-    {
-      id: 'css-modulo-2',
-      linguagem: 'css',
-      nome: 'Seletores CSS',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Seletores CSS" (CSS · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-3',
-      linguagem: 'css',
-      nome: 'Cores e Fundos',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Cores e Fundos" (CSS · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-4',
-      linguagem: 'css',
-      nome: 'Box Model',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Box Model" (CSS · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-5',
-      linguagem: 'css',
-      nome: 'Tipografia',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Tipografia" (CSS · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-6',
-      linguagem: 'css',
-      nome: 'Flexbox',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Flexbox" (CSS · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-7',
-      linguagem: 'css',
-      nome: 'Grid Layout',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Grid Layout" (CSS · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-8',
-      linguagem: 'css',
-      nome: 'Posicionamento',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Posicionamento" (CSS · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-9',
-      linguagem: 'css',
-      nome: 'Responsividade',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Responsividade" (CSS · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'css-modulo-10',
-      linguagem: 'css',
-      nome: 'Projeto Final de CSS',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Projeto Final de CSS" (CSS · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    }
-    ]
-  },
-
-  js: {
-    id: 'js',
-    nome: 'JavaScript',
-    linguagem: 'js',
-    modulos: [
-    {
-      id: 'js-modulo-1',
+    js: {
+      id: 'js',
+      nome: 'JavaScript',
       linguagem: 'js',
-      nome: 'Introdução ao JavaScript',
-      etapas: [
+      modulos: [
         {
-          titulo: 'Bem-vindo à trilha de JavaScript',
-          texto: `<p>Aqui você aprende a dar comportamento e interatividade às páginas usando JavaScript.</p>
+          id: 'js-modulo-1',
+          linguagem: 'js',
+          nome: 'Introdução ao JavaScript',
+          etapas: [
+            {
+              titulo: 'Bem-vindo à trilha de JavaScript',
+              texto: `<p>Aqui você aprende a dar comportamento e interatividade às páginas usando JavaScript.</p>
           <p>Use a aba <strong>JavaScript</strong> do editor — abra o console do navegador (ou o preview) pra ver a saída do seu código.</p>`,
-          missao: `Na aba JavaScript do editor, use <code>console.log()</code> para exibir uma mensagem de sua escolha.`,
-          codigoInicial: {
-            html: `<!DOCTYPE html>
+              missao: `Na aba JavaScript do editor, use <code>console.log()</code> para exibir uma mensagem de sua escolha.`,
+              codigoInicial: {
+                html: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -1199,484 +1199,492 @@
   <h1>Abra o console para ver a saída do seu código</h1>
 </body>
 </html>`,
-            css: 'body {\n  font-family: sans-serif;\n  padding: 20px;\n  color: #333;\n}',
-            js: '// Escreva seu código aqui.\n'
-          },
-          // Dá 100% se o aluno chamou console.log(...) com algo além do
-          // comentário inicial.
-          verificar: function (codigo) {
-            var js = codigo.js || '';
-            return /console\.log\s*\(/.test(js) ? 100 : 0;
-          }
+                css: 'body {\n  font-family: sans-serif;\n  padding: 20px;\n  color: #333;\n}',
+                js: '// Escreva seu código aqui.\n'
+              },
+              // Dá 100% se o aluno chamou console.log(...) com algo além do
+              // comentário inicial.
+              verificar: function (codigo) {
+                var js = codigo.js || '';
+                return /console\.log\s*\(/.test(js) ? 100 : 0;
+              }
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'js-modulo-2',
+          linguagem: 'js',
+          nome: 'Variáveis e Tipos de Dados',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'js-modulo-3',
+          linguagem: 'js',
+          nome: 'Operadores e Condicionais',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'js-modulo-4',
+          linguagem: 'js',
+          nome: 'Loops e Repetição',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         },
+
         {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Introdução ao JavaScript" (JavaScript · Módulo 1). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+          id: 'js-modulo-5',
+          linguagem: 'js',
+          nome: 'Funções',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'js-modulo-6',
+          linguagem: 'js',
+          nome: 'Arrays',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'js-modulo-7',
+          linguagem: 'js',
+          nome: 'Objetos',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'js-modulo-8',
+          linguagem: 'js',
+          nome: 'Manipulação do DOM',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'js-modulo-9',
+          linguagem: 'js',
+          nome: 'Eventos',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
+        },
+
+        {
+          id: 'js-modulo-10',
+          linguagem: 'js',
+          nome: 'Projeto Final de JavaScript',
+          etapas: [
+            {
+              titulo: 'Etapa 1',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 2',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 3',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 4',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            },
+            {
+              titulo: 'Etapa 5',
+              texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
+              missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
+              // Campos opcionais que podem ser adicionados a qualquer etapa:
+              // codigoInicial: { html: '...', css: '...', js: '...' },
+              // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
+            }
+          ]
         }
       ]
     },
-
-    {
-      id: 'js-modulo-2',
-      linguagem: 'js',
-      nome: 'Variáveis e Tipos de Dados',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Variáveis e Tipos de Dados" (JavaScript · Módulo 2). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-3',
-      linguagem: 'js',
-      nome: 'Operadores e Condicionais',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Operadores e Condicionais" (JavaScript · Módulo 3). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-4',
-      linguagem: 'js',
-      nome: 'Loops e Repetição',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Loops e Repetição" (JavaScript · Módulo 4). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-5',
-      linguagem: 'js',
-      nome: 'Funções',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Funções" (JavaScript · Módulo 5). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-6',
-      linguagem: 'js',
-      nome: 'Arrays',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Arrays" (JavaScript · Módulo 6). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-7',
-      linguagem: 'js',
-      nome: 'Objetos',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Objetos" (JavaScript · Módulo 7). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-8',
-      linguagem: 'js',
-      nome: 'Manipulação do DOM',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Manipulação do DOM" (JavaScript · Módulo 8). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-9',
-      linguagem: 'js',
-      nome: 'Eventos',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Eventos" (JavaScript · Módulo 9). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
-    },
-
-    {
-      id: 'js-modulo-10',
-      linguagem: 'js',
-      nome: 'Projeto Final de JavaScript',
-      etapas: [
-        {
-          titulo: 'Etapa 1',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 1 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 2',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 2 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 3',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 3 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 4',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 4 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        },
-        {
-          titulo: 'Etapa 5',
-          texto: '<p>[Placeholder] Conteúdo teórico da Etapa 5 do módulo "Projeto Final de JavaScript" (JavaScript · Módulo 10). Substitua este texto pela explicação real.</p>',
-          missao: '[Placeholder] Descreva aqui a missão prática que o aluno deve cumprir nesta etapa.'
-          // Campos opcionais que podem ser adicionados a qualquer etapa:
-          // codigoInicial: { html: '...', css: '...', js: '...' },
-          // verificar: function (codigo) { return 0; } // 0-100, calcula o % de acerto
-        }
-      ]
+    'programming-logic': {
+      id: 'programming-logic',
+      nome: 'LogProg',
+      linguagem: 'programming-logic',
+      descricao: 'Aprenda os fundamentos da lógica de programação.',
+      modulos: []
     }
-    ]
-  }  };
+  };
 
   /* Cursos publicados: HTML, CSS e JavaScript aparecem no painel desde o
      início. Os módulos e etapas são preenchidos gradualmente pelos arquivos
@@ -1687,7 +1695,7 @@
 
   /* Ordem de exibição das trilhas publicadas. Novos cursos registrados por
      assets/content/ são acrescentados automaticamente ao final desta lista. */
-  CL.curso.ORDEM_CURSOS = ['html', 'css', 'js'];
+  CL.curso.ORDEM_CURSOS = ['html', 'css', 'js', 'programming-logic'];
 
   /* API de conteúdo. Arquivos em assets/content usam estes métodos para
      registrar cursos, módulos e etapas sem tocar neste arquivo-base. */

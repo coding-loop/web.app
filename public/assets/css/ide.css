@@ -2901,6 +2901,7 @@
       display: flex;
       width: 100%;
       height: calc(100% - 28px);
+      min-height: 0;
       flex-direction: column;
       overflow: hidden;
       background: #161b22;

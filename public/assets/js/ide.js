@@ -1780,7 +1780,7 @@
 
       var previewDesativadoPorLimite = false;
       var ultimaProporcaoPreviewAntesDoLimite = null; // fração (0–1) da altura do Preview, guardada pra restaurar ao reativar pelo "Live"
-      var ALTURA_MINIMA_PREVIEW = 10;
+      var ALTURA_MINIMA_PREVIEW = 2;
 
       function aplicarTamanhoAoPar(divisor, antes, depois, eixo, novoAntes) {
         if (!antes || !depois) return;
@@ -1836,8 +1836,11 @@
         if (!previewContainer.classList.contains('show-preview')) return;
         if (contentWrapper.classList.contains('preview-vertical') || prefPreviewMaximized) return;
 
-        var disponivel = contentWrapper.clientHeight;
-        if (!disponivel) return;
+        var alturaDivisorPreview = previewSplitResizer && previewSplitResizer.classList.contains('is-visible')
+          ? previewSplitResizer.getBoundingClientRect().height
+          : 0;
+        var disponivel = contentWrapper.clientHeight - alturaDivisorPreview;
+        if (disponivel <= 0) return;
 
         var alturaEditores = editorsContainer.getBoundingClientRect().height;
         var alturaPreview = previewContainer.getBoundingClientRect().height;
@@ -3473,8 +3476,11 @@
         // dele, volta com a mesma proporção de antes em vez do padrão
         // 50/50 que limparTamanhosDosPaineis() acabou de aplicar.
         if (ultimaProporcaoPreviewAntesDoLimite != null && !contentWrapper.classList.contains('preview-vertical') && !prefPreviewMaximized) {
-          var disponivelAoReativar = contentWrapper.clientHeight;
-          if (disponivelAoReativar) {
+          var alturaDivisorAoReativar = previewSplitResizer && previewSplitResizer.classList.contains('is-visible')
+            ? previewSplitResizer.getBoundingClientRect().height
+            : 0;
+          var disponivelAoReativar = contentWrapper.clientHeight - alturaDivisorAoReativar;
+          if (disponivelAoReativar > 0) {
             var minimoEditorAoReativar = Math.min(140, disponivelAoReativar * 0.42);
             var minimoPreviewAoReativar = ALTURA_MINIMA_PREVIEW;
             var alturaPreviewRestaurada = Math.max(minimoPreviewAoReativar, Math.min(disponivelAoReativar - minimoEditorAoReativar, disponivelAoReativar * ultimaProporcaoPreviewAntesDoLimite));
@@ -4351,7 +4357,14 @@
   function limites(total) {
     if (vertical) {
       var minimoTeoria = Math.max(60, Math.min(100, total * 0.2));
-      var minimoIde = Math.max(80, Math.min(120, total * 0.25));
+      var janela = document.querySelector('.browser-window');
+      var barra = janela && janela.querySelector('.browser-tabs');
+      var bordas = janela
+        ? (parseFloat(getComputedStyle(janela).borderTopWidth) || 0) + (parseFloat(getComputedStyle(janela).borderBottomWidth) || 0)
+        : 0;
+      var alturaPreviewMinima = 2;
+      var minimoIdeEstrutural = (barra ? barra.getBoundingClientRect().height : 28) + bordas + alturaPreviewMinima;
+      var minimoIde = minimoIdeEstrutural;
       return { min: minimoTeoria, max: Math.max(minimoTeoria, total - minimoIde) };
     }
     var minimoTeoriaH = Math.min(MIN_THEORY_HORIZONTAL, total * 0.45);
