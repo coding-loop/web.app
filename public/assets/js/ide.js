@@ -1780,14 +1780,17 @@
 
       var previewDesativadoPorLimite = false;
       var ultimaProporcaoPreviewAntesDoLimite = null; // fração (0–1) da altura do Preview, guardada pra restaurar ao reativar pelo "Live"
+      var ALTURA_MINIMA_PREVIEW = 10;
 
       function aplicarTamanhoAoPar(divisor, antes, depois, eixo, novoAntes) {
         if (!antes || !depois) return;
         var tamanhoAntes = eixo === 'x' ? antes.getBoundingClientRect().width : antes.getBoundingClientRect().height;
         var tamanhoDepois = eixo === 'x' ? depois.getBoundingClientRect().width : depois.getBoundingClientRect().height;
         var total = tamanhoAntes + tamanhoDepois;
-        var minimo = Math.min(140, total * 0.42);
-        var tamanhoLimitado = Math.max(minimo, Math.min(novoAntes, total - minimo));
+        var minimoEditor = Math.min(140, total * 0.42);
+        var minimoDepois = eixo === 'y' && depois === previewContainer ? ALTURA_MINIMA_PREVIEW : minimoEditor;
+        var minimoAntes = eixo === 'y' && depois === previewContainer ? Math.min(minimoEditor, total - minimoDepois) : minimoEditor;
+        var tamanhoLimitado = Math.max(minimoAntes, Math.min(novoAntes, total - minimoDepois));
         var novoDepois = total - tamanhoLimitado;
 
         // Quando o PREVIEW (não o editor) chega no tamanho mínimo dele —
@@ -1797,7 +1800,7 @@
         // está cobrindo aquele canto (barra de tarefas, overlay etc.),
         // então em vez de adivinhar uma margem, devolve a decisão pro
         // usuário: reativa manualmente pelo "Live" quando quiser.
-        if (eixo === 'y' && depois === previewContainer && novoDepois <= minimo + 0.5) {
+        if (eixo === 'y' && depois === previewContainer && novoDepois <= ALTURA_MINIMA_PREVIEW + 0.5) {
           if (!previewDesativadoPorLimite) {
             previewDesativadoPorLimite = true;
             fecharPreview();
@@ -3472,8 +3475,9 @@
         if (ultimaProporcaoPreviewAntesDoLimite != null && !contentWrapper.classList.contains('preview-vertical') && !prefPreviewMaximized) {
           var disponivelAoReativar = contentWrapper.clientHeight;
           if (disponivelAoReativar) {
-            var minimoAoReativar = Math.min(140, disponivelAoReativar * 0.42);
-            var alturaPreviewRestaurada = Math.max(minimoAoReativar, Math.min(disponivelAoReativar - minimoAoReativar, disponivelAoReativar * ultimaProporcaoPreviewAntesDoLimite));
+            var minimoEditorAoReativar = Math.min(140, disponivelAoReativar * 0.42);
+            var minimoPreviewAoReativar = ALTURA_MINIMA_PREVIEW;
+            var alturaPreviewRestaurada = Math.max(minimoPreviewAoReativar, Math.min(disponivelAoReativar - minimoEditorAoReativar, disponivelAoReativar * ultimaProporcaoPreviewAntesDoLimite));
             editorsContainer.style.flex = '0 0 ' + (disponivelAoReativar - alturaPreviewRestaurada) + 'px';
             previewContainer.style.flex = '0 0 ' + alturaPreviewRestaurada + 'px';
           }
