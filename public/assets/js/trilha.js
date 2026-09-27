@@ -27,6 +27,7 @@
      separadamente por .trilha-node-numero, logo escala para qualquer curso. */
   CL.trilha.LOGOS = {
     'programming-logic': 'assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4',
+    'cyber-security': 'assets/images/icons.svg/logo-cyber-security.svg',
     html: 'assets/images/icons.svg/logo-html.svg',
     css: 'assets/images/icons.svg/logo-css.svg',
     js: 'assets/images/icons.svg/logo-javascript.svg'
@@ -112,6 +113,11 @@
       ['R', [2, 2, 3]], ['L', [3, 2, 2]], ['R', [3, 3, 1]], ['L', [1, 3, 3]],
       ['R', [2, 3, 2]], ['L', [3, 3, 1]], ['R', [1, 3, 3]], ['L', [2, 3, 2]],
       ['R', [3, 2, 2]], ['L', [2, 2, 3]], ['R', [3, 3, 1]], ['L', [1, 3, 3]]
+    ],
+    'cyber-security': [
+      ['R', [3, 2, 2]], ['L', [1, 3, 3]], ['R', [3, 3, 1]], ['L', [2, 3, 2]],
+      ['R', [2, 2, 3]], ['L', [3, 2, 2]], ['R', [1, 3, 3]], ['L', [3, 3, 1]],
+      ['R', [2, 3, 2]], ['L', [2, 2, 3]], ['R', [3, 2, 2]], ['L', [1, 3, 3]]
     ]
   };
 
@@ -538,6 +544,7 @@
     var titulo = pagina.querySelector('.trilha-titulo-fixo');
     var imagensTitulo = {
       'programming-logic': 'assets/images/trilha-titulo-bg-logprog.png',
+      'cyber-security': 'assets/images/trilha-titulo-bg-cyber-security.png',
       html: 'assets/images/trilha-titulo-bg-html.png',
       css: 'assets/images/trilha-titulo-bg-css.png',
       js: 'assets/images/trilha-titulo-bg-js.png'

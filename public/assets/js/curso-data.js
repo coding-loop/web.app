@@ -1683,6 +1683,13 @@
       linguagem: 'programming-logic',
       descricao: 'Aprenda os fundamentos da lógica de programação.',
       modulos: []
+    },
+    'cyber-security': {
+      id: 'cyber-security',
+      nome: 'Cyber Security',
+      linguagem: 'cyber-security',
+      descricao: 'Aprenda os fundamentos de segurança da informação e cibersegurança, do zero.',
+      modulos: []
     }
   };
 
@@ -1693,9 +1700,10 @@
   CL.curso.CURSOS.css.modulos = [];
   CL.curso.CURSOS.js.modulos = [];
 
-  /* Ordem de exibição das trilhas publicadas. Novos cursos registrados por
-     assets/content/ são acrescentados automaticamente ao final desta lista. */
-  CL.curso.ORDEM_CURSOS = ['html', 'css', 'js', 'programming-logic'];
+  /* Ordem de exibição das trilhas publicadas (pedido: LogProg, Cyber
+     Security, HTML, CSS, JS). Novos cursos registrados por assets/content/
+     continuam sendo acrescentados automaticamente ao final desta lista. */
+  CL.curso.ORDEM_CURSOS = ['programming-logic', 'cyber-security', 'html', 'css', 'js'];
 
   /* API de conteúdo. Arquivos em assets/content usam estes métodos para
      registrar cursos, módulos e etapas sem tocar neste arquivo-base. */

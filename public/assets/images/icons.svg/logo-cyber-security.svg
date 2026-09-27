@@ -1,0 +1,419 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 460 450"
+     width="761.76"
+     height="745.2">
+
+  <defs>
+
+    <!-- ===================================================== -->
+    <!-- FILTRO DE CONTORNO/GLOW VERDE NEON -->
+    <!-- ===================================================== -->
+
+    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <!-- Cria uma aura verde ao redor do elemento -->
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#0FFF50" flood-opacity="1"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#0FFF50" flood-opacity="0.8"/>
+    </filter>
+
+
+    <!-- ===================================================== -->
+    <!-- MÁSCARA DO ESCUDO INTERNO EXPANDIDO PARA A MATRIZ -->
+    <!-- ===================================================== -->
+
+    <mask id="escudo-recorte">
+
+      <path
+        d="
+          M 230,48
+
+          C 180,73
+            135,86
+             90,92
+
+          L 90,180
+
+          C 90,263
+            135,329
+            230,386
+
+          C 325,329
+            370,263
+            370,180
+
+          L 370,92
+
+          C 325,86
+            280,73
+            230,48
+
+          Z
+        "
+        fill="#FFFFFF"
+      />
+
+    </mask>
+
+
+    <!-- ===================================================== -->
+    <!-- MATRIZ CRIPTOGRÁFICA -->
+    <!-- ===================================================== -->
+
+    <pattern
+      id="matrix-fundo"
+      width="40"
+      height="16"
+      patternUnits="userSpaceOnUse">
+
+      <text
+        x="0"
+        y="7.5"
+        font-family="'Arial Narrow', sans-serif"
+        font-weight="100"
+        font-size="9"
+        fill="#0FFF50"
+        opacity="0.8"
+        textLength="40"
+        lengthAdjust="spacingAndGlyphs">
+        K97AG89D
+      </text>
+
+      <text
+        x="0"
+        y="15.5"
+        font-family="'Arial Narrow', sans-serif"
+        font-weight="100"
+        font-size="9"
+        fill="#144d2e"
+        opacity="0.7"
+        textLength="40"
+        lengthAdjust="spacingAndGlyphs">
+        4A17DK02
+      </text>
+
+    </pattern>
+
+  </defs>
+
+
+  <!-- ===================================================== -->
+  <!-- CORPO PRINCIPAL -->
+  <!-- ===================================================== -->
+
+  <g transform="translate(0, 10)">
+
+
+    <!-- ===================================================== -->
+    <!-- 1. CAMADA EXTERNA: ESPAÇO EM BRANCO ENTRE BORDAS -->
+    <!-- ===================================================== -->
+
+    <path
+      d="
+        M 230,25
+
+        C 178,53
+          123,69
+           60,78
+
+        L 60,180
+
+        C 60,283
+          118,356
+          230,420
+
+        C 342,356
+          400,283
+          400,180
+
+        L 400,78
+
+        C 337,69
+          282,53
+          230,25
+
+        Z
+      "
+      fill="#FFFFFF"
+    />
+
+
+    <!-- ===================================================== -->
+    <!-- 2. CAMADA INTERNA: FUNDO AZUL ESCURO DA MATRIZ -->
+    <!-- ===================================================== -->
+
+    <path
+      d="
+        M 230,48
+
+        C 180,73
+          135,86
+             90,92
+
+        L 90,180
+
+        C 90,263
+          135,329
+          230,386
+
+        C 325,329
+          370,263
+          370,180
+
+        L 370,92
+
+        C 325,86
+          280,73
+          230,48
+
+        Z
+      "
+      fill="#040d14"
+    />
+
+
+    <!-- ===================================================== -->
+    <!-- 3. MATRIZ CRIPTOGRÁFICA MASCARADA -->
+    <!-- ===================================================== -->
+
+    <rect
+      x="50"
+      y="20"
+      width="360"
+      height="410"
+      fill="url(#matrix-fundo)"
+      mask="url(#escudo-recorte)"
+    />
+
+
+    <!-- ===================================================== -->
+    <!-- 4. ÍCONE CENTRAL: CADEADO COM CONTORNO VERDE NEON -->
+    <!-- ===================================================== -->
+
+    <g transform="translate(167, 115) scale(1.656)" filter="url(#neon-glow)">
+
+      <!-- ALÇA DO CADEADO -->
+
+      <path
+        d="
+          M 12,35
+          L 12,22
+          C 12,9 23,0 38,0
+          C 53,0 64,9 64,22
+          L 64,35
+        "
+        fill="none"
+        stroke="#fff"
+        stroke-width="7.5"
+        stroke-linecap="round"
+      />
+
+
+      <!-- CORPO -->
+
+      <rect
+        x="0"
+        y="32"
+        width="76"
+        height="56"
+        rx="6"
+        fill="#fff"
+      />
+
+
+      <!-- FAIXA DA SENHA (COM CONTORNO NEON PRÓPRIO NOS CANTOS/BORDAS) -->
+
+      <rect
+        x="-8"
+        y="48"
+        width="92"
+        height="24"
+        rx="4"
+        fill="#040d14"
+        stroke="#0FFF50"
+        stroke-width="1.5"
+        opacity="0.95"
+      />
+
+
+      <!-- ASTERISCOS DA FAIXA -->
+
+      <g
+        transform="translate(-1, 60)"
+        stroke="#fff"
+        stroke-width="2.5"
+        stroke-linecap="round">
+
+        <line x1="-3.5" y1="0" x2="3.5" y2="0"/>
+        <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5"/>
+        <line x1="2.5" y1="-2.5" x2="-2.5" y2="2.5"/>
+        <line x1="0" y1="-3.5" x2="0" y2="3.5"/>
+
+      </g>
+
+      <g
+        transform="translate(18, 60)"
+        stroke="#fff"
+        stroke-width="2.5"
+        stroke-linecap="round">
+
+        <line x1="-3.5" y1="0" x2="3.5" y2="0"/>
+        <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5"/>
+        <line x1="2.5" y1="-2.5" x2="-2.5" y2="2.5"/>
+        <line x1="0" y1="-3.5" x2="0" y2="3.5"/>
+
+      </g>
+
+      <g
+        transform="translate(38, 60)"
+        stroke="#fff"
+        stroke-width="2.5"
+        stroke-linecap="round">
+
+        <line x1="-3.5" y1="0" x2="3.5" y2="0"/>
+        <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5"/>
+        <line x1="2.5" y1="-2.5" x2="-2.5" y2="2.5"/>
+        <line x1="0" y1="-3.5" x2="0" y2="3.5"/>
+
+      </g>
+
+      <g
+        transform="translate(58, 60)"
+        stroke="#fff"
+        stroke-width="2.5"
+        stroke-linecap="round">
+
+        <line x1="-3.5" y1="0" x2="3.5" y2="0"/>
+        <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5"/>
+        <line x1="2.5" y1="-2.5" x2="-2.5" y2="2.5"/>
+        <line x1="0" y1="-3.5" x2="0" y2="3.5"/>
+
+      </g>
+
+      <g
+        transform="translate(77, 60)"
+        stroke="#fff"
+        stroke-width="2.5"
+        stroke-linecap="round">
+
+        <line x1="-3.5" y1="0" x2="3.5" y2="0"/>
+        <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5"/>
+        <line x1="2.5" y1="-2.5" x2="-2.5" y2="2.5"/>
+        <line x1="0" y1="-3.5" x2="0" y2="3.5"/>
+
+      </g>
+
+
+      <!-- SELO DE SEGURANÇA (COM CONTORNO NEON EXTERNO) -->
+
+      <circle
+        cx="76"
+        cy="80"
+        r="17"
+        fill="none"
+        stroke="#0FFF50"
+        stroke-width="1.5"
+      />
+
+      <circle
+        cx="76"
+        cy="80"
+        r="16"
+        fill="#040d14"
+      />
+
+      <circle
+        cx="76"
+        cy="80"
+        r="13"
+        fill="#0FFF50"
+      />
+
+      <path
+        d="M 70,80 L 74,84 L 83,75"
+        fill="none"
+        stroke="#fff"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+
+    </g>
+
+
+    <!-- ===================================================== -->
+    <!-- 5. ESCUDO EXTERNO (BORDA GROSSA) -->
+    <!-- ===================================================== -->
+
+    <path
+      d="
+        M 230,25
+
+        C 178,53
+          123,69
+           60,78
+
+        L 60,180
+
+        C 60,283
+          118,356
+          230,420
+
+        C 342,356
+          400,283
+          400,180
+
+        L 400,78
+
+        C 337,69
+          282,53
+          230,25
+
+        Z
+      "
+      fill="none"
+      stroke="#102a3d"
+      stroke-width="14"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+
+
+    <!-- ===================================================== -->
+    <!-- 6. ESCUDO INTERNO (BORDA FINA) -->
+    <!-- ===================================================== -->
+
+    <path
+      d="
+        M 230,48
+
+        C 180,73
+          135,86
+             90,92
+
+        L 90,180
+
+        C 90,263
+          135,329
+          230,386
+
+        C 325,329
+          370,263
+          370,180
+
+        L 370,92
+
+        C 325,86
+          280,73
+          230,48
+
+        Z
+      "
+      fill="none"
+      stroke="#102a3d"
+      stroke-width="3"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+
+  </g>
+
+</svg>

@@ -6,7 +6,7 @@
   /* O container já fica dentro da área útil ao lado do menu. 100vw
      ultrapassava essa área e criava uma rolagem horizontal que recortava
      os módulos posicionados no lado esquerdo. */
-  width:  100%;
+  width: 100%;
   height: calc(100dvh - var(--cl-nav-height));
   position: relative;
   /* A trilha possui várias páginas em altura, mas nunca deve se mover
@@ -18,12 +18,12 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 70px, #000 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 70px, #000 100%);
   flex: 1 1 auto;
-  
+
   /* Mantém as variáveis de background */
   background-size: contain;
   background-position: center top;
   background-repeat: no-repeat;
-  
+
 }
 
 /* A página de curso tem uma única região rolável: a própria trilha.
@@ -79,13 +79,19 @@ body:has(#cl-app[data-page="course"]) {
 .trilha-container[data-curso="html"] {
   background-image:
     linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .55)),
-    url("../images/trilha-bg-html.png");
+    url("../images/trilha-bg-html-stage.png");
 }
 
 .trilha-container[data-curso="programming-logic"] {
   background-image:
     linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .55)),
-    url("../images/trilha-bg-logprog.png");
+    url("../images/trilha-bg-logprog-stage.png");
+}
+
+.trilha-container[data-curso="cyber-security"] {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .55)),
+    url("../images/trilha-bg-cyber-security-stage.png");
 }
 
 /* Título decorativo fixo no topo da página do curso. Fica acima da trilha
@@ -114,13 +120,13 @@ body:has(#cl-app[data-page="course"]) {
 .trilha-container[data-curso="css"] {
   background-image:
     linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .55)),
-    url("../images/trilha-bg-css.png");
+    url("../images/trilha-bg-css-stage.png");
 }
 
 .trilha-container[data-curso="js"] {
   background-image:
     linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .55)),
-    url("../images/trilha-bg-js.png");
+    url("../images/trilha-bg-js-stage.png");
 }
 
 /* No mapa da trilha, a arte aparece um pouco mais presente. O índice
@@ -128,12 +134,19 @@ body:has(#cl-app[data-page="course"]) {
 .trilha-container:not(.trilha-container--indice)[data-curso="html"] {
   background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-html.png");
 }
+
 .trilha-container:not(.trilha-container--indice)[data-curso="programming-logic"] {
   background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-logprog.png");
 }
+
+.trilha-container:not(.trilha-container--indice)[data-curso="cyber-security"] {
+  background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-cyber-security.png");
+}
+
 .trilha-container:not(.trilha-container--indice)[data-curso="css"] {
   background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-css.png");
 }
+
 .trilha-container:not(.trilha-container--indice)[data-curso="js"] {
   background-image: linear-gradient(rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), url("../images/trilha-bg-js.png");
 }
@@ -174,15 +187,18 @@ body:has(#cl-app[data-page="course"]) {
 
 .trilha-caminho {
   display: flex;
-  flex-wrap: wrap; /* Permite quebrar as linhas simulando curvas */
+  flex-wrap: wrap;
+  /* Permite quebrar as linhas simulando curvas */
   align-items: center;
   justify-content: center;
-  gap: 60px 80px; /* Espaçamento entre os nós */
+  gap: 60px 80px;
+  /* Espaçamento entre os nós */
   /* Posiciona os módulos 60px abaixo do topo (considerando o container ou header) */
   padding: 60px var(--cl-space-4, 1rem) var(--cl-space-6, 1.5rem);
   max-width: 1200px;
   margin: 0 auto;
-  position: relative; /* referência pro SVG do caminho (abaixo) */
+  position: relative;
+  /* referência pro SVG do caminho (abaixo) */
 }
 
 /* Grade triangular automática para cursos extensos.
@@ -190,7 +206,8 @@ body:has(#cl-app[data-page="course"]) {
    Novos módulos entram na próxima célula, sem coordenadas manuais. */
 .trilha-caminho--triangular {
   --trilha-passo-x: 120px;
-  --trilha-passo-y: 104px; /* aproximadamente 0,866 × 120px */
+  --trilha-passo-y: 104px;
+  /* aproximadamente 0,866 × 120px */
   display: grid;
   grid-template-columns: repeat(var(--trilha-colunas, 10), var(--trilha-passo-x));
   grid-auto-rows: var(--trilha-passo-y);
@@ -332,10 +349,8 @@ body:has(#cl-app[data-page="course"]) {
      painel diminui. Sem esse ajuste, conserva as coordenadas originais. */
   left: var(--trilha-x-visivel, var(--trilha-x));
   /* A posição final é controlada somente pelas coordenadas manuais. */
-  transform: translateX(-50%) translate(
-    var(--trilha-transform-x, var(--trilha-ajuste-x, 0px)),
-    calc(var(--trilha-ajuste-y, 0px) + var(--trilha-auto-deslocamento-y, 0px))
-  );
+  transform: translateX(-50%) translate(var(--trilha-transform-x, var(--trilha-ajuste-x, 0px)),
+      calc(var(--trilha-ajuste-y, 0px) + var(--trilha-auto-deslocamento-y, 0px)));
 }
 
 /* ===================================================== */
@@ -447,48 +462,243 @@ body:has(#cl-app[data-page="course"]) {
   margin-bottom: 2rem;
 }
 
-.curso-indice__cabecalho h1 { margin: .2rem 0 .4rem; font-size: clamp(1.45rem, 3vw, 2.2rem); }
-.curso-indice__cabecalho p { margin: 0; color: var(--cl-text-muted, #93a1a1); }
-[data-theme="solarized-dark"] .curso-indice__cabecalho p { color: #fff; }
-[data-theme="solarized-light"] .curso-indice__cabecalho p { color: #002b36; }
-.curso-indice__sobretitulo { color: var(--cl-primary, #268bd2) !important; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.curso-indice__progresso { height: .55rem; overflow: hidden; border-radius: 999px; background: var(--cl-surface-2, #073642); }
-.curso-indice__progresso span { display: block; height: 100%; border-radius: inherit; background: var(--cl-success, #859900); transition: width .2s ease; }
-.curso-indice__lista, .curso-indice__etapas { padding: 0; margin: 0; list-style: none; }
-.curso-indice__lista { display: grid; gap: .8rem; counter-reset: modulos; }
-.curso-indice__item { border: 1px solid var(--cl-border, #586e75); border-left: 4px solid var(--cl-border, #586e75); border-radius: .75rem; background: var(--cl-surface, #073642); overflow: hidden; }
-.curso-indice__item--completed { border-left-color: var(--cl-success, #859900); }
-.curso-indice__item--current { border-left-color: var(--cl-primary, #268bd2); box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent); opacity: .7; }
-.curso-indice__item--locked { opacity: .7; }
-.curso-indice__item summary { display: grid; grid-template-columns: 2.5rem 1fr auto; gap: .8rem; align-items: center; padding: 1rem 1.1rem; cursor: pointer; list-style: none; }
-.curso-indice__item summary::-webkit-details-marker { display: none; }
-.curso-indice__numero { width: 2rem; height: 2rem; border: 1px solid var(--cl-border, #586e75); border-radius: 50%; display: grid; place-items: center; font-weight: 700; }
-.curso-indice__titulo, .curso-indice__etapa div { display: grid; gap: .2rem; min-width: 0; }
-.curso-indice__titulo strong, .curso-indice__etapa strong { overflow-wrap: anywhere; }
-.curso-indice__link-etapa { color: var(--cl-text, #fdf6e3); font-weight: 700; overflow-wrap: anywhere; text-decoration: none; }
-.curso-indice__link-etapa:hover, .curso-indice__link-etapa:focus-visible { color: var(--cl-primary, #268bd2); text-decoration: underline; }
-.curso-indice__titulo small, .curso-indice__etapa small, .curso-indice__requisito { color: var(--cl-text-muted, #93a1a1); font-size: .82rem; }
-.curso-indice__status { display: inline-flex; align-items: center; gap: .4rem; color: var(--cl-text-muted, #93a1a1); white-space: nowrap; font-size: .82rem; font-weight: 650; }
-.curso-indice__status i { font-style: normal; color: var(--cl-primary, #268bd2); }
-.curso-indice__item--completed .curso-indice__status i, .curso-indice__etapa--completed > span { color: var(--cl-success, #859900); }
-.curso-indice__item--locked .curso-indice__status i, .curso-indice__etapa--locked > span { color: var(--cl-text-muted, #93a1a1); }
-.curso-indice__conteudo { padding: 0 1.1rem 1.1rem 4.35rem; border-top: 1px solid color-mix(in srgb, var(--cl-border, #586e75) 60%, transparent); }
-.curso-indice__requisito { margin: .9rem 0; }
-.curso-indice__etapas { display: grid; gap: .7rem; }
-.curso-indice__etapa { display: grid; grid-template-columns: 1.25rem 1fr; gap: .65rem; align-items: start; }
-.curso-indice__etapa > span { padding-top: .1rem; color: var(--cl-primary, #268bd2); text-align: center; }
-.curso-indice__acao { margin-top: 1rem; border: 0; border-radius: .45rem; padding: .6rem .85rem; color: var(--cl-on-primary, #fff); background: var(--cl-primary, #268bd2); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
-.curso-indice__acao--bloqueada { color: var(--cl-text-muted, #93a1a1); background: var(--cl-surface-2, #073642); cursor: not-allowed; }
+.curso-indice__cabecalho h1 {
+  margin: .2rem 0 .4rem;
+  font-size: clamp(1.45rem, 3vw, 2.2rem);
+}
+
+.curso-indice__cabecalho p {
+  margin: 0;
+  color: var(--cl-text-muted, #93a1a1);
+}
+
+[data-theme="solarized-dark"] .curso-indice__cabecalho p {
+  color: #fff;
+}
+
+[data-theme="solarized-light"] .curso-indice__cabecalho p {
+  color: #002b36;
+}
+
+.curso-indice__sobretitulo {
+  color: var(--cl-primary, #268bd2) !important;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.curso-indice__progresso {
+  height: .55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cl-surface-2, #073642);
+}
+
+.curso-indice__progresso span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cl-success, #859900);
+  transition: width .2s ease;
+}
+
+.curso-indice__lista,
+.curso-indice__etapas {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.curso-indice__lista {
+  display: grid;
+  gap: .8rem;
+  counter-reset: modulos;
+}
+
+.curso-indice__item {
+  border: 1px solid var(--cl-border, #586e75);
+  border-left: 4px solid var(--cl-border, #586e75);
+  border-radius: .75rem;
+  background: var(--cl-surface, #073642);
+  overflow: hidden;
+}
+
+.curso-indice__item--completed {
+  border-left-color: var(--cl-success, #859900);
+}
+
+.curso-indice__item--current {
+  border-left-color: var(--cl-primary, #268bd2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cl-primary, #268bd2) 20%, transparent);
+  opacity: .7;
+}
+
+.curso-indice__item--locked {
+  opacity: .7;
+}
+
+.curso-indice__item summary {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  gap: .8rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.curso-indice__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.curso-indice__numero {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--cl-border, #586e75);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.curso-indice__titulo,
+.curso-indice__etapa div {
+  display: grid;
+  gap: .2rem;
+  min-width: 0;
+}
+
+.curso-indice__titulo strong,
+.curso-indice__etapa strong {
+  overflow-wrap: anywhere;
+}
+
+.curso-indice__link-etapa {
+  color: var(--cl-text, #fdf6e3);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.curso-indice__link-etapa:hover,
+.curso-indice__link-etapa:focus-visible {
+  color: var(--cl-primary, #268bd2);
+  text-decoration: underline;
+}
+
+.curso-indice__titulo small,
+.curso-indice__etapa small,
+.curso-indice__requisito {
+  color: var(--cl-text-muted, #93a1a1);
+  font-size: .82rem;
+}
+
+.curso-indice__status {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  color: var(--cl-text-muted, #93a1a1);
+  white-space: nowrap;
+  font-size: .82rem;
+  font-weight: 650;
+}
+
+.curso-indice__status i {
+  font-style: normal;
+  color: var(--cl-primary, #268bd2);
+}
+
+.curso-indice__item--completed .curso-indice__status i,
+.curso-indice__etapa--completed>span {
+  color: var(--cl-success, #859900);
+}
+
+.curso-indice__item--locked .curso-indice__status i,
+.curso-indice__etapa--locked>span {
+  color: var(--cl-text-muted, #93a1a1);
+}
+
+.curso-indice__conteudo {
+  padding: 0 1.1rem 1.1rem 4.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--cl-border, #586e75) 60%, transparent);
+}
+
+.curso-indice__requisito {
+  margin: .9rem 0;
+}
+
+.curso-indice__etapas {
+  display: grid;
+  gap: .7rem;
+}
+
+.curso-indice__etapa {
+  display: grid;
+  grid-template-columns: 1.25rem 1fr;
+  gap: .65rem;
+  align-items: start;
+}
+
+.curso-indice__etapa>span {
+  padding-top: .1rem;
+  color: var(--cl-primary, #268bd2);
+  text-align: center;
+}
+
+.curso-indice__acao {
+  margin-top: 1rem;
+  border: 0;
+  border-radius: .45rem;
+  padding: .6rem .85rem;
+  color: var(--cl-on-primary, #fff);
+  background: var(--cl-primary, #268bd2);
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.curso-indice__acao--bloqueada {
+  color: var(--cl-text-muted, #93a1a1);
+  background: var(--cl-surface-2, #073642);
+  cursor: not-allowed;
+}
 
 @media (max-width: 600px) {
-  .trilha-layout-controles { top: .6rem; right: .6rem; }
-  .trilha-layout-controle { padding: .45rem .55rem; font-size: .72rem; }
-  .trilha-container--indice { padding: 7.2rem 1rem 2rem; }
-  .curso-indice__cabecalho { display: block; }
-  .curso-indice__progresso { margin-top: 1.2rem; }
-  .curso-indice__item summary { grid-template-columns: 2.25rem 1fr; }
-  .curso-indice__status { grid-column: 2; }
-  .curso-indice__conteudo { padding-left: 1rem; }
+  .trilha-layout-controles {
+    top: .6rem;
+    right: .6rem;
+  }
+
+  .trilha-layout-controle {
+    padding: .45rem .55rem;
+    font-size: .72rem;
+  }
+
+  .trilha-container--indice {
+    padding: 7.2rem 1rem 2rem;
+  }
+
+  .curso-indice__cabecalho {
+    display: block;
+  }
+
+  .curso-indice__progresso {
+    margin-top: 1.2rem;
+  }
+
+  .curso-indice__item summary {
+    grid-template-columns: 2.25rem 1fr;
+  }
+
+  .curso-indice__status {
+    grid-column: 2;
+  }
+
+  .curso-indice__conteudo {
+    padding-left: 1rem;
+  }
 }
 
 .trilha-path-segmento {
@@ -496,7 +706,8 @@ body:has(#cl-app[data-page="course"]) {
   stroke: var(--cl-border, #586e75);
   stroke-width: 5;
   stroke-linecap: round;
-  stroke-dasharray: 2 14; /* trechos ainda não percorridos = pontilhado */
+  stroke-dasharray: 2 14;
+  /* trechos ainda não percorridos = pontilhado */
   opacity: .65;
   transition: stroke .2s ease, opacity .2s ease;
 }
@@ -593,8 +804,8 @@ body:has(#cl-app[data-page="course"]) {
   justify-content: center;
   cursor: pointer;
   transition: transform var(--cl-transition-fast, .15s ease),
-              border-color var(--cl-transition-fast, .15s ease),
-              box-shadow var(--cl-transition-fast, .15s ease);
+    border-color var(--cl-transition-fast, .15s ease),
+    box-shadow var(--cl-transition-fast, .15s ease);
   padding: 0;
 }
 
@@ -603,10 +814,19 @@ body:has(#cl-app[data-page="course"]) {
 }
 
 .trilha-node-logo {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   object-fit: contain;
   pointer-events: none;
+}
+
+.trilha-node-logo[src*="logo-cyber-security.svg"] {
+  transform: scale(1.2);
+}
+
+.trilha-node-logo[src*="logica-de-programacao.svg"] {
+  transform: scale(1.1);
 }
 
 .trilha-node-numero {
@@ -707,8 +927,15 @@ body:has(#cl-app[data-page="course"]) {
 }
 
 @keyframes trilha-pulso {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(38, 139, 210, 0); }
-  25% { box-shadow: 0 0 0 8px rgba(38, 139, 210, .35); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(38, 139, 210, 0);
+  }
+
+  25% {
+    box-shadow: 0 0 0 8px rgba(38, 139, 210, .35);
+  }
 }
 
 .trilha-node-percentual {
@@ -783,4 +1010,3 @@ body:has(#cl-app[data-page="course"]) {
   gap: var(--cl-space-1, .25rem);
   min-height: 26px;
 }
-

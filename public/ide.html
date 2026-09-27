@@ -7,13 +7,15 @@
   <title>IDE — Coding Loop</title>
 
   <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
-  <link rel="stylesheet" href="assets/css/ide.css?v=step-tabs-20260829-1">
-  <link rel="stylesheet" href="assets/css/trilha.css?v=trilha-opacidade-indice-20260829-1">
+  <link rel="stylesheet" href="assets/css/global.css?v=cyber-logo-size-20260925-1">
+  <link rel="stylesheet" href="assets/css/ide.css?v=cyber-logo-size-20260925-1">
+  <link rel="stylesheet" href="assets/css/trilha.css?v=cyber-logo-size-20260925-1">
 
   <!-- Preconnect: economiza o tempo de DNS/TLS antes dos downloads
          do Firebase e do Monaco, que carregam logo abaixo. -->
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
   <!-- Firebase SDK (compat) -->
   <script defer src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
@@ -246,7 +248,8 @@
               <h2 id="cloud-permission-title">Antes de conectar ao <span id="cloud-permission-service">serviço de
                   nuvem</span></h2>
               <p>O backup em nuvem é opcional. Ao continuar, você será direcionado à tela segura de autorização do
-                <strong id="cloud-permission-service-copy">serviço escolhido</strong>.</p>
+                <strong id="cloud-permission-service-copy">serviço escolhido</strong>.
+              </p>
               <section class="cloud-permission-summary" aria-labelledby="cloud-permission-summary-title">
                 <h3 id="cloud-permission-summary-title">O que o Coding Loop poderá fazer</h3>
                 <p id="cloud-permission-scope"></p>
@@ -393,6 +396,159 @@
                     </svg>
                   </button>
 
+                  <span class="toolbar-separator" aria-hidden="true"></span>
+
+                  <button aria-label="Formatar código do arquivo atual" class="toolbar-btn" id="btn-format-code"
+                    title="Formatar código (Shift+Alt+F)" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 5h16M4 10h10M4 15h16M4 20h10" />
+                    </svg>
+                  </button>
+
+                  <button aria-controls="bottom-panel" aria-expanded="false" aria-label="Problemas, console e busca"
+                    class="toolbar-btn" id="btn-toggle-bottom-panel" title="Problemas, console e busca" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 4h16v12H8l-4 4V4z" />
+                    </svg>
+                    <span class="toolbar-btn-count" hidden id="contador-problemas-toolbar">0</span>
+                  </button>
+
+                  <button aria-label="Comparar dois arquivos" class="toolbar-btn" id="btn-compare-files"
+                    title="Comparar arquivos" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 3v18M16 3v18M4 7h4M4 11h4M4 15h4M16 7h4M16 11h4M16 15h4" />
+                    </svg>
+                  </button>
+
+                  <button aria-label="Alternar minimapa" aria-pressed="false" class="toolbar-btn"
+                    id="btn-toggle-minimap" title="Minimapa" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 4h11v16H4zM18 4h2v6h-2zM18 12h2v3h-2zM18 17h2v3h-2z" />
+                    </svg>
+                  </button>
+
+                  <button aria-controls="editor-prefs-dialog" aria-label="Preferências do editor" class="toolbar-btn"
+                    id="btn-editor-prefs" title="Preferências do editor" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 18h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 8.5 4.5 4.5 0 0 0 6 18Z" />
+                      <path d="M12 9v6m0-6-3 3m3-3 3 3" />
+                    </svg>
+                  </button>
+
+                  <button aria-controls="keyboard-shortcuts-dialog" aria-label="Atalhos de teclado" class="toolbar-btn"
+                    id="btn-keyboard-shortcuts" title="Atalhos de teclado" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 6h18v12H3z" />
+                      <path d="M6 10h1M9 10h1M12 10h1M15 10h1M17 10h1M6 13h9M17 13h1" />
+                    </svg>
+                  </button>
+
+                  <dialog aria-labelledby="editor-prefs-title" class="backup-settings-dialog" id="editor-prefs-dialog">
+                    <form id="editor-prefs-form" method="dialog">
+                      <div class="backup-dialog-header">
+                        <div class="backup-dialog-title"><span class="backup-dialog-title-icon" aria-hidden="true"><svg
+                              viewBox="0 0 24 24">
+                              <path d="M6 18h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 8.5 4.5 4.5 0 0 0 6 18Z" />
+                              <path d="M12 9v6m0-6-3 3m3-3 3 3" />
+                            </svg></span>
+                          <div>
+                            <h2 id="editor-prefs-title">Preferências do editor</h2>
+                            <p>Aplicadas a todos os arquivos abertos nesta IDE.</p>
+                          </div>
+                        </div>
+                        <button aria-label="Fechar" class="backup-dialog-close" value="cancel" type="submit"><svg
+                            viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18" />
+                          </svg></button>
+                      </div>
+                      <div class="editor-prefs-grid">
+                        <label class="editor-prefs-field"><span>Tamanho da fonte</span>
+                          <input id="pref-font-size" max="24" min="10" name="fontSize" type="number"></label>
+                        <label class="editor-prefs-field"><span>Tamanho da tabulação</span>
+                          <select id="pref-tab-size" name="tabSize">
+                            <option value="2">2 espaços</option>
+                            <option value="4">4 espaços</option>
+                          </select></label>
+                        <label class="editor-prefs-checkbox"><input id="pref-word-wrap" name="wordWrap"
+                            type="checkbox"><span>Quebrar linhas automaticamente</span></label>
+                        <label class="editor-prefs-checkbox"><input id="pref-render-whitespace" name="renderWhitespace"
+                            type="checkbox"><span>Mostrar espaços e tabulações sempre (padrão: só na
+                            seleção)</span></label>
+                        <label class="editor-prefs-checkbox"><input id="pref-minimap" name="minimap"
+                            type="checkbox"><span>Mostrar minimapa</span></label>
+                      </div>
+                      <div class="backup-dialog-actions">
+                        <button class="cl-btn backup-save-button" type="submit" value="save"><span>Aplicar
+                            preferências</span></button>
+                      </div>
+                    </form>
+                  </dialog>
+
+                  <dialog aria-labelledby="keyboard-shortcuts-title" class="backup-settings-dialog"
+                    id="keyboard-shortcuts-dialog">
+                    <form method="dialog">
+                      <div class="backup-dialog-header">
+                        <div class="backup-dialog-title"><span class="backup-dialog-title-icon" aria-hidden="true"><svg
+                              viewBox="0 0 24 24">
+                              <path d="M3 6h18v12H3z" />
+                              <path d="M6 10h1M9 10h1M12 10h1M15 10h1M17 10h1M6 13h9M17 13h1" />
+                            </svg></span>
+                          <div>
+                            <h2 id="keyboard-shortcuts-title">Atalhos de teclado</h2>
+                            <p>Recursos nativos do Monaco, já disponíveis — só não estavam documentados na
+                              interface.</p>
+                          </div>
+                        </div>
+                        <button aria-label="Fechar" class="backup-dialog-close" value="cancel" type="submit"><svg
+                            viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18" />
+                          </svg></button>
+                      </div>
+                      <ul class="shortcuts-list">
+                        <li><kbd>Ctrl</kbd>+<kbd>Espaço</kbd><span>Sugestões de autocompletar</span></li>
+                        <li><kbd>Ctrl</kbd>+<kbd>.</kbd><span>Mostrar correções rápidas</span></li>
+                        <li><kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>.</kbd><span>Aplicar correção preferencial</span></li>
+                        <li><kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd><span>Formatar documento</span></li>
+                        <li><kbd>Ctrl</kbd>+<kbd>F</kbd><span>Buscar no arquivo atual</span></li>
+                        <li><kbd>Ctrl</kbd>+<kbd>H</kbd><span>Substituir no arquivo atual</span></li>
+                        <li><kbd>Ctrl</kbd>+<kbd>/</kbd><span>Comentar/descomentar linha</span></li>
+                        <li><kbd>Alt</kbd>+clique<span>Adicionar um cursor extra</span></li>
+                        <li><kbd>Ctrl</kbd>+<kbd>D</kbd><span>Selecionar a próxima ocorrência igual</span></li>
+                        <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd><span>Selecionar todas as ocorrências
+                            iguais</span></li>
+                        <li><kbd>F1</kbd><span>Paleta de comandos do editor</span></li>
+                        <li><kbd>Ctrl</kbd>+<kbd>[</kbd> / <kbd>]</kbd><span>Recolher/expandir bloco de código</span>
+                        </li>
+                      </ul>
+                    </form>
+                  </dialog>
+
+                  <dialog aria-labelledby="compare-files-title" class="export-code-dialog" id="compare-files-dialog">
+                    <form id="compare-files-form" method="dialog">
+                      <div class="backup-dialog-header export-code-dialog-header">
+                        <div class="backup-dialog-title"><span class="backup-dialog-title-icon export-code-title-icon"
+                            aria-hidden="true"><svg viewBox="0 0 24 24">
+                              <path d="M8 3v18M16 3v18M4 7h4M4 11h4M4 15h4M16 7h4M16 11h4M16 15h4" />
+                            </svg></span>
+                          <div>
+                            <h2 id="compare-files-title">Comparar arquivos</h2>
+                          </div>
+                        </div>
+                        <button aria-label="Fechar" class="backup-dialog-close export-code-dialog-cancel" value="cancel"
+                          type="submit"><svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18" />
+                          </svg></button>
+                      </div>
+                      <div class="compare-files-selects">
+                        <label class="editor-prefs-field"><span>Arquivo original</span>
+                          <select id="compare-file-a"></select></label>
+                        <label class="editor-prefs-field"><span>Arquivo modificado</span>
+                          <select id="compare-file-b"></select></label>
+                      </div>
+                      <div id="diff-editor-container"></div>
+                    </form>
+                  </dialog>
+
                   <div aria-label="Escolha o tipo de arquivo" class="new-file-menu" hidden id="new-file-menu"
                     role="menu">
                     <button data-language="html" role="menuitem" type="button">HTML</button><button data-language="css"
@@ -538,6 +694,7 @@
                   </svg>
                 </button>
               </div>
+              <div aria-label="Páginas do preview" class="preview-tabs" hidden id="preview-tabs" role="tablist"></div>
               <div class="preview-controls">
                 <button aria-label="Alternar tema claro e escuro do preview" aria-pressed="false"
                   class="preview-btn preview-btn-theme" id="btn-preview-theme" title="Tema Escuro do Preview"
@@ -560,6 +717,55 @@
                   </svg>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel inferior (Problemas/Console/Buscar). Overlay posicionado
+             de forma absoluta em relação a .browser-window — de propósito
+             fora do fluxo flex de .window-content, para não interferir na
+             lógica de redimensionamento editores↔Preview (ver Contexto.md
+             §12: sessão inteira dedicada a essa conta de espaço). -->
+        <div aria-label="Ferramentas do editor" class="bottom-panel" hidden id="bottom-panel">
+          <div class="bottom-panel-header">
+            <div class="bottom-panel-tabs" role="tablist">
+              <button aria-selected="false" class="bottom-panel-tab" data-panel="problemas" id="bottom-tab-problemas"
+                role="tab" type="button">Problemas<span class="bottom-panel-tab-count" hidden
+                  id="contador-problemas">0</span></button>
+              <button aria-selected="false" class="bottom-panel-tab" data-panel="console" id="bottom-tab-console"
+                role="tab" type="button">Console</button>
+              <button aria-selected="false" class="bottom-panel-tab" data-panel="buscar" id="bottom-tab-buscar"
+                role="tab" type="button">Buscar no projeto</button>
+            </div>
+            <button aria-label="Fechar painel" class="bottom-panel-close" id="btn-fechar-painel-inferior" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m6 6 12 12M18 6 6 18" />
+              </svg>
+            </button>
+          </div>
+          <div class="bottom-panel-body">
+            <div class="bottom-panel-view" id="painel-problemas" role="tabpanel">
+              <ul class="problem-list" id="lista-problemas"></ul>
+              <p class="bottom-panel-empty" id="problemas-vazio">Nenhum problema encontrado nos arquivos abertos.</p>
+            </div>
+            <div class="bottom-panel-view" hidden id="painel-console" role="tabpanel">
+              <div class="console-toolbar">
+                <button class="ide-btn-small" id="btn-limpar-console" type="button">Limpar console</button>
+              </div>
+              <ul class="console-list" id="lista-console"></ul>
+              <p class="bottom-panel-empty" id="console-vazio">Nenhuma mensagem ainda. Use <code>console.log</code> no
+                seu JavaScript para ver aqui.</p>
+            </div>
+            <div class="bottom-panel-view" hidden id="painel-buscar" role="tabpanel">
+              <form class="search-panel-form" id="form-busca-projeto">
+                <input aria-label="Termo de busca" id="input-busca-projeto" placeholder="Buscar em todos os arquivos…"
+                  type="search">
+                <label class="search-panel-case"><input id="chk-busca-case" type="checkbox"> Diferenciar
+                  maiúsculas</label>
+                <button class="ide-btn-small" type="submit">Buscar</button>
+              </form>
+              <ul class="search-result-list" id="lista-resultados-busca"></ul>
+              <p class="bottom-panel-empty" hidden id="busca-vazia">Nenhum resultado encontrado.</p>
             </div>
           </div>
         </div>
@@ -655,7 +861,25 @@
   <!-- Diagnósticos oficiais do TypeScript em pt-BR. Deve carregar antes da IDE. -->
   <script defer src="assets/js/dicionario-typescript-pt-br.js?v=ts-diagnostics-20260824-1"></script>
   <script defer src="assets/js/scrollable-controls.js"></script>
-  <script defer src="assets/js/ide.js?v=ide-buttons-20260902-1"></script>
+
+  <!-- Formatar documento (item 5 da avaliação técnica do Monaco): js-beautify
+       via cdnjs, já pré-conectado acima. Se falhar ao carregar, ide.js checa
+       `typeof window.html_beautify === 'function'` antes de registrar os
+       providers — a IDE continua funcionando normalmente sem eles. -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
+
+  <!-- Emmet para HTML/CSS/JSX (item 12). emmet-monaco-es não tem mirror
+       confirmado no cdnjs (só unpkg, fora da lista de hosts permitidos) —
+       por isso, exceção ao padrão do projeto, carregado via jsDelivr, que
+       espelha qualquer pacote do npm de forma estável. Sem versão travada
+       porque não há uma versão estável confirmada no momento desta
+       implementação; recomenda-se travar a versão assim que confirmada.
+       ide.js checa `window.emmetMonaco` antes de usar. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/emmet-monaco-es/dist/emmet-monaco.min.js"></script>
+
+  <script defer src="assets/js/ide.js?v=cyber-dashboard-icon-20260925-1"></script>
 
 </body>
 

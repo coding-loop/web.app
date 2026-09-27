@@ -36,6 +36,11 @@
     if (linguagem === 'css') {
       return '<svg class="cl-course-logo cl-course-logo--shield" viewBox="0 0 512 512" aria-hidden="true"><path fill="#264de4" stroke="#002b36" stroke-width="16" stroke-linejoin="round" d="M71.357 460.819L30.272 0h451.456l-41.129 460.746L255.724 512z"/><path fill="#2965f1" d="M405.388 431.408l35.148-393.73H256v435.146z"/><path fill="#ebebeb" d="M124.46 208.59l5.065 56.517H256V208.59zM119.419 150.715H256V94.197H114.281zM256 355.372l-.248.066-62.944-16.996-4.023-45.076h-56.736l7.919 88.741 115.772 32.14.26-.073z"/><path fill="#fff" d="M255.805 208.59v56.517H325.4l-6.56 73.299-63.035 17.013v58.8l115.864-32.112.85-9.549 13.28-148.792 1.38-15.176 10.203-114.393H255.805v56.518h79.639L330.3 208.59z"/></svg>';
     }
+    if (linguagem === 'cyber-security') {
+      return '<span class="cl-course-logo cl-course-logo--cyber-security" aria-hidden="true">' +
+        '<img class="cl-course-logo__theme" src="assets/images/icons.svg/logo-cyber-security.svg" alt="">' +
+        '</span>';
+    }
     if (linguagem === 'js') {
       return '<svg class="cl-course-logo cl-course-logo--js" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="9" fill="#f7df1e"/><path fill="#202020" d="M34 49c1.2 2.4 3.4 4.2 7.2 4.2 3 0 5-1.5 5-3.6 0-2.5-2-3.4-5.4-4.9l-1.9-.8c-5.5-2.3-9.1-5.1-9.1-11.2 0-5.6 4.2-9.8 10.8-9.8 4.7 0 8 1.6 10.5 5.9l-5.7 3.6c-1.3-2.2-2.6-3-4.8-3-2.2 0-3.6 1.4-3.6 3 0 2.1 1.4 3 4.5 4.3l1.9.8c6.5 2.8 10.1 5.5 10.1 11.7 0 6.7-5.3 10.4-12.3 10.4-6.9 0-11.3-3.3-13.5-7.6zm-24.1.6c1.1 2 2.1 3.7 4.6 3.7 2.4 0 3.9-.9 3.9-4.4V23.3h7.5V49c0 7.8-4.6 11.4-11.2 11.4-6 0-9.5-3.1-11.3-6.8z"/></svg>';
     }
@@ -194,6 +199,7 @@
 
       var layoutPorCurso = {
         'programming-logic': 'logprog-ziguezague',
+        'cyber-security': 'logprog-ziguezague',
         html: 'logprog-ziguezague',
         css: 'logprog-ziguezague',
         js: 'logprog-ziguezague'

@@ -88,7 +88,8 @@
       'programming-logic': 'assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4',
       html: 'assets/images/icons.svg/logo-html.svg',
       css: 'assets/images/icons.svg/logo-css.svg',
-      js: 'assets/images/icons.svg/logo-javascript.svg'
+      js: 'assets/images/icons.svg/logo-javascript.svg',
+      'cyber-security': 'assets/images/icons.svg/logo-cyber-security.svg'
     };
     function atualizarIconeRetornoTrilha() {
       if (!courseDashboardIcon) return;
@@ -1621,6 +1622,7 @@
       var contentWrapper = document.getElementById('window-content-wrapper');
       var editorsContainer = document.getElementById('editors-container');
       var previewContainer = document.getElementById('preview-container');
+      var previewTabsContainer = document.getElementById('preview-tabs');
       var btnPreviewLayout = document.getElementById('btn-preview-layout');
       var btnPreviewMaximize = document.getElementById('btn-preview-maximize');
       var btnPreviewTheme = document.getElementById('btn-preview-theme');
@@ -2127,21 +2129,36 @@
         // Os três modelos de compatibilidade continuam isolados.
         var raizVirtual = nomeDoArquivo ? 'file:///coding-loop/projeto/' : ('file:///coding-loop/estado-legado/' + encodeURIComponent(id) + '/');
         var model = monaco.editor.createModel(valorInicial, linguagemMonaco, monaco.Uri.parse(raizVirtual + caminhoDoArquivo));
+        // Tamanho de tabulação é opção do modelo, não do editor de view —
+        // aplicada aqui para nascer de acordo com a preferência salva.
+        model.updateOptions({ tabSize: preferenciasDoEditor.tabSize, insertSpaces: true });
         var editorMonaco = monaco.editor.create(document.getElementById(id), {
           model: model,
           automaticLayout: true,
-          fontSize: 14,
-          minimap: { enabled: false },
+          fontSize: preferenciasDoEditor.fontSize,
+          minimap: { enabled: preferenciasDoEditor.minimap },
           lineNumbersMinChars: 2,
-          lineDecorationsWidth: 4,
-          glyphMargin: false,
-          folding: false,
-          wordWrap: 'on',
+          // Antes 4px com glyphMargin desativado. Agora a gutter também
+          // desenha o glifo de severidade (erro/aviso) ao lado do número
+          // da linha — item 4 da avaliação técnica do Monaco.
+          lineDecorationsWidth: 12,
+          glyphMargin: true,
+          folding: true,
+          foldingStrategy: 'indentation',
+          showFoldingControls: 'mouseover',
+          wordWrap: preferenciasDoEditor.wordWrap,
           scrollBeyondLastLine: false,
-          renderWhitespace: 'selection',
+          renderWhitespace: preferenciasDoEditor.renderWhitespace,
           renderValidationDecorations: 'on',
           overviewRulerLanes: 3,
-          hideCursorInOverviewRuler: false
+          hideCursorInOverviewRuler: false,
+          // Recursos nativos do Monaco sem custo de manutenção (item 3):
+          // ajudam bastante iniciantes lendo HTML/CSS aninhado.
+          stickyScroll: { enabled: true },
+          bracketPairColorization: { enabled: true },
+          guides: { bracketPairs: true, indentation: true },
+          wordBasedSuggestions: 'allDocuments',
+          formatOnPaste: true
         });
 
         // O Monaco anuncia esses atalhos no widget da lâmpada, mas alguns
@@ -2276,6 +2293,15 @@
 
         var editorAdaptado = {
           session: session,
+          // Acesso controlado à API nativa do Monaco — pré-requisito para
+          // formatar documento, alternar minimap, busca, hover/CodeLens
+          // etc. a partir de botões de toolbar fora de criarEditor().
+          getMonacoEditor: function () { return editorMonaco; },
+          getModel: function () { return model; },
+          executarComando: function (idAcao) {
+            var acao = editorMonaco.getAction(idAcao);
+            return acao ? acao.run() : undefined;
+          },
           getValue: function () { return model.getValue(); },
           setValue: function (valor, cursorPos) {
             model.setValue(valor);
@@ -2368,6 +2394,45 @@
       var carregandoCodigoDaEtapa = true;
       var codigoInicial = (window.getCodigoInicialParaEditor && window.getCodigoInicialParaEditor()) || {};
 
+      // ----------------------------------------------------------------
+      // Preferências persistentes do editor (item 13 da avaliação técnica
+      // do Monaco). Chave local por dispositivo, no mesmo espírito de
+      // `cl.ide.debug` — não é dado de conta/usuário, então não entra em
+      // `deleteAllUserData` (api.js).
+      // ----------------------------------------------------------------
+      var CHAVE_PREFS_EDITOR = 'cl.ide.editor-prefs';
+      function carregarPreferenciasDoEditor() {
+        var padrao = { fontSize: 14, wordWrap: 'on', tabSize: 2, minimap: false, renderWhitespace: 'selection' };
+        try {
+          var salvas = JSON.parse(window.localStorage.getItem(CHAVE_PREFS_EDITOR) || '{}');
+          return Object.assign(padrao, salvas && typeof salvas === 'object' ? salvas : {});
+        } catch (e) {
+          return padrao;
+        }
+      }
+      function salvarPreferenciasDoEditor() {
+        try { window.localStorage.setItem(CHAVE_PREFS_EDITOR, JSON.stringify(preferenciasDoEditor)); } catch (e) { /* localStorage indisponível: preferência só dura a sessão */ }
+      }
+      function todosOsArquivosEditaveis() {
+        return arquivosExtras.slice();
+      }
+      function aplicarPreferenciasATodosOsEditores() {
+        todosOsArquivosEditaveis().forEach(function (arquivo) {
+          var editorNativo = arquivo.editor.getMonacoEditor && arquivo.editor.getMonacoEditor();
+          var model = arquivo.editor.getModel && arquivo.editor.getModel();
+          if (editorNativo) {
+            editorNativo.updateOptions({
+              fontSize: preferenciasDoEditor.fontSize,
+              wordWrap: preferenciasDoEditor.wordWrap,
+              renderWhitespace: preferenciasDoEditor.renderWhitespace,
+              minimap: { enabled: preferenciasDoEditor.minimap }
+            });
+          }
+          if (model) model.updateOptions({ tabSize: preferenciasDoEditor.tabSize, insertSpaces: true });
+        });
+      }
+      var preferenciasDoEditor = carregarPreferenciasDoEditor();
+
       // Estes modelos preservam a interface dos exercícios antigos e recebem
       // apenas anotações manuais. Como não ficam visíveis, plaintext evita
       // que os workers validem uma segunda cópia do mesmo HTML/CSS/JS.
@@ -2383,8 +2448,196 @@
         }).map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n');
       }
 
+      // ----------------------------------------------------------------
+      // Biblioteca de snippets (item 11). Antes embutida dentro de
+      // sugestoesDoProjeto com só 4 itens no total; extraída para cá para
+      // facilitar manutenção/crescimento, mantendo o mesmo formato usado
+      // pelo restante do arquivo ({ label, insertText, insertTextRules }).
+      // ----------------------------------------------------------------
+      function obterSnippetsPorLinguagem() {
+        var regraSnippet = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
+        return {
+          html: [
+            { label: 'Estrutura HTML5', insertText: '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${1:Minha página}</title>\n</head>\n<body>\n  ${0}\n</body>\n</html>', insertTextRules: regraSnippet },
+            { label: 'Imagem acessível', insertText: '<img src="${1:imagem.jpg}" alt="${2:Descrição da imagem}">', insertTextRules: regraSnippet },
+            { label: 'Formulário acessível', insertText: '<form>\n  <label for="${1:campo}">${2:Rótulo do campo}</label>\n  <input id="${1:campo}" name="${1:campo}" type="${3:text}" required>\n  <button type="submit">${4:Enviar}</button>\n</form>', insertTextRules: regraSnippet },
+            { label: 'Lista de navegação', insertText: '<nav aria-label="${1:Navegação principal}">\n  <ul>\n    <li><a href="${2:#}">${3:Início}</a></li>\n  </ul>\n</nav>', insertTextRules: regraSnippet },
+            { label: 'Tabela acessível', insertText: '<table>\n  <caption>${1:Descrição da tabela}</caption>\n  <thead>\n    <tr><th scope="col">${2:Coluna}</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>${0:Valor}</td></tr>\n  </tbody>\n</table>', insertTextRules: regraSnippet },
+            { label: 'Seção semântica', insertText: '<section aria-labelledby="${1:titulo-secao}">\n  <h2 id="${1:titulo-secao}">${2:Título da seção}</h2>\n  ${0}\n</section>', insertTextRules: regraSnippet }
+          ],
+          css: [
+            { label: 'Flex centralizado', insertText: 'display: flex;\njustify-content: center;\nalign-items: center;' },
+            { label: 'Grid responsivo', insertText: 'display: grid;\ngrid-template-columns: repeat(auto-fit, minmax(${1:220px}, 1fr));\ngap: ${2:16px};', insertTextRules: regraSnippet },
+            { label: 'Variáveis de tema (:root)', insertText: ':root {\n  --cor-primaria: ${1:#4ab5f7};\n  --cor-texto: ${2:#1f2933};\n  --espacamento: ${3:16px};\n}', insertTextRules: regraSnippet },
+            { label: 'Media query (mobile-first)', insertText: '@media (min-width: ${1:768px}) {\n  ${0}\n}', insertTextRules: regraSnippet },
+            { label: 'Transição suave', insertText: 'transition: ${1:all} ${2:0.2s} ease;', insertTextRules: regraSnippet },
+            { label: 'Reset básico de caixa', insertText: '*, *::before, *::after {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}', insertTextRules: regraSnippet }
+          ],
+          javascript: [
+            { label: 'Evento click', insertText: "${1:elemento}.addEventListener('click', () => {\n  ${0}\n});", insertTextRules: regraSnippet },
+            { label: 'Evento submit de formulário', insertText: "${1:formulario}.addEventListener('submit', (evento) => {\n  evento.preventDefault();\n  ${0}\n});", insertTextRules: regraSnippet },
+            { label: 'fetch com try/catch', insertText: "async function ${1:buscarDados}() {\n  try {\n    const resposta = await fetch('${2:https://}');\n    const dados = await resposta.json();\n    ${0}\n  } catch (erro) {\n    console.error('Erro ao buscar dados:', erro);\n  }\n}", insertTextRules: regraSnippet },
+            { label: 'Estrutura for', insertText: 'for (let ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {\n  ${0}\n}', insertTextRules: regraSnippet },
+            { label: 'Estrutura for...of', insertText: 'for (const ${1:item} of ${2:array}) {\n  ${0}\n}', insertTextRules: regraSnippet },
+            { label: 'Estrutura if/else', insertText: 'if (${1:condicao}) {\n  ${2}\n} else {\n  ${0}\n}', insertTextRules: regraSnippet },
+            { label: 'Função declarada', insertText: 'function ${1:nomeDaFuncao}(${2:parametros}) {\n  ${0}\n}', insertTextRules: regraSnippet },
+            { label: 'Módulo ES (import/export)', insertText: "import { ${1:algo} } from './${2:arquivo.js}';\n\nexport function ${3:minhaFuncao}() {\n  ${0}\n}", insertTextRules: regraSnippet },
+            { label: 'Classe simples', insertText: 'class ${1:NomeDaClasse} {\n  constructor(${2:parametros}) {\n    ${0}\n  }\n}', insertTextRules: regraSnippet }
+          ]
+        };
+      }
+
+      // ----------------------------------------------------------------
+      // Hover provider (item 9): dicionário estático de tags HTML e
+      // propriedades CSS mais comuns no curso. O CSS já trata a exibição
+      // nativa de .monaco-hover — aqui só decidimos o conteúdo.
+      // ----------------------------------------------------------------
+      function registrarHoverProviders() {
+        var DICIONARIO_HTML = {
+          a: 'Cria um link para outra página, arquivo ou seção. Use `href` para o destino.',
+          div: 'Contêiner genérico sem significado semântico. Prefira uma tag semântica (section, article, nav) quando fizer sentido.',
+          span: 'Contêiner genérico em linha, sem significado semântico — útil para estilizar um trecho de texto.',
+          img: 'Insere uma imagem. `src` define o arquivo e `alt` é obrigatório para acessibilidade.',
+          button: 'Botão clicável. Use `type="submit"` dentro de formulários ou `type="button"` para ações via JavaScript.',
+          input: 'Campo de formulário. O atributo `type` define o comportamento (text, email, checkbox, etc.).',
+          form: 'Agrupa campos de entrada para envio de dados.',
+          label: 'Rótulo associado a um campo de formulário via o atributo `for`, essencial para acessibilidade.',
+          ul: 'Lista não ordenada — os itens são marcados com marcadores (bullets).',
+          ol: 'Lista ordenada — os itens são numerados automaticamente.',
+          li: 'Item de uma lista (`ul` ou `ol`).',
+          nav: 'Marca um bloco de navegação principal do site.',
+          section: 'Agrupa conteúdo relacionado tematicamente, geralmente com um título.',
+          article: 'Conteúdo independente que faria sentido sozinho, como um post de blog.',
+          header: 'Cabeçalho de uma página ou seção.',
+          footer: 'Rodapé de uma página ou seção.',
+          main: 'Conteúdo principal da página — deve haver só um por página.',
+          table: 'Cria uma tabela de dados.',
+          thead: 'Agrupa a linha de cabeçalho de uma tabela.',
+          tbody: 'Agrupa as linhas de dados de uma tabela.',
+          tr: 'Linha de uma tabela.',
+          td: 'Célula de dado de uma tabela.',
+          th: 'Célula de cabeçalho de uma tabela.',
+          h1: 'Título de nível 1 — o mais importante da página. Use só um por página.',
+          h2: 'Título de nível 2 — subtítulo de uma seção.',
+          p: 'Parágrafo de texto.',
+          strong: 'Marca texto com importância forte (geralmente em negrito).',
+          em: 'Marca texto com ênfase (geralmente em itálico).',
+          script: 'Insere ou referencia código JavaScript.',
+          link: 'Referencia um recurso externo, mais comumente uma folha de estilos CSS.',
+          meta: 'Define metadados da página, como charset ou viewport.'
+        };
+        var DICIONARIO_CSS = {
+          display: 'Define o tipo de exibição do elemento: `block`, `inline`, `flex`, `grid`, `none`, etc.',
+          position: 'Define como o elemento é posicionado: `static`, `relative`, `absolute`, `fixed` ou `sticky`.',
+          color: 'Define a cor do texto.',
+          background: 'Atalho para definir cor/imagem de fundo e propriedades relacionadas.',
+          margin: 'Espaço externo ao redor do elemento, fora da borda.',
+          padding: 'Espaço interno entre o conteúdo e a borda do elemento.',
+          border: 'Atalho para largura, estilo e cor da borda.',
+          width: 'Define a largura do elemento.',
+          height: 'Define a altura do elemento.',
+          'flex-direction': 'Define o eixo principal de um contêiner flex: `row` ou `column`.',
+          'justify-content': 'Alinha os itens flex/grid ao longo do eixo principal.',
+          'align-items': 'Alinha os itens flex/grid ao longo do eixo transversal.',
+          gap: 'Define o espaçamento entre itens de um contêiner flex ou grid.',
+          'grid-template-columns': 'Define o número e o tamanho das colunas de um grid.',
+          'font-size': 'Define o tamanho do texto.',
+          'font-weight': 'Define a espessura do texto (ex.: normal, bold, 600).',
+          'text-align': 'Alinha o texto horizontalmente dentro do elemento.',
+          transition: 'Anima suavemente a mudança de uma ou mais propriedades CSS.',
+          transform: 'Aplica transformações visuais como rotação, escala ou translação.',
+          'box-shadow': 'Adiciona uma sombra ao redor do elemento.',
+          'border-radius': 'Arredonda os cantos do elemento.',
+          overflow: 'Controla o que acontece quando o conteúdo excede o tamanho do elemento.',
+          'z-index': 'Define a ordem de empilhamento de elementos sobrepostos.',
+          opacity: 'Define a transparência do elemento, de 0 (invisível) a 1 (opaco).',
+          cursor: 'Define o ícone do cursor do mouse ao passar sobre o elemento.',
+          'align-self': 'Sobrescreve o alinhamento de um item específico dentro de um contêiner flex/grid.'
+        };
+        function criarProvider(dicionario) {
+          return {
+            provideHover: function (model, position) {
+              var palavra = model.getWordAtPosition(position);
+              if (!palavra) return null;
+              var descricao = dicionario[palavra.word.toLowerCase()];
+              if (!descricao) return null;
+              return {
+                range: new monaco.Range(position.lineNumber, palavra.startColumn, position.lineNumber, palavra.endColumn),
+                contents: [{ value: '**' + palavra.word.toLowerCase() + '**' }, { value: descricao }]
+              };
+            }
+          };
+        }
+        monaco.languages.registerHoverProvider('html', criarProvider(DICIONARIO_HTML));
+        monaco.languages.registerHoverProvider('css', criarProvider(DICIONARIO_CSS));
+        monaco.languages.registerHoverProvider('scss', criarProvider(DICIONARIO_CSS));
+      }
+
+      // ----------------------------------------------------------------
+      // Formatar documento (item 5): usa js-beautify (carregado por
+      // ide.html via cdnjs) quando disponível. Sem a lib carregada, os
+      // providers simplesmente não são registrados — a IDE continua
+      // funcionando normalmente, só sem a ação de formatar.
+      // ----------------------------------------------------------------
+      function registrarFormatProviders() {
+        function formatarComBeautify(fn, codigo, opcoes) {
+          try { return fn(codigo, opcoes); } catch (erro) { return null; }
+        }
+        if (typeof window.html_beautify === 'function') {
+          monaco.languages.registerDocumentFormattingEditProvider('html', {
+            provideDocumentFormattingEdits: function (model) {
+              var formatado = formatarComBeautify(window.html_beautify, model.getValue(), { indent_size: preferenciasDoEditor.tabSize, wrap_line_length: 0 });
+              return formatado === null ? [] : [{ range: model.getFullModelRange(), text: formatado }];
+            }
+          });
+        }
+        if (typeof window.css_beautify === 'function') {
+          ['css', 'scss'].forEach(function (linguagem) {
+            monaco.languages.registerDocumentFormattingEditProvider(linguagem, {
+              provideDocumentFormattingEdits: function (model) {
+                var formatado = formatarComBeautify(window.css_beautify, model.getValue(), { indent_size: preferenciasDoEditor.tabSize });
+                return formatado === null ? [] : [{ range: model.getFullModelRange(), text: formatado }];
+              }
+            });
+          });
+        }
+        if (typeof window.js_beautify === 'function') {
+          ['javascript', 'typescript', 'javascriptreact'].forEach(function (linguagem) {
+            monaco.languages.registerDocumentFormattingEditProvider(linguagem, {
+              provideDocumentFormattingEdits: function (model) {
+                var formatado = formatarComBeautify(window.js_beautify, model.getValue(), { indent_size: preferenciasDoEditor.tabSize });
+                return formatado === null ? [] : [{ range: model.getFullModelRange(), text: formatado }];
+              }
+            });
+          });
+        }
+      }
+
+      // ----------------------------------------------------------------
+      // Emmet (item 12): opcional, carregado por ide.html via jsDelivr
+      // (emmet-monaco-es não está confirmado no mirror do cdnjs, ao
+      // contrário do restante das libs deste projeto). Falha ao carregar
+      // não deve travar a IDE — por isso os checks defensivos abaixo.
+      // ----------------------------------------------------------------
+      function inicializarEmmet() {
+        if (!window.emmetMonaco || typeof window.emmetMonaco.emmetHTML !== 'function') return;
+        try {
+          window.emmetMonaco.emmetHTML(monaco, ['html']);
+          window.emmetMonaco.emmetCSS(monaco, ['css', 'scss']);
+          window.emmetMonaco.emmetJSX(monaco, ['javascript', 'typescript', 'javascriptreact']);
+        } catch (erro) {
+          /* Emmet é um extra opcional; uma falha aqui não deve travar a IDE. */
+        }
+      }
+
       function registrarAutocompleteDoProjeto() {
         var tipos = monaco.languages.CompletionItemKind;
+        var SNIPPETS = obterSnippetsPorLinguagem();
+        var mapearSnippets = function (lista) {
+          return lista.map(function (snippet) {
+            return Object.assign({ kind: tipos.Snippet, detail: 'Snippet', range: null }, snippet);
+          });
+        };
         var alcance = function (model, position) {
           var palavra = model.getWordUntilPosition(position);
           return new monaco.Range(position.lineNumber, palavra.startColumn, position.lineNumber, palavra.endColumn);
@@ -2401,20 +2654,17 @@
           if (linguagem === 'html') {
             Array.from(new Set((html.match(/\bid\s*=\s*["']([^"']+)/gi) || []).map(function (texto) { return texto.replace(/^.*?["']/, '').trim(); }))).forEach(function (id) { adicionar('#' + id, 'ID do projeto', tipos.Reference); });
             Array.from(new Set((html.match(/\bclass\s*=\s*["']([^"']+)/gi) || []).flatMap(function (texto) { return (texto.replace(/^.*?["']/, '').match(/[^\s"']+/g) || []); }))).forEach(function (classe) { adicionar('.' + classe, 'Classe do projeto', tipos.Reference); });
-            itens.push(
-              { label: 'Estrutura HTML', kind: tipos.Snippet, detail: 'Snippet', insertText: '<!doctype html>\n<html lang="pt-BR">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${1:Minha página}</title>\n</head>\n<body>\n  ${0}\n</body>\n</html>', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range: null },
-              { label: 'Imagem acessível', kind: tipos.Snippet, detail: 'Snippet', insertText: '<img src="${1:imagem.jpg}" alt="${2:Descrição da imagem}">', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range: null }
-            );
+            itens.push.apply(itens, mapearSnippets(SNIPPETS.html));
           }
           if (linguagem === 'css' || linguagem === 'scss') {
             Array.from(new Set((html.match(/\bclass\s*=\s*["']([^"']+)/gi) || []).flatMap(function (texto) { return (texto.replace(/^.*?["']/, '').match(/[^\s"']+/g) || []); }))).forEach(function (classe) { adicionar('.' + classe, 'Classe encontrada no HTML', tipos.Class); });
             Array.from(new Set((html.match(/\bid\s*=\s*["']([^"']+)/gi) || []).map(function (texto) { return texto.replace(/^.*?["']/, '').trim(); }))).forEach(function (id) { adicionar('#' + id, 'ID encontrado no HTML', tipos.Reference); });
-            itens.push({ label: 'Flex centralizado', kind: tipos.Snippet, detail: 'Snippet', insertText: 'display: flex;\njustify-content: center;\nalign-items: center;', range: null });
+            itens.push.apply(itens, mapearSnippets(SNIPPETS.css));
           }
           if (linguagem === 'javascript' || linguagem === 'typescript' || linguagem === 'javascriptreact') {
             Array.from(new Set((js.match(/\b(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/g) || []).map(function (texto) { return texto.match(/([A-Za-z_$][\w$]*)$/)[1]; }))).forEach(function (nome) { adicionar(nome, 'Símbolo do projeto', tipos.Variable); });
             arquivosExtras.forEach(function (arquivo) { adicionar(arquivo.nome, 'Arquivo do projeto', tipos.File); });
-            itens.push({ label: 'Evento click', kind: tipos.Snippet, detail: 'Snippet', insertText: "${1:elemento}.addEventListener('click', () => {\n  ${0}\n});", insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range: null });
+            itens.push.apply(itens, mapearSnippets(SNIPPETS.javascript));
           }
           return itens;
         };
@@ -2610,6 +2860,9 @@
         });
       }
       registrarAutocompleteDoProjeto();
+      registrarHoverProviders();
+      registrarFormatProviders();
+      inicializarEmmet();
       aplicarTemaMonaco(document.documentElement.getAttribute('data-theme'));
       (codigoInicial.files || []).forEach(function (arquivo) {
         if (arquivo && arquivo.linguagem && arquivo.nome) criarArquivoExtra(arquivo.linguagem, arquivo.nome, arquivo.conteudo || '');
@@ -2664,6 +2917,342 @@
         aplicarTemaMonaco(event.detail);
       });
 
+      // ==================================================================
+      // Painel inferior: Problemas (item 7), Console (item 8) e Busca no
+      // projeto (item 6). Overlay independente do fluxo flex de
+      // editores/preview — ver comentário no HTML sobre .bottom-panel.
+      // ==================================================================
+      var bottomPanel = document.getElementById('bottom-panel');
+      var btnToggleBottomPanel = document.getElementById('btn-toggle-bottom-panel');
+      var btnFecharPainelInferior = document.getElementById('btn-fechar-painel-inferior');
+      var abasPainelInferior = Array.prototype.slice.call(document.querySelectorAll('.bottom-panel-tab'));
+      var painelInferiorAtivo = 'problemas';
+
+      function selecionarAbaPainelInferior(nomeAba) {
+        painelInferiorAtivo = nomeAba;
+        abasPainelInferior.forEach(function (aba) {
+          var ativa = aba.getAttribute('data-panel') === nomeAba;
+          aba.classList.toggle('is-active', ativa);
+          aba.setAttribute('aria-selected', ativa ? 'true' : 'false');
+        });
+        ['problemas', 'console', 'buscar'].forEach(function (nome) {
+          var painel = document.getElementById('painel-' + nome);
+          if (painel) painel.hidden = nome !== nomeAba;
+        });
+      }
+      function abrirPainelInferior(nomeAba) {
+        if (!bottomPanel) return;
+        bottomPanel.hidden = false;
+        if (btnToggleBottomPanel) btnToggleBottomPanel.setAttribute('aria-expanded', 'true');
+        selecionarAbaPainelInferior(nomeAba || painelInferiorAtivo);
+      }
+      function fecharPainelInferior() {
+        if (!bottomPanel) return;
+        bottomPanel.hidden = true;
+        if (btnToggleBottomPanel) btnToggleBottomPanel.setAttribute('aria-expanded', 'false');
+      }
+      if (btnToggleBottomPanel) {
+        btnToggleBottomPanel.addEventListener('click', function () {
+          if (!bottomPanel || bottomPanel.hidden) abrirPainelInferior('problemas');
+          else fecharPainelInferior();
+        });
+      }
+      if (btnFecharPainelInferior) btnFecharPainelInferior.addEventListener('click', fecharPainelInferior);
+      abasPainelInferior.forEach(function (aba) {
+        aba.addEventListener('click', function () { abrirPainelInferior(aba.getAttribute('data-panel')); });
+      });
+
+      function irParaLocalizacaoNoArquivo(arquivo, linha, coluna) {
+        var aba = document.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
+        var checkbox = aba && aba.querySelector('.editor-toggle-checkbox');
+        if (checkbox && !checkbox.checked) {
+          checkbox.checked = true;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+        var editorNativo = arquivo.editor.getMonacoEditor && arquivo.editor.getMonacoEditor();
+        requestAnimationFrame(function () {
+          arquivo.editor.focus();
+          if (!editorNativo) return;
+          editorNativo.revealLineInCenter(linha + 1);
+          editorNativo.setPosition({ lineNumber: linha + 1, column: coluna + 1 });
+        });
+      }
+
+      // ---- Problemas (item 7) -----------------------------------------
+      var listaProblemas = document.getElementById('lista-problemas');
+      var problemasVazio = document.getElementById('problemas-vazio');
+      var contadorProblemas = document.getElementById('contador-problemas');
+      var contadorProblemasToolbar = document.getElementById('contador-problemas-toolbar');
+      var PESO_SEVERIDADE = { error: 0, warning: 1, info: 2, hint: 3 };
+
+      function iconeDaSeveridade(tipo) {
+        return tipo === 'error' ? '⛔' : (tipo === 'warning' ? '⚠️' : (tipo === 'info' ? 'ℹ️' : '💡'));
+      }
+      function coletarTodosOsDiagnosticos() {
+        var linhas = [];
+        arquivosExtras.forEach(function (arquivo) {
+          var anotacoes = arquivo.editor.session.getAnnotations().concat(arquivo.editor.getNativeAnnotations());
+          anotacoes.forEach(function (anotacao) { linhas.push({ arquivo: arquivo, anotacao: anotacao }); });
+        });
+        linhas.sort(function (a, b) {
+          return (PESO_SEVERIDADE[tipoDaAnotacao(a.anotacao)] || 9) - (PESO_SEVERIDADE[tipoDaAnotacao(b.anotacao)] || 9);
+        });
+        return linhas;
+      }
+      function atualizarPainelDeProblemas() {
+        if (!listaProblemas) return;
+        var itens = coletarTodosOsDiagnosticos();
+        listaProblemas.innerHTML = '';
+        itens.forEach(function (item) {
+          var tipo = tipoDaAnotacao(item.anotacao);
+          var li = document.createElement('li');
+          li.className = 'problem-item problem-item--' + tipo;
+          li.tabIndex = 0;
+          li.innerHTML = '<span class="problem-item-icon" aria-hidden="true"></span><span class="problem-item-file"></span><span class="problem-item-location"></span><span class="problem-item-message"></span>';
+          li.querySelector('.problem-item-icon').textContent = iconeDaSeveridade(tipo);
+          li.querySelector('.problem-item-file').textContent = item.arquivo.nome;
+          li.querySelector('.problem-item-location').textContent = 'Linha ' + ((item.anotacao.row || 0) + 1);
+          li.querySelector('.problem-item-message').textContent = item.anotacao.text || '';
+          var irParaAqui = function () { irParaLocalizacaoNoArquivo(item.arquivo, item.anotacao.row || 0, item.anotacao.column || 0); };
+          li.addEventListener('click', irParaAqui);
+          li.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); irParaAqui(); } });
+          listaProblemas.appendChild(li);
+        });
+        if (problemasVazio) problemasVazio.hidden = itens.length > 0;
+        [contadorProblemas, contadorProblemasToolbar].forEach(function (el) {
+          if (!el) return;
+          el.hidden = itens.length === 0;
+          el.textContent = String(itens.length);
+        });
+      }
+
+      // ---- Console visual (item 8) -------------------------------------
+      var MAX_MENSAGENS_CONSOLE = 300;
+      var mensagensConsole = [];
+      var listaConsole = document.getElementById('lista-console');
+      var consoleVazio = document.getElementById('console-vazio');
+      var btnLimparConsole = document.getElementById('btn-limpar-console');
+
+      function iconeDoNivelConsole(nivel) {
+        return nivel === 'error' ? '⛔' : (nivel === 'warn' ? '⚠️' : (nivel === 'info' ? 'ℹ️' : '»'));
+      }
+      function renderizarConsole() {
+        if (!listaConsole) return;
+        listaConsole.innerHTML = '';
+        mensagensConsole.forEach(function (msg) {
+          var li = document.createElement('li');
+          li.className = 'console-message console-message--' + msg.nivel;
+          li.innerHTML = '<span class="console-message-icon" aria-hidden="true"></span><span class="console-message-text"></span>';
+          li.querySelector('.console-message-icon').textContent = iconeDoNivelConsole(msg.nivel);
+          li.querySelector('.console-message-text').textContent = msg.texto;
+          listaConsole.appendChild(li);
+        });
+        if (consoleVazio) consoleVazio.hidden = mensagensConsole.length > 0;
+        listaConsole.scrollTop = listaConsole.scrollHeight;
+      }
+      function adicionarMensagemConsole(nivel, texto) {
+        mensagensConsole.push({ nivel: nivel, texto: texto });
+        if (mensagensConsole.length > MAX_MENSAGENS_CONSOLE) mensagensConsole = mensagensConsole.slice(-MAX_MENSAGENS_CONSOLE);
+        renderizarConsole();
+      }
+      if (btnLimparConsole) {
+        btnLimparConsole.addEventListener('click', function () { mensagensConsole = []; renderizarConsole(); });
+      }
+
+      // ---- Busca no projeto (item 6) -----------------------------------
+      var formBuscaProjeto = document.getElementById('form-busca-projeto');
+      var inputBuscaProjeto = document.getElementById('input-busca-projeto');
+      var chkBuscaCase = document.getElementById('chk-busca-case');
+      var listaResultadosBusca = document.getElementById('lista-resultados-busca');
+      var buscaVazia = document.getElementById('busca-vazia');
+
+      function executarBuscaGlobal(termo, diferenciarMaiusculas) {
+        if (!listaResultadosBusca) return;
+        listaResultadosBusca.innerHTML = '';
+        if (!termo) { if (buscaVazia) buscaVazia.hidden = true; return; }
+        var totalResultados = 0;
+        arquivosExtras.forEach(function (arquivo) {
+          var model = arquivo.editor.getModel && arquivo.editor.getModel();
+          if (!model) return;
+          var ocorrencias;
+          try {
+            ocorrencias = model.findMatches(termo, true, false, diferenciarMaiusculas, null, true);
+          } catch (erroBusca) {
+            ocorrencias = [];
+          }
+          if (!ocorrencias.length) return;
+          var grupo = document.createElement('li');
+          grupo.className = 'search-result-group';
+          var titulo = document.createElement('div');
+          titulo.className = 'search-result-file';
+          titulo.textContent = arquivo.nome + ' (' + ocorrencias.length + ')';
+          grupo.appendChild(titulo);
+          var sublista = document.createElement('ul');
+          ocorrencias.slice(0, 50).forEach(function (ocorrencia) {
+            var linha = ocorrencia.range.startLineNumber;
+            var li = document.createElement('li');
+            li.className = 'search-result-item';
+            li.tabIndex = 0;
+            li.textContent = 'Linha ' + linha + ': ' + model.getLineContent(linha).trim().slice(0, 120);
+            var ir = function () { irParaLocalizacaoNoArquivo(arquivo, linha - 1, ocorrencia.range.startColumn - 1); };
+            li.addEventListener('click', ir);
+            li.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); } });
+            sublista.appendChild(li);
+            totalResultados++;
+          });
+          grupo.appendChild(sublista);
+          listaResultadosBusca.appendChild(grupo);
+        });
+        if (buscaVazia) buscaVazia.hidden = totalResultados > 0;
+      }
+      if (formBuscaProjeto) {
+        formBuscaProjeto.addEventListener('submit', function (e) {
+          e.preventDefault();
+          executarBuscaGlobal((inputBuscaProjeto.value || '').trim(), !!(chkBuscaCase && chkBuscaCase.checked));
+        });
+      }
+
+      // ---- Minimap (item 1) --------------------------------------------
+      var btnToggleMinimap = document.getElementById('btn-toggle-minimap');
+      function atualizarBotaoMinimap() {
+        if (!btnToggleMinimap) return;
+        btnToggleMinimap.setAttribute('aria-pressed', preferenciasDoEditor.minimap ? 'true' : 'false');
+        btnToggleMinimap.classList.toggle('is-active', !!preferenciasDoEditor.minimap);
+      }
+      if (btnToggleMinimap) {
+        btnToggleMinimap.addEventListener('click', function () {
+          preferenciasDoEditor.minimap = !preferenciasDoEditor.minimap;
+          salvarPreferenciasDoEditor();
+          aplicarPreferenciasATodosOsEditores();
+          atualizarBotaoMinimap();
+        });
+        atualizarBotaoMinimap();
+      }
+
+      // ---- Formatar documento (item 5) ----------------------------------
+      var btnFormatCode = document.getElementById('btn-format-code');
+      if (btnFormatCode) {
+        btnFormatCode.addEventListener('click', function () {
+          if (!editorAtivoParaHistorico || typeof editorAtivoParaHistorico.executarComando !== 'function') return;
+          editorAtivoParaHistorico.executarComando('editor.action.formatDocument');
+          editorAtivoParaHistorico.focus();
+        });
+      }
+
+      // ---- Preferências do editor (item 13) -----------------------------
+      var btnEditorPrefs = document.getElementById('btn-editor-prefs');
+      var editorPrefsDialog = document.getElementById('editor-prefs-dialog');
+      var editorPrefsForm = document.getElementById('editor-prefs-form');
+      var prefFontSize = document.getElementById('pref-font-size');
+      var prefTabSize = document.getElementById('pref-tab-size');
+      var prefWordWrap = document.getElementById('pref-word-wrap');
+      var prefRenderWhitespace = document.getElementById('pref-render-whitespace');
+      var prefMinimap = document.getElementById('pref-minimap');
+      function preencherFormularioDePreferencias() {
+        if (prefFontSize) prefFontSize.value = preferenciasDoEditor.fontSize;
+        if (prefTabSize) prefTabSize.value = String(preferenciasDoEditor.tabSize);
+        if (prefWordWrap) prefWordWrap.checked = preferenciasDoEditor.wordWrap === 'on';
+        if (prefRenderWhitespace) prefRenderWhitespace.checked = preferenciasDoEditor.renderWhitespace === 'all';
+        if (prefMinimap) prefMinimap.checked = !!preferenciasDoEditor.minimap;
+      }
+      if (btnEditorPrefs && editorPrefsDialog) {
+        btnEditorPrefs.addEventListener('click', function () {
+          preencherFormularioDePreferencias();
+          editorPrefsDialog.showModal();
+        });
+      }
+      if (editorPrefsForm) {
+        editorPrefsForm.addEventListener('submit', function (e) {
+          if (e.submitter && e.submitter.value === 'cancel') return;
+          preferenciasDoEditor.fontSize = Math.max(10, Math.min(24, parseInt(prefFontSize.value, 10) || 14));
+          preferenciasDoEditor.tabSize = parseInt(prefTabSize.value, 10) === 4 ? 4 : 2;
+          preferenciasDoEditor.wordWrap = prefWordWrap.checked ? 'on' : 'off';
+          preferenciasDoEditor.renderWhitespace = prefRenderWhitespace.checked ? 'all' : 'selection';
+          preferenciasDoEditor.minimap = !!prefMinimap.checked;
+          salvarPreferenciasDoEditor();
+          aplicarPreferenciasATodosOsEditores();
+          atualizarBotaoMinimap();
+          mostrarToast('Preferências do editor atualizadas.');
+        });
+      }
+
+      // ---- Atalhos de teclado (item 14) ---------------------------------
+      var btnKeyboardShortcuts = document.getElementById('btn-keyboard-shortcuts');
+      var keyboardShortcutsDialog = document.getElementById('keyboard-shortcuts-dialog');
+      if (btnKeyboardShortcuts && keyboardShortcutsDialog) {
+        btnKeyboardShortcuts.addEventListener('click', function () { keyboardShortcutsDialog.showModal(); });
+      }
+
+      // ---- Comparar arquivos / diff editor (item 16) --------------------
+      // Simplificação deliberada: compara dois arquivos abertos à escolha
+      // do usuário (não necessariamente "salvo vs. atual" — ver
+      // avaliacao-monaco-ide.md, item 16, para o motivo dessa escolha).
+      var btnCompareFiles = document.getElementById('btn-compare-files');
+      var compareFilesDialog = document.getElementById('compare-files-dialog');
+      var compareFileA = document.getElementById('compare-file-a');
+      var compareFileB = document.getElementById('compare-file-b');
+      var diffEditorContainer = document.getElementById('diff-editor-container');
+      var instanciaDiffEditor = null;
+
+      function linguagemParaMonaco(linguagem) {
+        return linguagem === 'javascriptreact' ? 'javascript' : (linguagem === 'svg' ? 'xml' : linguagem);
+      }
+      function descartarModelosDoDiff() {
+        if (!instanciaDiffEditor) return;
+        var modelos = instanciaDiffEditor.getModel();
+        if (modelos) {
+          if (modelos.original) modelos.original.dispose();
+          if (modelos.modified) modelos.modified.dispose();
+        }
+      }
+      function preencherSelectsDeComparacao() {
+        [compareFileA, compareFileB].forEach(function (select) {
+          var valorAnterior = select.value;
+          select.innerHTML = '';
+          arquivosExtras.forEach(function (arquivo) {
+            var opcao = document.createElement('option');
+            opcao.value = arquivo.idPane;
+            opcao.textContent = arquivo.nome;
+            select.appendChild(opcao);
+          });
+          if (valorAnterior && arquivosExtras.some(function (a) { return a.idPane === valorAnterior; })) select.value = valorAnterior;
+        });
+        if (compareFileB.options.length > 1 && compareFileB.selectedIndex === compareFileA.selectedIndex) {
+          compareFileB.selectedIndex = (compareFileA.selectedIndex + 1) % compareFileB.options.length;
+        }
+      }
+      function atualizarDiffEditor() {
+        var arquivoA = arquivosExtras.find(function (a) { return a.idPane === compareFileA.value; });
+        var arquivoB = arquivosExtras.find(function (a) { return a.idPane === compareFileB.value; });
+        if (!arquivoA || !arquivoB || !diffEditorContainer) return;
+        if (!instanciaDiffEditor) {
+          instanciaDiffEditor = monaco.editor.createDiffEditor(diffEditorContainer, {
+            readOnly: true,
+            renderSideBySide: true,
+            automaticLayout: true
+          });
+        } else {
+          descartarModelosDoDiff();
+        }
+        instanciaDiffEditor.setModel({
+          original: monaco.editor.createModel(arquivoA.editor.getValue(), linguagemParaMonaco(arquivoA.linguagem)),
+          modified: monaco.editor.createModel(arquivoB.editor.getValue(), linguagemParaMonaco(arquivoB.linguagem))
+        });
+      }
+      if (btnCompareFiles && compareFilesDialog && compareFileA && compareFileB) {
+        btnCompareFiles.addEventListener('click', function () {
+          if (arquivosExtras.length < 2) {
+            mostrarToast('Abra pelo menos dois arquivos para comparar.');
+            return;
+          }
+          preencherSelectsDeComparacao();
+          compareFilesDialog.showModal();
+          requestAnimationFrame(atualizarDiffEditor);
+        });
+        [compareFileA, compareFileB].forEach(function (select) { select.addEventListener('change', atualizarDiffEditor); });
+        compareFilesDialog.addEventListener('close', descartarModelosDoDiff);
+      }
+
       function removerArquivosExtras() {
         arquivosExtras.forEach(function (arquivo) {
           var aba = dragContainer.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
@@ -2675,6 +3264,7 @@
           if (painel) painel.remove();
         });
         arquivosExtras = [];
+        if (typeof atualizarPainelDeProblemas === 'function') atualizarPainelDeProblemas();
       }
 
       function carregarCodigoDaEtapa() {
@@ -3008,6 +3598,10 @@
         var texto = total ? total + ' diagnóstico' + (total === 1 ? '' : 's') : 'Sem diagnósticos';
         aba.setAttribute('title', texto);
         aba.setAttribute('aria-label', arquivo.nome + '. ' + texto);
+        // Um único ponto de atualização para os dois lugares que mostram
+        // diagnósticos — o badge por aba (acima) e a visão consolidada do
+        // painel de problemas (item 7 da avaliação técnica do Monaco).
+        if (typeof atualizarPainelDeProblemas === 'function') atualizarPainelDeProblemas();
       }
 
       function anotacaoPorIndice(codigo, indice, texto, tipo) {
@@ -3180,13 +3774,117 @@
         return codigo.replace(/<\/script>/gi, '<\\/script>');
       }
 
-      function removerIframePreview() {
-        var antigoIframe = document.getElementById('preview-output');
-        if (antigoIframe) antigoIframe.remove();
+      function removerTodosOsIframesDePreview() {
+        var legado = document.getElementById('preview-output');
+        if (legado) legado.remove();
+        Object.keys(iframesPreviewPorIdPane).forEach(function (idPane) {
+          iframesPreviewPorIdPane[idPane].remove();
+        });
+        iframesPreviewPorIdPane = {};
+        offsetsLinhaJSPorIdPane = {};
+        ultimoHtmlPorIdPane = {};
+        previewAtivoIdPane = null;
+        ultimaAssinaturaCssJs = null;
+        if (previewTabsContainer) {
+          previewTabsContainer.hidden = true;
+          previewTabsContainer.innerHTML = '';
+        }
+      }
+
+      // Remove iframes de arquivos HTML que não existem mais (fechados,
+      // renomeados para outra linguagem etc.) e garante que sempre haja
+      // uma aba ativa válida. Não recria os iframes que continuam
+      // existindo — isso é feito por renderizarPreview, só quando o
+      // conteúdo relevante daquele iframe específico realmente muda.
+      function sincronizarIframesDePreview(arquivosPreview) {
+        var idsAtuais = arquivosPreview.map(function (arquivo) { return arquivo.idPane; });
+
+        if (!idsAtuais.length) {
+          Object.keys(iframesPreviewPorIdPane).forEach(function (idPane) {
+            iframesPreviewPorIdPane[idPane].remove();
+          });
+          iframesPreviewPorIdPane = {};
+          offsetsLinhaJSPorIdPane = {};
+          ultimoHtmlPorIdPane = {};
+          previewAtivoIdPane = null;
+          return;
+        }
+
+        var legado = document.getElementById('preview-output');
+        if (legado) legado.remove();
+
+        Object.keys(iframesPreviewPorIdPane).forEach(function (idPane) {
+          if (idsAtuais.indexOf(idPane) === -1) {
+            iframesPreviewPorIdPane[idPane].remove();
+            delete iframesPreviewPorIdPane[idPane];
+            delete offsetsLinhaJSPorIdPane[idPane];
+            delete ultimoHtmlPorIdPane[idPane];
+          }
+        });
+
+        if (!previewAtivoIdPane || idsAtuais.indexOf(previewAtivoIdPane) === -1) {
+          previewAtivoIdPane = idsAtuais[0];
+        }
+      }
+
+      function iframeDePreviewAtivo() {
+        var legado = document.getElementById('preview-output');
+        if (legado) return legado;
+        return iframesPreviewPorIdPane[previewAtivoIdPane] || null;
+      }
+
+      function atualizarAbasDePreview(arquivosPreview) {
+        if (!previewTabsContainer) return;
+        if (arquivosPreview.length < 2) {
+          previewTabsContainer.hidden = true;
+          previewTabsContainer.innerHTML = '';
+          return;
+        }
+        previewTabsContainer.hidden = false;
+        previewTabsContainer.innerHTML = '';
+        arquivosPreview.forEach(function (arquivo) {
+          var botao = document.createElement('button');
+          botao.type = 'button';
+          botao.className = 'preview-tab-btn';
+          botao.setAttribute('role', 'tab');
+          botao.title = 'Ver preview de ' + arquivo.nome;
+          botao.textContent = arquivo.nome;
+          var ativo = arquivo.idPane === previewAtivoIdPane;
+          botao.classList.toggle('is-active', ativo);
+          botao.setAttribute('aria-selected', ativo ? 'true' : 'false');
+          botao.addEventListener('click', function () {
+            if (previewAtivoIdPane === arquivo.idPane) return;
+            previewAtivoIdPane = arquivo.idPane;
+            Object.keys(iframesPreviewPorIdPane).forEach(function (idPane) {
+              iframesPreviewPorIdPane[idPane].classList.toggle('is-preview-ativo', idPane === previewAtivoIdPane);
+            });
+            // O console visual mostra a execução da página vista agora.
+            // Trocar de aba limpa esse histórico, mas NÃO recarrega o
+            // iframe da aba anterior — ela continua rodando por trás,
+            // preservando seu estado (é o ponto da independência entre abas).
+            if (typeof mensagensConsole !== 'undefined') {
+              mensagensConsole = [];
+              if (typeof renderizarConsole === 'function') renderizarConsole();
+            }
+            atualizarAbasDePreview(arquivosPreview);
+          });
+          previewTabsContainer.appendChild(botao);
+        });
       }
 
       var offsetLinhaJSNoPreview = 0;
       var mapaLinhasJsPreview = [];
+
+      // ----------------------------------------------------------------
+      // Abas de visualização do preview: um iframe independente por
+      // arquivo HTML aberto, para o usuário escolher qual página ver sem
+      // perder o estado de execução das outras ao trocar de aba.
+      // ----------------------------------------------------------------
+      var previewAtivoIdPane = null;      // idPane do arquivo HTML exibido agora
+      var iframesPreviewPorIdPane = {};   // idPane -> elemento <iframe>
+      var offsetsLinhaJSPorIdPane = {};   // idPane -> offset de linhas (mapeamento de erro por página)
+      var ultimoHtmlPorIdPane = {};       // idPane -> último HTML usado para montar aquele iframe
+      var ultimaAssinaturaCssJs = null;   // detecta mudança no CSS/JS compartilhado entre todas as páginas
 
       function escaparHtmlParaPreview(texto) {
         return String(texto || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -3230,13 +3928,27 @@
         };
       }
 
-      function montarCodigoPreview() {
-        var arquivosHtml = obterArquivosPorLinguagem(['html']);
+      // Conteúdo de página que cada tipo "previewável" produz. HTML e SVG
+      // usam o próprio conteúdo bruto como corpo da página; Markdown passa
+      // pelo renderizador básico antes.
+      function conteudoDaPaginaPreview(arquivo) {
+        if (arquivo.linguagem === 'markdown') {
+          return '<main class="markdown-preview">' + renderizarMarkdownBasico(arquivo.editor.getValue()) + '</main>';
+        }
+        return arquivo.editor.getValue();
+      }
+
+      function montarCodigoPreview(arquivoAtivo) {
+        // HTML, Markdown e SVG são as linguagens que "usam preview" — todas
+        // entram juntas na mesma lista de abas de visualização (cada
+        // arquivo, de qualquer um desses três tipos, ganha sua própria
+        // aba). CSS/JS não geram aba: são recursos compartilhados,
+        // injetados dentro de qualquer página ativa, seja ela HTML,
+        // Markdown ou SVG.
+        var arquivosPreview = obterArquivosPorLinguagem(['html', 'markdown', 'svg']);
         var arquivosCss = obterArquivosPorLinguagem(['css']);
         var arquivosJs = obterArquivosPorLinguagem(['javascript']);
-        var arquivosMarkdown = obterArquivosPorLinguagem(['markdown']);
-        var arquivosSvg = obterArquivosPorLinguagem(['svg']);
-        var html = arquivosHtml.length ? arquivosHtml[0].editor.getValue() : htmlEditor.getValue();
+        var html = arquivoAtivo ? conteudoDaPaginaPreview(arquivoAtivo) : (arquivosPreview.length ? conteudoDaPaginaPreview(arquivosPreview[0]) : htmlEditor.getValue());
         var css = (arquivosCss.length ? arquivosCss.map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n\n') : cssEditor.getValue());
         var linhaAcumuladaJs = 0;
         mapaLinhasJsPreview = [];
@@ -3252,8 +3964,6 @@
           return conteudo;
         });
         var js = arquivosJs.length ? partesJs.join('\n\n') : escaparFechamentoScript(jsEditor.getValue());
-        if (!html.trim() && arquivosMarkdown.length) html = '<main class="markdown-preview">' + renderizarMarkdownBasico(arquivosMarkdown[0].editor.getValue()) + '</main>';
-        if (!html.trim() && arquivosSvg.length) html = arquivosSvg[0].editor.getValue();
         var estiloTemaPreview = previewTemaEscuro
           ? 'html, body { min-height: 100%; background-color: #002b36; color: #fdf6e3; color-scheme: dark; }'
           : 'html, body { min-height: 100%; background-color: #ffffff; color: #1f2933; color-scheme: light; }';
@@ -3267,11 +3977,37 @@
           '    var msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);\n' +
           '    window.parent.postMessage({ tipo: "erro-execucao-js", mensagem: "Promise rejeitada: " + msg }, "*");\n' +
           '  } catch (err) {}\n' +
-          '});\n';
+          '});\n' +
+          // Console visual (item 8): intercepta console.log/warn/info/error
+          // e reenvia ao pai por postMessage, sem deixar de chamar o
+          // console nativo (o aluno ainda vê no devtools do navegador).
+          '(function () {\n' +
+          '  var serializarArgumento = function (valor) {\n' +
+          '    try {\n' +
+          '      if (typeof valor === "undefined") return "undefined";\n' +
+          '      if (typeof valor === "function") return "[function]";\n' +
+          '      if (valor instanceof Error) return valor.name + ": " + valor.message;\n' +
+          '      if (typeof valor === "object" && valor !== null) return JSON.stringify(valor);\n' +
+          '      return String(valor);\n' +
+          '    } catch (erroSerializacao) { return String(valor); }\n' +
+          '  };\n' +
+          '  ["log", "warn", "info", "error"].forEach(function (nivel) {\n' +
+          '    var original = console[nivel] ? console[nivel].bind(console) : function () {};\n' +
+          '    console[nivel] = function () {\n' +
+          '      original.apply(console, arguments);\n' +
+          '      try {\n' +
+          '        var partes = Array.prototype.map.call(arguments, serializarArgumento);\n' +
+          '        window.parent.postMessage({ tipo: "console", nivel: nivel, mensagem: partes.join(" ") }, "*");\n' +
+          '      } catch (erroEnvio) {}\n' +
+          '    };\n' +
+          '  });\n' +
+          '  console.table = function (dados) { console.log(dados); };\n' +
+          '})();\n';
 
         var prefixo = '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<style>\n' + estiloTemaPreview + '\nbody { margin: 0; padding: 0 0 0 6px; }\n.markdown-preview { max-width: 860px; margin: 28px auto; padding: 0 20px; line-height: 1.55; } .markdown-preview code { padding: 2px 4px; border-radius: 3px; background: rgba(128,128,128,.18); }\n/* O CSS do projeto vem por último para ter precedência total. */\n' + css + '\n</style>\n</head>\n<body>\n' + html + '\n<script>\n' + handlerErros;
 
         offsetLinhaJSNoPreview = prefixo.split('\n').length - 1;
+        if (arquivoAtivo) offsetsLinhaJSPorIdPane[arquivoAtivo.idPane] = offsetLinhaJSNoPreview;
 
         return prefixo + js + '\n<' + '/script>\n</body>\n</html>';
       }
@@ -3284,7 +4020,6 @@
       }
 
       function renderizarPreview() {
-        removerIframePreview();
         previewContainer.classList.toggle('preview-area--dark', previewTemaEscuro);
 
         clearTimeout(timeoutErrosExecucao);
@@ -3293,15 +4028,79 @@
         anotacoesExecucaoJS = [];
         mesclarAnotacoesExecucaoJS();
         finalizarAtualizacaoJS();
+        if (typeof mensagensConsole !== 'undefined') {
+          mensagensConsole = [];
+          if (typeof renderizarConsole === 'function') renderizarConsole();
+        }
 
-        var novoIframe = document.createElement('iframe');
-        novoIframe.className = 'preview-iframe';
-        novoIframe.classList.toggle('preview-iframe--dark', previewTemaEscuro);
-        novoIframe.id = 'preview-output';
-        novoIframe.title = 'Preview do código';
-        novoIframe.setAttribute('sandbox', 'allow-scripts');
-        previewContainer.appendChild(novoIframe);
-        novoIframe.srcdoc = montarCodigoPreview();
+        // HTML, Markdown e SVG usam preview — todos entram na mesma lista
+        // de abas de visualização (CSS/JS são recursos injetados, não
+        // geram aba própria).
+        var arquivosPreview = obterArquivosPorLinguagem(['html', 'markdown', 'svg']);
+
+        if (!arquivosPreview.length) {
+          // Caminho legado: nenhum arquivo HTML/Markdown/SVG em
+          // arquivosExtras (etapas antigas baseadas só em
+          // htmlEditor/cssEditor/jsEditor). Sempre foi um iframe único —
+          // sem abas de visualização, porque não há entre o quê escolher.
+          sincronizarIframesDePreview([]);
+          if (previewTabsContainer) {
+            previewTabsContainer.hidden = true;
+            previewTabsContainer.innerHTML = '';
+          }
+          var antigoLegado = document.getElementById('preview-output');
+          if (antigoLegado) antigoLegado.remove();
+          var iframeUnico = document.createElement('iframe');
+          iframeUnico.className = 'preview-iframe';
+          iframeUnico.classList.toggle('preview-iframe--dark', previewTemaEscuro);
+          iframeUnico.id = 'preview-output';
+          iframeUnico.title = 'Preview do código';
+          iframeUnico.setAttribute('sandbox', 'allow-scripts');
+          previewContainer.appendChild(iframeUnico);
+          iframeUnico.srcdoc = montarCodigoPreview(null);
+        } else {
+          // Abas de visualização: um iframe independente por arquivo
+          // HTML/Markdown/SVG. Trocar de aba só alterna visibilidade (ver
+          // .is-preview-ativo no CSS) — nunca recria o iframe, para
+          // preservar o estado de execução de quem não está sendo editado
+          // agora. Um iframe só é recarregado quando o conteúdo daquela
+          // aba especificamente muda, ou quando CSS/JS (compartilhados
+          // entre todas as páginas) mudam.
+          sincronizarIframesDePreview(arquivosPreview);
+
+          var arquivosCss = obterArquivosPorLinguagem(['css']);
+          var arquivosJs = obterArquivosPorLinguagem(['javascript']);
+          var assinaturaCssJsAtual = arquivosCss.map(function (a) { return a.editor.getValue(); }).join('\u0000') +
+            '\u0001' + arquivosJs.map(function (a) { return a.editor.getValue(); }).join('\u0000');
+          var cssOuJsMudou = assinaturaCssJsAtual !== ultimaAssinaturaCssJs;
+          ultimaAssinaturaCssJs = assinaturaCssJsAtual;
+
+          arquivosPreview.forEach(function (arquivo) {
+            var conteudoAtual = arquivo.editor.getValue();
+            var iframeJaExistia = !!iframesPreviewPorIdPane[arquivo.idPane];
+            var conteudoMudou = ultimoHtmlPorIdPane[arquivo.idPane] !== conteudoAtual;
+            var iframe = iframesPreviewPorIdPane[arquivo.idPane];
+
+            if (!iframe) {
+              iframe = document.createElement('iframe');
+              iframe.className = 'preview-iframe';
+              iframe.setAttribute('sandbox', 'allow-scripts');
+              previewContainer.appendChild(iframe);
+              iframesPreviewPorIdPane[arquivo.idPane] = iframe;
+            }
+            iframe.title = 'Preview de ' + arquivo.nome;
+            iframe.classList.toggle('preview-iframe--dark', previewTemaEscuro);
+            iframe.classList.toggle('is-preview-ativo', arquivo.idPane === previewAtivoIdPane);
+
+            if (!iframeJaExistia || conteudoMudou || cssOuJsMudou) {
+              iframe.srcdoc = montarCodigoPreview(arquivo);
+              ultimoHtmlPorIdPane[arquivo.idPane] = conteudoAtual;
+            }
+          });
+
+          atualizarAbasDePreview(arquivosPreview);
+        }
+
         requestAnimationFrame(function () {
           reencaixarSplitEditorPreview();
           redimensionarEditores();
@@ -3320,7 +4119,8 @@
           var semLinha = true;
           var arquivoDoErro = null;
           if (typeof dado.linha === 'number' && dado.linha > 0) {
-            var linhaNoCodigoConcatenado = Math.max(0, dado.linha - 1 - offsetLinhaJSNoPreview);
+            var offsetUsado = typeof dado.__offset === 'number' ? dado.__offset : offsetLinhaJSNoPreview;
+            var linhaNoCodigoConcatenado = Math.max(0, dado.linha - 1 - offsetUsado);
             var trecho = mapaLinhasJsPreview.find(function (item) {
               return linhaNoCodigoConcatenado >= item.inicio && linhaNoCodigoConcatenado <= item.fim;
             });
@@ -3359,14 +4159,28 @@
       }
 
       window.addEventListener('message', function (e) {
-        if (!e.data || e.data.tipo !== 'erro-execucao-js') return;
-        var iframeAtual = document.getElementById('preview-output');
-        if (!iframeAtual || e.source !== iframeAtual.contentWindow) return;
+        if (!e.data) return;
+        var iframeAtivo = iframeDePreviewAtivo();
+        if (!iframeAtivo || e.source !== iframeAtivo.contentWindow) return;
+
+        if (e.data.tipo === 'console') {
+          if (typeof adicionarMensagemConsole === 'function') {
+            adicionarMensagemConsole(String(e.data.nivel || 'log'), String(e.data.mensagem || ''));
+          }
+          return;
+        }
+
+        if (e.data.tipo !== 'erro-execucao-js') return;
+
+        var offsetDaAbaAtiva = (previewAtivoIdPane && offsetsLinhaJSPorIdPane.hasOwnProperty(previewAtivoIdPane))
+          ? offsetsLinhaJSPorIdPane[previewAtivoIdPane]
+          : offsetLinhaJSNoPreview;
 
         filaErrosExecucao.push({
           linha: e.data.linha,
           coluna: e.data.coluna,
-          mensagem: String(e.data.mensagem || 'Erro desconhecido')
+          mensagem: String(e.data.mensagem || 'Erro desconhecido'),
+          __offset: offsetDaAbaAtiva
         });
 
         if (!timeoutErrosExecucao) {
@@ -3451,7 +4265,7 @@
       function fecharPreview() {
         chkTogglePreview.checked = false;
         btnRun.classList.remove('active');
-        removerIframePreview();
+        removerTodosOsIframesDePreview();
         previewContainer.classList.remove('show-preview');
         contentWrapper.classList.remove('with-preview');
 
@@ -3519,6 +4333,7 @@
             atualizarLayoutAbas();
             agendarAtualizacaoPreview();
             agendarSalvamentoAutomatico();
+            if (typeof atualizarPainelDeProblemas === 'function') atualizarPainelDeProblemas();
           });
         }
       }
@@ -3607,9 +4422,8 @@
         aba.className = 'tab-btn code-tab';
         aba.setAttribute('data-target', idPane);
         aba.draggable = true;
-        aba.innerHTML = '<input checked class="editor-toggle-checkbox" type="checkbox"><span class="tab-text"></span><span class="file-tab-actions"><button aria-label="Limpar conteúdo deste arquivo" class="tab-action-btn file-clear-btn" draggable="false" title="Limpar arquivo" type="button"><img alt="" class="file-action-icon file-clear-icon" src="assets/images/icons.svg/lixeira.svg"></button><button aria-label="Fechar arquivo" class="tab-action-btn file-close-btn" draggable="false" title="Fechar arquivo" type="button">×</button></span>';
-        var rotulos = { html: 'HTML', css: 'CSS', javascript: 'JavaScript', svg: 'SVG', markdown: 'Markdown', json: 'JSON', xml: 'XML', typescript: 'TypeScript', scss: 'SCSS', javascriptreact: 'JSX' };
-        aba.querySelector('.tab-text').textContent = rotulos[linguagem] || linguagem.toUpperCase();
+        aba.innerHTML = '<input checked class="editor-toggle-checkbox" type="checkbox"><span class="tab-text"></span><span class="file-tab-actions"><button aria-label="Renomear arquivo" class="tab-action-btn file-rename-btn" draggable="false" title="Renomear arquivo" type="button">✎</button><button aria-label="Duplicar arquivo" class="tab-action-btn file-duplicate-btn" draggable="false" title="Duplicar arquivo" type="button">⧉</button><button aria-label="Limpar conteúdo deste arquivo" class="tab-action-btn file-clear-btn" draggable="false" title="Limpar arquivo" type="button"><img alt="" class="file-action-icon file-clear-icon" src="assets/images/icons.svg/lixeira.svg"></button><button aria-label="Fechar arquivo" class="tab-action-btn file-close-btn" draggable="false" title="Fechar arquivo" type="button">×</button></span>';
+        aba.querySelector('.tab-text').textContent = nomeArquivo;
         aba.setAttribute('aria-label', nomeArquivo);
         dragContainer.appendChild(aba);
 
@@ -3632,6 +4446,30 @@
           arquivo.editor.setValue('', -1);
           arquivo.editor.focus();
           mostrarToast(arquivo.nome + ' foi limpo.');
+        });
+        aba.querySelector('.file-rename-btn').addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          // Simplificação deliberada: só o nome de exibição muda. A URI do
+          // model no Monaco permanece a mesma, então imports/referências
+          // cruzadas continuam resolvendo pelo caminho antigo — aceitável
+          // para o escopo desta melhoria (ver avaliacao-monaco-ide.md, item 15).
+          var novoNome = window.prompt('Novo nome do arquivo:', arquivo.nome);
+          if (!novoNome || novoNome === arquivo.nome) return;
+          novoNome = nomeUnicoDoArquivo(novoNome);
+          arquivo.nome = novoNome;
+          aba.querySelector('.tab-text').textContent = novoNome;
+          aba.setAttribute('aria-label', novoNome);
+          aba.setAttribute('title', novoNome);
+          sincronizarDependenciasLocais();
+          agendarSalvamentoAutomatico();
+          mostrarToast('Arquivo renomeado para ' + novoNome + '.');
+        });
+        aba.querySelector('.file-duplicate-btn').addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          criarArquivoExtra(arquivo.linguagem, nomeUnicoDoArquivo(arquivo.nome), arquivo.editor.getValue());
+          mostrarToast('Arquivo duplicado.');
         });
         arquivo.editor.on('change', function () {
           sincronizarArquivosPrincipais();
@@ -4061,8 +4899,11 @@
           if (!botao) return;
           var linguagem = botao.getAttribute('data-language');
           var nomes = { html: 'pagina.html', css: 'estilo.css', javascript: 'script.js', svg: 'imagem.svg', markdown: 'README.md', json: 'dados.json', xml: 'dados.xml', typescript: 'app.ts', scss: 'estilo.scss', javascriptreact: 'App.jsx' };
-          criarArquivoExtra(linguagem, nomes[linguagem] || 'arquivo.txt', '');
+          var nomeSugerido = nomes[linguagem] || 'arquivo.txt';
           fecharMenuNovoArquivo();
+          var nomeEscolhido = window.prompt('Nome do novo arquivo:', nomeSugerido);
+          if (nomeEscolhido === null) return; // usuário cancelou — não cria nada
+          criarArquivoExtra(linguagem, nomeEscolhido.trim() || nomeSugerido, '');
         });
         document.addEventListener('pointerdown', function (event) {
           if (!newFileMenu.hidden && !newFileMenu.contains(event.target) && !btnNewFile.contains(event.target)) fecharMenuNovoArquivo();

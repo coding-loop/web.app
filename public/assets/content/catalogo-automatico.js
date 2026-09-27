@@ -1,10 +1,18 @@
-﻿/* Arquivo gerado por scripts/gerar-manifest-conteudo.ps1. NÃ£o edite manualmente. */
+/* Arquivo gerado por scripts/gerar-manifest-conteudo.ps1. Não edite manualmente. */
 window.CL_CONTEUDO_MANIFEST_AUTOMATICO = [
   'assets/content/css/curso.js',
   'assets/content/css/modulo-01/00-modulo-01.js',
   'assets/content/css/modulo-01/etapa-01.js',
   'assets/content/css/modulos-planejamento.js',
   'assets/content/css/posicoes-trilha.js',
+  'assets/content/Cyber Security/modulo-01/00-modulo-01.js',
+  'assets/content/Cyber Security/modulo-01/etapa-01.js',
+  'assets/content/Cyber Security/modulo-01/etapa-02.js',
+  'assets/content/Cyber Security/modulo-01/etapa-03.js',
+  'assets/content/Cyber Security/modulo-01/etapa-04.js',
+  'assets/content/Cyber Security/modulo-01/etapa-05.js',
+  'assets/content/Cyber Security/modulos-planejamento.js',
+  'assets/content/Cyber Security/posicoes-trilha.js',
   'assets/content/html/modulo-01/etapa-01.js',
   'assets/content/html/modulo-01/etapa-02.js',
   'assets/content/html/modulo-01/etapa-03.js',
