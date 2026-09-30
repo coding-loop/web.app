@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="500" viewBox="-10 -05 420 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="roundFile">
+      <path d="M 30 0 H 275 L 370 95 V 470 Q 370 500 340 500 H 30 Q 0 500 0 470 V 30 Q 0 0 30 0 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#roundFile)">
+    <rect x="0" y="0" width="370" height="500" rx="30" fill="#F5F5F0" />
+    
+    <!-- Parte interna da dobra -->
+    <path d="M 275 0 L 370 95 L 310 95 Q 275 95 275 60 Z" fill="#E6E2D8"/>
+    
+    <!-- Linha/Borda fina da dobra -->
+    <path d="M 275 0 L 275 60 Q 275 95 310 95 L 370 95" fill="none" stroke="#2C3E50" stroke-width="2"/>
+    
+    <rect x="0" y="385" width="370" height="115" fill="#2C3E50"/>
+    <text x="185" y="478" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="95" fill="#FFFFFF" text-anchor="middle" letter-spacing="4">SVG</text>
+    
+    <!-- GRUPO SOL (Aumentado em 50% com scale(1.5) e deslocado para X=157) -->
+    <g transform="translate(157, 210) scale(1.5)">
+      <circle cx="0" cy="0" r="18" fill="#fa9702" stroke="#fa6102" stroke-width="5"/>
+      <g stroke="#fa1702" stroke-width="3.5" stroke-linecap="round">
+        <line x1="0" y1="-30" x2="0" y2="-40"/>
+        <line x1="0" y1="30" x2="0" y2="40"/>
+        <line x1="-30" y1="0" x2="-40" y2="0"/>
+        <line x1="30" y1="0" x2="40" y2="0"/>
+        <line x1="-21.2" y1="-21.2" x2="-28.3" y2="-28.3"/>
+        <line x1="21.2" y1="-21.2" x2="28.3" y2="-28.3"/>
+        <line x1="-21.2" y1="21.2" x2="-28.3" y2="28.3"/>
+        <line x1="21.2" y1="21.2" x2="28.3" y2="28.3"/>
+      </g>
+    </g>
+
+    <!-- MONTANHAS (Aumentadas em 50% com scale(1.5) e deslocadas para X=-63) -->
+    <g transform="translate(-63, -140) scale(1.5)">
+      <path d="M 65 325 L 108 275 Q 116 265 126 275 L 146 298" fill="none" stroke="#008000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 136 325 L 200 245 Q 212 230 228 245 L 268 290" fill="none" stroke="#008000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- BORDA FINA EXTERNA AJUSTADA (#002b36) -->
+  <path d="M 30 0 H 275 L 370 95 V 470 Q 370 500 340 500 H 30 Q 0 500 0 470 V 30 Q 0 0 30 0 Z" fill="none" stroke="#002b36" stroke-width="2"/>
+</svg>

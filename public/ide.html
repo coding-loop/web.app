@@ -7,9 +7,8 @@
   <title>IDE — Coding Loop</title>
 
   <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
-  <link rel="stylesheet" href="assets/css/global.css?v=cyber-logo-size-20260925-1">
-  <link rel="stylesheet" href="assets/css/ide.css?v=cyber-logo-size-20260925-1">
-  <link rel="stylesheet" href="assets/css/trilha.css?v=cyber-logo-size-20260925-1">
+  <link rel="stylesheet" href="assets/css/ide.css?v=step-tabs-20260829-1">
+  <link rel="stylesheet" href="assets/css/trilha.css?v=trilha-opacidade-indice-20260829-1">
 
   <!-- Preconnect: economiza o tempo de DNS/TLS antes dos downloads
          do Firebase e do Monaco, que carregam logo abaixo. -->
@@ -248,8 +247,7 @@
               <h2 id="cloud-permission-title">Antes de conectar ao <span id="cloud-permission-service">serviço de
                   nuvem</span></h2>
               <p>O backup em nuvem é opcional. Ao continuar, você será direcionado à tela segura de autorização do
-                <strong id="cloud-permission-service-copy">serviço escolhido</strong>.
-              </p>
+                <strong id="cloud-permission-service-copy">serviço escolhido</strong>.</p>
               <section class="cloud-permission-summary" aria-labelledby="cloud-permission-summary-title">
                 <h3 id="cloud-permission-summary-title">O que o Coding Loop poderá fazer</h3>
                 <p id="cloud-permission-scope"></p>
@@ -352,6 +350,31 @@
                   <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
                 </svg>
               </button>
+
+              <button aria-controls="keyboard-shortcuts-dialog" aria-label="Atalhos de teclado" class="toolbar-btn"
+                id="btn-keyboard-shortcuts" title="Atalhos de teclado" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 6h18v12H3z" />
+                  <path d="M6 10h1M9 10h1M12 10h1M15 10h1M17 10h1M6 13h9M17 13h1" />
+                </svg>
+              </button>
+
+              <button aria-controls="editor-prefs-dialog" aria-label="Preferências do editor" class="toolbar-btn"
+                id="btn-editor-prefs" title="Preferências do editor" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+                  <circle cx="15" cy="7" r="2" />
+                  <circle cx="9" cy="17" r="2" />
+                </svg>
+              </button>
+
+              <button aria-controls="new-file-menu" aria-expanded="false" aria-haspopup="menu"
+                aria-label="Adicionar arquivo" class="toolbar-btn" id="btn-new-file" title="Adicionar arquivo"
+                type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
             </div>
 
             <div class="browser-tabs-scroll-wrapper cl-scrollable-controls" data-scrollable-controls
@@ -360,89 +383,6 @@
                 aria-label="Ver botões anteriores" type="button">‹</button>
               <div class="browser-tabs-viewport" data-scroll-viewport>
                 <div class="browser-tabs-right" id="tabs-draggable-container">
-                  <button aria-label="Desfazer última alteração" class="toolbar-btn" id="btn-undo" title="Ctrl+Z"
-                    type="button" disabled>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M9.5 7 4 12l5.5 5M5 12h8a5 5 0 0 1 5 5v1" />
-                    </svg>
-                  </button>
-
-                  <button aria-label="Refazer última alteração" class="toolbar-btn" id="btn-redo" title="Ctrl+Y"
-                    type="button" disabled>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="m14.5 7 5.5 5-5.5 5M19 12h-8a5 5 0 0 0-5 5v1" />
-                    </svg>
-                  </button>
-
-                  <button aria-controls="new-file-menu" aria-expanded="false" aria-haspopup="menu"
-                    aria-label="Adicionar arquivo" class="toolbar-btn" id="btn-new-file" title="Adicionar Arquivo"
-                    type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-
-                  <button aria-label="Importar por tipo de arquivo" class="toolbar-btn" id="btn-import-file"
-                    title="Importar por tipo de arquivo" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" />
-                    </svg>
-                  </button>
-
-                  <button aria-label="Exportar arquivo ou projeto" class="toolbar-btn" id="btn-export-file"
-                    title="Exportar arquivo ou projeto" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M5 20h14v-2H5v2zM10 16h4V9h4l-6-6-6 6h4v7z" />
-                    </svg>
-                  </button>
-
-                  <span class="toolbar-separator" aria-hidden="true"></span>
-
-                  <button aria-label="Formatar código do arquivo atual" class="toolbar-btn" id="btn-format-code"
-                    title="Formatar código (Shift+Alt+F)" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 5h16M4 10h10M4 15h16M4 20h10" />
-                    </svg>
-                  </button>
-
-                  <button aria-controls="bottom-panel" aria-expanded="false" aria-label="Problemas, console e busca"
-                    class="toolbar-btn" id="btn-toggle-bottom-panel" title="Problemas, console e busca" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 4h16v12H8l-4 4V4z" />
-                    </svg>
-                    <span class="toolbar-btn-count" hidden id="contador-problemas-toolbar">0</span>
-                  </button>
-
-                  <button aria-label="Comparar dois arquivos" class="toolbar-btn" id="btn-compare-files"
-                    title="Comparar arquivos" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M8 3v18M16 3v18M4 7h4M4 11h4M4 15h4M16 7h4M16 11h4M16 15h4" />
-                    </svg>
-                  </button>
-
-                  <button aria-label="Alternar minimapa" aria-pressed="false" class="toolbar-btn"
-                    id="btn-toggle-minimap" title="Minimapa" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 4h11v16H4zM18 4h2v6h-2zM18 12h2v3h-2zM18 17h2v3h-2z" />
-                    </svg>
-                  </button>
-
-                  <button aria-controls="editor-prefs-dialog" aria-label="Preferências do editor" class="toolbar-btn"
-                    id="btn-editor-prefs" title="Preferências do editor" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M6 18h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 8.5 4.5 4.5 0 0 0 6 18Z" />
-                      <path d="M12 9v6m0-6-3 3m3-3 3 3" />
-                    </svg>
-                  </button>
-
-                  <button aria-controls="keyboard-shortcuts-dialog" aria-label="Atalhos de teclado" class="toolbar-btn"
-                    id="btn-keyboard-shortcuts" title="Atalhos de teclado" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M3 6h18v12H3z" />
-                      <path d="M6 10h1M9 10h1M12 10h1M15 10h1M17 10h1M6 13h9M17 13h1" />
-                    </svg>
-                  </button>
-
                   <dialog aria-labelledby="editor-prefs-title" class="backup-settings-dialog" id="editor-prefs-dialog">
                     <form id="editor-prefs-form" method="dialog">
                       <div class="backup-dialog-header">
@@ -472,8 +412,7 @@
                         <label class="editor-prefs-checkbox"><input id="pref-word-wrap" name="wordWrap"
                             type="checkbox"><span>Quebrar linhas automaticamente</span></label>
                         <label class="editor-prefs-checkbox"><input id="pref-render-whitespace" name="renderWhitespace"
-                            type="checkbox"><span>Mostrar espaços e tabulações sempre (padrão: só na
-                            seleção)</span></label>
+                            type="checkbox"><span>Mostrar espaços e tabulações sempre (padrão: só na seleção)</span></label>
                         <label class="editor-prefs-checkbox"><input id="pref-minimap" name="minimap"
                             type="checkbox"><span>Mostrar minimapa</span></label>
                       </div>
@@ -534,8 +473,8 @@
                             <h2 id="compare-files-title">Comparar arquivos</h2>
                           </div>
                         </div>
-                        <button aria-label="Fechar" class="backup-dialog-close export-code-dialog-cancel" value="cancel"
-                          type="submit"><svg viewBox="0 0 24 24" aria-hidden="true">
+                        <button aria-label="Fechar" class="backup-dialog-close export-code-dialog-cancel"
+                          value="cancel" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="m6 6 12 12M18 6 6 18" />
                           </svg></button>
                       </div>
@@ -549,18 +488,38 @@
                     </form>
                   </dialog>
 
-                  <div aria-label="Escolha o tipo de arquivo" class="new-file-menu" hidden id="new-file-menu"
-                    role="menu">
-                    <button data-language="html" role="menuitem" type="button">HTML</button><button data-language="css"
-                      role="menuitem" type="button">CSS</button><button data-language="javascript" role="menuitem"
-                      type="button">JavaScript</button><button data-language="svg" role="menuitem"
-                      type="button">SVG</button><button data-language="markdown" role="menuitem"
-                      type="button">Markdown</button><button data-language="json" role="menuitem"
-                      type="button">JSON</button><button data-language="xml" role="menuitem"
-                      type="button">XML</button><button data-language="typescript" role="menuitem"
-                      type="button">TypeScript</button><button data-language="scss" role="menuitem"
-                      type="button">SCSS</button><button data-language="javascriptreact" role="menuitem"
-                      type="button">JSX / React</button>
+                  <div aria-label="Adicionar arquivo" class="new-file-menu" hidden id="new-file-menu" role="dialog">
+                    <div class="new-file-step" id="new-file-step-tipos">
+                      <p class="new-file-group-title">Web</p>
+                      <div class="new-file-row">
+                        <button class="new-file-type" data-ext="html" data-language="html" type="button"><strong>.html</strong><span>HTML</span></button>
+                        <button class="new-file-type" data-ext="css" data-language="css" type="button"><strong>.css</strong><span>CSS</span></button>
+                        <button class="new-file-type" data-ext="js" data-language="javascript" type="button"><strong>.js</strong><span>JavaScript</span></button>
+                      </div>
+                      <p class="new-file-group-title">Estilo e scripts avançados</p>
+                      <div class="new-file-row">
+                        <button class="new-file-type" data-ext="scss" data-language="scss" type="button"><strong>.scss</strong><span>SCSS</span></button>
+                        <button class="new-file-type" data-ext="ts" data-language="typescript" type="button"><strong>.ts</strong><span>TypeScript</span></button>
+                        <button class="new-file-type" data-ext="jsx" data-language="javascriptreact" type="button"><strong>.jsx</strong><span>React</span></button>
+                      </div>
+                      <p class="new-file-group-title">Documentos e dados</p>
+                      <div class="new-file-row new-file-row--4">
+                        <button class="new-file-type" data-ext="md" data-language="markdown" type="button"><strong>.md</strong><span>Markdown</span></button>
+                        <button class="new-file-type" data-ext="svg" data-language="svg" type="button"><strong>.svg</strong><span>SVG</span></button>
+                        <button class="new-file-type" data-ext="json" data-language="json" type="button"><strong>.json</strong><span>JSON</span></button>
+                        <button class="new-file-type" data-ext="xml" data-language="xml" type="button"><strong>.xml</strong><span>XML</span></button>
+                      </div>
+                      <button class="new-file-import" id="new-file-import" type="button">Importar arquivo do computador…</button>
+                    </div>
+                    <form class="new-file-step" hidden id="new-file-step-nome">
+                      <label for="new-file-name-input">Nome do arquivo <span id="new-file-type-label"></span></label>
+                      <input autocomplete="off" id="new-file-name-input" maxlength="120" spellcheck="false" type="text">
+                      <p class="new-file-hint" id="new-file-name-hint" role="alert"></p>
+                      <div class="new-file-actions">
+                        <button class="new-file-back" id="new-file-back" type="button">Voltar</button>
+                        <button class="new-file-create" type="submit">Criar arquivo</button>
+                      </div>
+                    </form>
                   </div>
 
                   <dialog aria-labelledby="export-code-title" class="export-code-dialog" id="export-code-dialog">
@@ -737,7 +696,8 @@
               <button aria-selected="false" class="bottom-panel-tab" data-panel="buscar" id="bottom-tab-buscar"
                 role="tab" type="button">Buscar no projeto</button>
             </div>
-            <button aria-label="Fechar painel" class="bottom-panel-close" id="btn-fechar-painel-inferior" type="button">
+            <button aria-label="Fechar painel" class="bottom-panel-close" id="btn-fechar-painel-inferior"
+              type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m6 6 12 12M18 6 6 18" />
               </svg>
@@ -879,7 +839,7 @@
        ide.js checa `window.emmetMonaco` antes de usar. -->
   <script defer src="https://cdn.jsdelivr.net/npm/emmet-monaco-es/dist/emmet-monaco.min.js"></script>
 
-  <script defer src="assets/js/ide.js?v=cyber-dashboard-icon-20260925-1"></script>
+  <script defer src="assets/js/ide.js?v=ide-buttons-20260902-1"></script>
 
 </body>
 

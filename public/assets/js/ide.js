@@ -88,8 +88,7 @@
       'programming-logic': 'assets/images/icons.svg/logica-de-programacao.svg?v=20260829-4',
       html: 'assets/images/icons.svg/logo-html.svg',
       css: 'assets/images/icons.svg/logo-css.svg',
-      js: 'assets/images/icons.svg/logo-javascript.svg',
-      'cyber-security': 'assets/images/icons.svg/logo-cyber-security.svg'
+      js: 'assets/images/icons.svg/logo-javascript.svg'
     };
     function atualizarIconeRetornoTrilha() {
       if (!courseDashboardIcon) return;
@@ -1632,10 +1631,6 @@
       var iconPreviewThemeDark = document.getElementById('icon-preview-theme-dark');
       var previewSplitResizer = document.getElementById('preview-split-resizer');
       var btnRun = document.getElementById('btn-run');
-      var btnUndo = document.getElementById('btn-undo');
-      var btnRedo = document.getElementById('btn-redo');
-      var btnImportFile = document.getElementById('btn-import-file');
-      var btnExportFile = document.getElementById('btn-export-file');
       var exportCodeDialog = document.getElementById('export-code-dialog');
       var exportTypesDialog = document.getElementById('export-types-dialog');
       var exportCodeTitle = document.getElementById('export-code-title');
@@ -2879,10 +2874,12 @@
       // continuam previsíveis mesmo quando mais de uma aba está visível.
       var editorAtivoParaHistorico = arquivosExtras.length ? arquivosExtras[0].editor : htmlEditor;
       function atualizarControlesHistorico() {
-        if (!editorAtivoParaHistorico) return;
-        var historico = editorAtivoParaHistorico.session.getUndoManager();
-        if (btnUndo) btnUndo.disabled = !historico.hasUndo();
-        if (btnRedo) btnRedo.disabled = !historico.hasRedo();
+        arquivosExtras.forEach(function (arquivo) {
+          if (!arquivo.editor || !arquivo.botaoDesfazer || !arquivo.botaoRefazer) return;
+          var historico = arquivo.editor.session.getUndoManager();
+          arquivo.botaoDesfazer.disabled = !historico.hasUndo();
+          arquivo.botaoRefazer.disabled = !historico.hasRedo();
+        });
       }
 
       [htmlEditor, cssEditor, jsEditor].forEach(function (editor) {
@@ -2892,24 +2889,6 @@
         });
         editor.session.on('change', atualizarControlesHistorico);
       });
-
-      if (btnUndo) {
-        btnUndo.addEventListener('click', function () {
-          if (!editorAtivoParaHistorico) return;
-          editorAtivoParaHistorico.undo();
-          editorAtivoParaHistorico.focus();
-          atualizarControlesHistorico();
-        });
-      }
-
-      if (btnRedo) {
-        btnRedo.addEventListener('click', function () {
-          if (!editorAtivoParaHistorico) return;
-          editorAtivoParaHistorico.redo();
-          editorAtivoParaHistorico.focus();
-          atualizarControlesHistorico();
-        });
-      }
 
       atualizarControlesHistorico();
 
@@ -3024,6 +3003,12 @@
           el.hidden = itens.length === 0;
           el.textContent = String(itens.length);
         });
+        arquivosExtras.forEach(function (arquivo) {
+          if (!arquivo.contadorProblemas) return;
+          var doArquivo = itens.filter(function (item) { return item.arquivo === arquivo; }).length;
+          arquivo.contadorProblemas.hidden = doArquivo === 0;
+          arquivo.contadorProblemas.textContent = String(doArquivo);
+        });
       }
 
       // ---- Console visual (item 8) -------------------------------------
@@ -3113,30 +3098,20 @@
       }
 
       // ---- Minimap (item 1) --------------------------------------------
-      var btnToggleMinimap = document.getElementById('btn-toggle-minimap');
+      // O botão agora vive na barra de cada arquivo (não é mais único no
+      // topo), mas a preferência continua global — alternar em qualquer
+      // arquivo reflete em todos.
       function atualizarBotaoMinimap() {
-        if (!btnToggleMinimap) return;
-        btnToggleMinimap.setAttribute('aria-pressed', preferenciasDoEditor.minimap ? 'true' : 'false');
-        btnToggleMinimap.classList.toggle('is-active', !!preferenciasDoEditor.minimap);
-      }
-      if (btnToggleMinimap) {
-        btnToggleMinimap.addEventListener('click', function () {
-          preferenciasDoEditor.minimap = !preferenciasDoEditor.minimap;
-          salvarPreferenciasDoEditor();
-          aplicarPreferenciasATodosOsEditores();
-          atualizarBotaoMinimap();
+        Array.prototype.forEach.call(document.querySelectorAll('.file-tool-btn[data-acao="minimap"]'), function (botao) {
+          botao.setAttribute('aria-pressed', preferenciasDoEditor.minimap ? 'true' : 'false');
+          botao.classList.toggle('is-active', !!preferenciasDoEditor.minimap);
         });
+      }
+      function alternarMinimap() {
+        preferenciasDoEditor.minimap = !preferenciasDoEditor.minimap;
+        salvarPreferenciasDoEditor();
+        aplicarPreferenciasATodosOsEditores();
         atualizarBotaoMinimap();
-      }
-
-      // ---- Formatar documento (item 5) ----------------------------------
-      var btnFormatCode = document.getElementById('btn-format-code');
-      if (btnFormatCode) {
-        btnFormatCode.addEventListener('click', function () {
-          if (!editorAtivoParaHistorico || typeof editorAtivoParaHistorico.executarComando !== 'function') return;
-          editorAtivoParaHistorico.executarComando('editor.action.formatDocument');
-          editorAtivoParaHistorico.focus();
-        });
       }
 
       // ---- Preferências do editor (item 13) -----------------------------
@@ -3187,7 +3162,6 @@
       // Simplificação deliberada: compara dois arquivos abertos à escolha
       // do usuário (não necessariamente "salvo vs. atual" — ver
       // avaliacao-monaco-ide.md, item 16, para o motivo dessa escolha).
-      var btnCompareFiles = document.getElementById('btn-compare-files');
       var compareFilesDialog = document.getElementById('compare-files-dialog');
       var compareFileA = document.getElementById('compare-file-a');
       var compareFileB = document.getElementById('compare-file-b');
@@ -3239,19 +3213,24 @@
           modified: monaco.editor.createModel(arquivoB.editor.getValue(), linguagemParaMonaco(arquivoB.linguagem))
         });
       }
-      if (btnCompareFiles && compareFilesDialog && compareFileA && compareFileB) {
-        btnCompareFiles.addEventListener('click', function () {
-          if (arquivosExtras.length < 2) {
-            mostrarToast('Abra pelo menos dois arquivos para comparar.');
-            return;
-          }
-          preencherSelectsDeComparacao();
-          compareFilesDialog.showModal();
-          requestAnimationFrame(atualizarDiffEditor);
-        });
-        [compareFileA, compareFileB].forEach(function (select) { select.addEventListener('change', atualizarDiffEditor); });
-        compareFilesDialog.addEventListener('close', descartarModelosDoDiff);
+      function abrirComparacaoDeArquivos(arquivoBase) {
+        if (!compareFilesDialog || !compareFileA || !compareFileB) return;
+        if (arquivosExtras.length < 2) {
+          mostrarToast('Abra pelo menos dois arquivos para comparar.');
+          return;
+        }
+        preencherSelectsDeComparacao();
+        if (arquivoBase) compareFileA.value = arquivoBase.idPane;
+        if (compareFileB.options.length > 1 && compareFileB.value === compareFileA.value) {
+          compareFileB.selectedIndex = (compareFileA.selectedIndex + 1) % compareFileB.options.length;
+        }
+        compareFilesDialog.showModal();
+        requestAnimationFrame(atualizarDiffEditor);
       }
+      if (compareFileA && compareFileB) {
+        [compareFileA, compareFileB].forEach(function (select) { select.addEventListener('change', atualizarDiffEditor); });
+      }
+      if (compareFilesDialog) compareFilesDialog.addEventListener('close', descartarModelosDoDiff);
 
       function removerArquivosExtras() {
         arquivosExtras.forEach(function (arquivo) {
@@ -4412,6 +4391,157 @@
         });
       }
 
+      // ==================================================================
+      // Barra de ferramentas por arquivo: fica dentro do painel de cada
+      // arquivo aberto (como a barra de ferramentas sob uma aba de
+      // navegador) e age SOMENTE sobre aquele arquivo. Os botões gerais
+      // (recolher, tela cheia, atalhos, preferências, adicionar arquivo)
+      // continuam na barra do topo.
+      // ==================================================================
+      function montarBarraDoArquivo(arquivo, aba) {
+        // Tabela e ícones ficam aqui dentro (e não em var externa) porque
+        // criarArquivoExtra já roda durante a inicialização, antes de
+        // qualquer `var` declarado mais abaixo receber valor.
+        var icones = {
+          salvar: 'M5 4h11l3 3v13H5z M8 4v5h7V4 M8 20v-6h8v6',
+          importar: 'M12 4v11 M8 11l4 4 4-4 M5 20h14',
+          exportar: 'M12 15V4 M8 8l4-4 4 4 M5 20h14',
+          desfazer: 'M9.5 7 4 12l5.5 5 M5 12h8a5 5 0 0 1 5 5v1',
+          refazer: 'M14.5 7 20 12l-5.5 5 M19 12h-8a5 5 0 0 0-5 5v1',
+          formatar: 'M4 6h16 M4 11h10 M4 16h16 M4 21h10',
+          'buscar-arquivo': 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M16.5 16.5 21 21',
+          comparar: 'M9 3v18 M15 3v18 M4 8h5 M4 12h5 M15 12h5 M15 16h5',
+          minimap: 'M4 4h11v16H4z M18 4h2v6h-2z M18 12h2v3h-2z M18 17h2v3h-2z',
+          problemas: 'M12 3 2 20h20z M12 10v4 M12 17h.01',
+          console: 'M4 5h16v14H4z M7 9l3 3-3 3 M12 15h5',
+          'buscar-projeto': 'M4 4h9l4 4v2 M13 4v4h4 M4 4v16h6 M16 13a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M18.2 18.2 21 21',
+          renomear: 'M4 20h4L19 9l-4-4L4 16z M14 6l4 4',
+          duplicar: 'M9 9h11v11H9z M5 15V4h11',
+          limpar: 'M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6',
+          fechar: 'M6 6l12 12 M18 6 6 18'
+        };
+        var grupos = [
+          [['salvar', 'Salvar projeto (Ctrl+S)'], ['importar', 'Importar arquivo do computador'], ['exportar', 'Exportar este arquivo']],
+          [['desfazer', 'Desfazer (Ctrl+Z)'], ['refazer', 'Refazer (Ctrl+Y)'], ['formatar', 'Formatar código (Shift+Alt+F)'], ['buscar-arquivo', 'Buscar neste arquivo (Ctrl+F)'], ['comparar', 'Comparar com outro arquivo'], ['minimap', 'Mostrar/ocultar minimapa']],
+          [['problemas', 'Problemas'], ['console', 'Console'], ['buscar-projeto', 'Buscar em todos os arquivos']],
+          [['renomear', 'Renomear arquivo'], ['duplicar', 'Duplicar arquivo'], ['limpar', 'Limpar conteúdo do arquivo'], ['fechar', 'Fechar arquivo']]
+        ];
+
+        var barra = document.createElement('div');
+        barra.className = 'file-toolbar';
+        barra.setAttribute('role', 'toolbar');
+        barra.setAttribute('aria-label', 'Ferramentas de ' + arquivo.nome);
+
+        grupos.forEach(function (grupo, indice) {
+          if (indice > 0) {
+            var separador = document.createElement('span');
+            separador.className = 'file-tool-sep';
+            separador.setAttribute('aria-hidden', 'true');
+            barra.appendChild(separador);
+          }
+          grupo.forEach(function (definicao) {
+            var acao = definicao[0];
+            var botao = document.createElement('button');
+            botao.type = 'button';
+            botao.className = 'file-tool-btn';
+            botao.setAttribute('data-acao', acao);
+            botao.title = definicao[1];
+            botao.setAttribute('aria-label', definicao[1]);
+            // Conteúdo 100% estático (sem dado do usuário): innerHTML é seguro aqui.
+            botao.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + icones[acao] + '"/></svg>';
+            if (acao === 'problemas') botao.insertAdjacentHTML('beforeend', '<span class="file-tool-count" hidden>0</span>');
+            if (acao === 'desfazer' || acao === 'refazer') botao.disabled = true;
+            if (acao === 'minimap') {
+              // Não dá pra confiar em atualizarBotaoMinimap() aqui: ela usa
+              // document.querySelectorAll, e este botão ainda não foi
+              // inserido no documento (isso só acontece depois que esta
+              // função retornar) — por isso o estado inicial é definido
+              // diretamente, na criação.
+              var minimapAtivo = !!preferenciasDoEditor.minimap;
+              botao.setAttribute('aria-pressed', minimapAtivo ? 'true' : 'false');
+              botao.classList.toggle('is-active', minimapAtivo);
+            }
+            barra.appendChild(botao);
+          });
+        });
+
+        arquivo.botaoDesfazer = barra.querySelector('[data-acao="desfazer"]');
+        arquivo.botaoRefazer = barra.querySelector('[data-acao="refazer"]');
+        arquivo.contadorProblemas = barra.querySelector('.file-tool-count');
+
+        barra.addEventListener('click', function (event) {
+          var botao = event.target.closest('button[data-acao]');
+          if (!botao || botao.disabled) return;
+          executarAcaoDaBarra(arquivo, aba, botao.getAttribute('data-acao'));
+        });
+
+        atualizarControlesHistorico();
+        return barra;
+      }
+
+      function executarAcaoDaBarra(arquivo, aba, acao) {
+        var editor = arquivo.editor;
+        switch (acao) {
+          case 'salvar': salvarManualmente(); break;
+          case 'importar': inputImportFile.click(); break;
+          case 'exportar': abrirExportacaoDoArquivo(arquivo); break;
+          case 'desfazer': editor.undo(); editor.focus(); atualizarControlesHistorico(); break;
+          case 'refazer': editor.redo(); editor.focus(); atualizarControlesHistorico(); break;
+          case 'formatar': editor.focus(); editor.executarComando('editor.action.formatDocument'); break;
+          case 'buscar-arquivo': editor.focus(); editor.executarComando('actions.find'); break;
+          case 'comparar': abrirComparacaoDeArquivos(arquivo); break;
+          case 'minimap': alternarMinimap(); break;
+          case 'problemas': abrirPainelInferior('problemas'); break;
+          case 'console': abrirPainelInferior('console'); break;
+          case 'buscar-projeto':
+            abrirPainelInferior('buscar');
+            if (inputBuscaProjeto) inputBuscaProjeto.focus();
+            break;
+          case 'renomear': renomearArquivo(arquivo, aba); break;
+          case 'duplicar': duplicarArquivo(arquivo); break;
+          case 'limpar': limparArquivo(arquivo); break;
+          case 'fechar': aba.querySelector('.file-close-btn').click(); break;
+        }
+      }
+
+      function salvarManualmente() {
+        salvarRascunhoAtual().then(function (salvou) {
+          mostrarToast(salvou ? 'Projeto salvo.' : 'Não foi possível salvar agora.');
+        });
+      }
+
+      function limparArquivo(arquivo) {
+        if (!window.confirm('Deseja limpar o conteúdo de ' + arquivo.nome + '?')) return;
+        arquivo.editor.setValue('', -1);
+        arquivo.editor.focus();
+        mostrarToast(arquivo.nome + ' foi limpo.');
+      }
+
+      function renomearArquivo(arquivo, aba) {
+        // Simplificação deliberada: só o nome de exibição muda. A URI do
+        // model no Monaco permanece a mesma, então imports/referências
+        // cruzadas continuam resolvendo pelo caminho antigo — aceitável
+        // para o escopo desta melhoria (ver avaliacao-monaco-ide.md, item 15).
+        var novoNome = window.prompt('Novo nome do arquivo:', arquivo.nome);
+        if (!novoNome || novoNome.trim() === arquivo.nome) return;
+        novoNome = nomeUnicoDoArquivo(novoNome.trim());
+        arquivo.nome = novoNome;
+        aba.querySelector('.tab-text').textContent = novoNome;
+        aba.setAttribute('aria-label', novoNome);
+        aba.setAttribute('title', novoNome);
+        var barra = document.getElementById(arquivo.idPane).querySelector('.file-toolbar');
+        if (barra) barra.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
+        sincronizarDependenciasLocais();
+        agendarSalvamentoAutomatico();
+        agendarAtualizacaoPreview();
+        mostrarToast('Arquivo renomeado para ' + novoNome + '.');
+      }
+
+      function duplicarArquivo(arquivo) {
+        criarArquivoExtra(arquivo.linguagem, nomeUnicoDoArquivo(arquivo.nome), arquivo.editor.getValue());
+        mostrarToast('Arquivo duplicado.');
+      }
+
       function criarArquivoExtra(linguagem, nome, conteudo) {
         var extensoes = { svg: 'svg', markdown: 'md', json: 'json', xml: 'xml', typescript: 'ts', scss: 'scss', javascriptreact: 'jsx', html: 'html', css: 'css', javascript: 'js' };
         var sufixo = extensoes[linguagem] || 'txt';
@@ -4422,7 +4552,7 @@
         aba.className = 'tab-btn code-tab';
         aba.setAttribute('data-target', idPane);
         aba.draggable = true;
-        aba.innerHTML = '<input checked class="editor-toggle-checkbox" type="checkbox"><span class="tab-text"></span><span class="file-tab-actions"><button aria-label="Renomear arquivo" class="tab-action-btn file-rename-btn" draggable="false" title="Renomear arquivo" type="button">✎</button><button aria-label="Duplicar arquivo" class="tab-action-btn file-duplicate-btn" draggable="false" title="Duplicar arquivo" type="button">⧉</button><button aria-label="Limpar conteúdo deste arquivo" class="tab-action-btn file-clear-btn" draggable="false" title="Limpar arquivo" type="button"><img alt="" class="file-action-icon file-clear-icon" src="assets/images/icons.svg/lixeira.svg"></button><button aria-label="Fechar arquivo" class="tab-action-btn file-close-btn" draggable="false" title="Fechar arquivo" type="button">×</button></span>';
+        aba.innerHTML = '<input checked class="editor-toggle-checkbox" type="checkbox"><span class="tab-text"></span><span class="file-tab-actions"><button aria-label="Fechar arquivo" class="tab-action-btn file-close-btn" draggable="false" title="Fechar arquivo" type="button">×</button></span>';
         aba.querySelector('.tab-text').textContent = nomeArquivo;
         aba.setAttribute('aria-label', nomeArquivo);
         dragContainer.appendChild(aba);
@@ -4439,38 +4569,9 @@
         var arquivo = { idPane: idPane, nome: nomeArquivo, linguagem: linguagem, editor: criarEditor(container.id, linguagem, conteudo || '', nomeArquivo) };
         arquivosExtras.push(arquivo);
         registrarAbaDeArquivo(aba, aba.querySelector('.editor-toggle-checkbox'), aba.querySelector('.file-close-btn'));
-        aba.querySelector('.file-clear-btn').addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (!window.confirm('Deseja limpar o conteúdo de ' + arquivo.nome + '?')) return;
-          arquivo.editor.setValue('', -1);
-          arquivo.editor.focus();
-          mostrarToast(arquivo.nome + ' foi limpo.');
-        });
-        aba.querySelector('.file-rename-btn').addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          // Simplificação deliberada: só o nome de exibição muda. A URI do
-          // model no Monaco permanece a mesma, então imports/referências
-          // cruzadas continuam resolvendo pelo caminho antigo — aceitável
-          // para o escopo desta melhoria (ver avaliacao-monaco-ide.md, item 15).
-          var novoNome = window.prompt('Novo nome do arquivo:', arquivo.nome);
-          if (!novoNome || novoNome === arquivo.nome) return;
-          novoNome = nomeUnicoDoArquivo(novoNome);
-          arquivo.nome = novoNome;
-          aba.querySelector('.tab-text').textContent = novoNome;
-          aba.setAttribute('aria-label', novoNome);
-          aba.setAttribute('title', novoNome);
-          sincronizarDependenciasLocais();
-          agendarSalvamentoAutomatico();
-          mostrarToast('Arquivo renomeado para ' + novoNome + '.');
-        });
-        aba.querySelector('.file-duplicate-btn').addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          criarArquivoExtra(arquivo.linguagem, nomeUnicoDoArquivo(arquivo.nome), arquivo.editor.getValue());
-          mostrarToast('Arquivo duplicado.');
-        });
+        // Ferramentas específicas deste arquivo ficam numa barra dentro do
+        // próprio painel (limpar/renomear/duplicar/fechar deixaram a aba).
+        painel.insertBefore(montarBarraDoArquivo(arquivo, aba), container);
         arquivo.editor.on('change', function () {
           sincronizarArquivosPrincipais();
           sincronizarDependenciasLocais();
@@ -4637,7 +4738,6 @@
         return 'Código importado e distribuído entre HTML, CSS e JavaScript.';
       }
 
-      if (btnImportFile) btnImportFile.addEventListener('click', function () { inputImportFile.click(); });
       inputImportFile.addEventListener('change', function () {
         var file = inputImportFile.files[0];
         if (!file) {
@@ -4819,8 +4919,8 @@
         mostrarToast('Arquivo SVG exportado!');
       }
 
-      if (btnExportFile) btnExportFile.addEventListener('click', function () {
-        var arquivo = arquivoPadraoParaExportacao();
+      function abrirExportacaoDoArquivo(arquivo) {
+        arquivo = arquivo || arquivoPadraoParaExportacao();
         if (!arquivo) {
           mostrarToast('Crie ou importe um arquivo antes de exportar.');
           return;
@@ -4832,7 +4932,7 @@
         } else {
           exportarHtmlComDependencias(arquivo, false);
         }
-      });
+      }
 
       if (exportCodeDialog) {
         exportCodeDialog.addEventListener('close', function () {
@@ -4878,38 +4978,101 @@
         });
       }
 
+      // ==================================================================
+      // Menu "Adicionar arquivo": escolha do tipo (linguagens relacionadas
+      // lado a lado) e, em seguida, um passo para nomear o arquivo.
+      // ==================================================================
       if (btnNewFile && newFileMenu) {
         var barraDeAbasDoMenu = btnNewFile.closest('.browser-tabs');
+        var passoTipos = document.getElementById('new-file-step-tipos');
+        var passoNome = document.getElementById('new-file-step-nome');
+        var campoNome = document.getElementById('new-file-name-input');
+        var rotuloTipoNome = document.getElementById('new-file-type-label');
+        var dicaNome = document.getElementById('new-file-name-hint');
+        var botaoVoltarNome = document.getElementById('new-file-back');
+        var botaoImportarDoMenu = document.getElementById('new-file-import');
+        var tipoEmCriacao = null;
+        var NOMES_SUGERIDOS = { html: 'pagina.html', css: 'estilo.css', javascript: 'script.js', svg: 'imagem.svg', markdown: 'README.md', json: 'dados.json', xml: 'dados.xml', typescript: 'app.ts', scss: 'estilo.scss', javascriptreact: 'App.jsx' };
+
+        function mostrarPassoDeTipos() {
+          tipoEmCriacao = null;
+          passoNome.hidden = true;
+          passoTipos.hidden = false;
+        }
         function fecharMenuNovoArquivo() {
           newFileMenu.hidden = true;
           btnNewFile.setAttribute('aria-expanded', 'false');
           if (barraDeAbasDoMenu) barraDeAbasDoMenu.classList.remove('is-new-file-menu-open');
+          mostrarPassoDeTipos();
         }
-        btnNewFile.addEventListener('click', function () {
-          if (!newFileMenu.hidden) return fecharMenuNovoArquivo();
+        function abrirMenuNovoArquivo() {
+          mostrarPassoDeTipos();
           var retangulo = btnNewFile.getBoundingClientRect();
-          newFileMenu.style.top = Math.min(window.innerHeight - 250, retangulo.bottom + 5) + 'px';
-          newFileMenu.style.left = Math.min(window.innerWidth - 238, Math.max(8, retangulo.left)) + 'px';
+          newFileMenu.style.top = Math.max(8, Math.min(window.innerHeight - 320, retangulo.bottom + 5)) + 'px';
+          newFileMenu.style.left = Math.max(8, Math.min(window.innerWidth - 288, retangulo.left)) + 'px';
           newFileMenu.hidden = false;
           btnNewFile.setAttribute('aria-expanded', 'true');
           if (barraDeAbasDoMenu) barraDeAbasDoMenu.classList.add('is-new-file-menu-open');
+          var primeiroTipo = passoTipos.querySelector('.new-file-type');
+          if (primeiroTipo) primeiroTipo.focus();
+        }
+        function mostrarPassoDeNome(botaoDoTipo) {
+          var ext = botaoDoTipo.getAttribute('data-ext') || 'txt';
+          var linguagem = botaoDoTipo.getAttribute('data-language');
+          var sugerido = NOMES_SUGERIDOS[linguagem] || ('arquivo.' + ext);
+          tipoEmCriacao = { linguagem: linguagem, ext: ext, sugerido: sugerido };
+          rotuloTipoNome.textContent = '(.' + ext + ')';
+          // Já sugere um nome livre (pagina-2.html se pagina.html existir).
+          campoNome.value = nomeUnicoDoArquivo(sugerido);
+          dicaNome.textContent = 'Sem extensão, adicionamos .' + ext + ' automaticamente.';
+          passoTipos.hidden = true;
+          passoNome.hidden = false;
+          campoNome.focus();
+          var ponto = campoNome.value.lastIndexOf('.');
+          campoNome.setSelectionRange(0, ponto > 0 ? ponto : campoNome.value.length);
+        }
+
+        btnNewFile.addEventListener('click', function () {
+          if (!newFileMenu.hidden) return fecharMenuNovoArquivo();
+          abrirMenuNovoArquivo();
         });
-        newFileMenu.addEventListener('click', function (event) {
-          var botao = event.target.closest('button[data-language]');
-          if (!botao) return;
-          var linguagem = botao.getAttribute('data-language');
-          var nomes = { html: 'pagina.html', css: 'estilo.css', javascript: 'script.js', svg: 'imagem.svg', markdown: 'README.md', json: 'dados.json', xml: 'dados.xml', typescript: 'app.ts', scss: 'estilo.scss', javascriptreact: 'App.jsx' };
-          var nomeSugerido = nomes[linguagem] || 'arquivo.txt';
+        passoTipos.addEventListener('click', function (event) {
+          var botaoDoTipo = event.target.closest('button.new-file-type');
+          if (botaoDoTipo) mostrarPassoDeNome(botaoDoTipo);
+        });
+        botaoVoltarNome.addEventListener('click', function () {
+          mostrarPassoDeTipos();
+          var primeiroTipo = passoTipos.querySelector('.new-file-type');
+          if (primeiroTipo) primeiroTipo.focus();
+        });
+        passoNome.addEventListener('submit', function (event) {
+          event.preventDefault();
+          if (!tipoEmCriacao) return;
+          var nome = (campoNome.value || '').trim() || tipoEmCriacao.sugerido;
+          if (/[<>:"|?*\u0000-\u001f]/.test(nome)) {
+            dicaNome.textContent = 'O nome contém caracteres inválidos ( < > : " | ? * ).';
+            campoNome.focus();
+            return;
+          }
+          if (!/\.[A-Za-z0-9]+$/.test(nome)) nome += '.' + tipoEmCriacao.ext;
+          var linguagem = tipoEmCriacao.linguagem;
           fecharMenuNovoArquivo();
-          var nomeEscolhido = window.prompt('Nome do novo arquivo:', nomeSugerido);
-          if (nomeEscolhido === null) return; // usuário cancelou — não cria nada
-          criarArquivoExtra(linguagem, nomeEscolhido.trim() || nomeSugerido, '');
+          criarArquivoExtra(linguagem, nome, '');
         });
+        if (botaoImportarDoMenu) {
+          botaoImportarDoMenu.addEventListener('click', function () {
+            fecharMenuNovoArquivo();
+            inputImportFile.click();
+          });
+        }
         document.addEventListener('pointerdown', function (event) {
           if (!newFileMenu.hidden && !newFileMenu.contains(event.target) && !btnNewFile.contains(event.target)) fecharMenuNovoArquivo();
         });
         document.addEventListener('keydown', function (event) {
-          if (event.key === 'Escape' && !newFileMenu.hidden) fecharMenuNovoArquivo();
+          if (event.key === 'Escape' && !newFileMenu.hidden) {
+            fecharMenuNovoArquivo();
+            btnNewFile.focus();
+          }
         });
       }
 
@@ -4977,7 +5140,14 @@
           btnPreviewTheme.title = previewTemaEscuro ? 'Tema Claro do Preview' : 'Tema Escuro do Preview';
           btnPreviewTheme.setAttribute('aria-label', btnPreviewTheme.title);
           alternarIcones(iconPreviewThemeLight, iconPreviewThemeDark, previewTemaEscuro);
-          if (previewContainer.classList.contains('show-preview')) renderizarPreview();
+          if (previewContainer.classList.contains('show-preview')) {
+            // O tema é inserido no srcdoc de cada iframe. Invalidar este
+            // cache força a reconstrução do preview sem alterar o fluxo
+            // de criação e abertura de arquivos.
+            ultimoHtmlPorIdPane = {};
+            ultimaAssinaturaCssJs = null;
+            renderizarPreview();
+          }
         });
       }
 

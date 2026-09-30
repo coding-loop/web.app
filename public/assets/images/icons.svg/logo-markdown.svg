@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Borda do contorno externo e preenchimento de fundo (#fdf6e3) -->
+  <path fill="#fdf6e3" stroke="#fdf6e3" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M27 7H5a2 2 0 00-2 2v14a2 2 0 002 2h22a2 2 0 002-2V9a2 2 0 00-2-2z"/>
+  
+  <!-- Linha principal do contorno externo (#002b36) -->
+  <path stroke="#002b36" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M27 7H5a2 2 0 00-2 2v14a2 2 0 002 2h22a2 2 0 002-2V9a2 2 0 00-2-2z"/>
+
+  <!-- Borda do M e da Seta (#fdf6e3) -->
+  <path stroke="#fdf6e3" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 20v-8l-4 4-4-4v8M19 16.5l3.5 3.5 3.5-3.5M22.5 20v-9"/>
+  
+  <!-- Ícone principal do M e da Seta (#002b36) -->
+  <path stroke="#002b36" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 20v-8l-4 4-4-4v8M19 16.5l3.5 3.5 3.5-3.5M22.5 20v-9"/>
+</svg>
