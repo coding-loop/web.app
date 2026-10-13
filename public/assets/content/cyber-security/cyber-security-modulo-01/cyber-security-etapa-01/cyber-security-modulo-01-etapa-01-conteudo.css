@@ -1,0 +1,1079 @@
+/*
+ * O Coding Loop oferece os temas Solarized Light e Solarized Dark.
+ * Ao criar estilos ou projetos, verifique o contraste de texto, fundo e controles nos dois temas.
+ */
+/* ==========================================================
+   CURSO DE CYBER SECURITY - MÓDULO 01, ETAPA 01
+   CSS Unificado e Refatorado
+   ========================================================== */
+
+/* ==========================================================
+   Variáveis de Tema - Cyber Security
+   ========================================================== */
+.cs-etapa {
+  /* Cores principais - tema cyber */
+  --cs-primary: #2aa198;
+  --cs-primary-dark: #208f88;
+  --cs-bg: #073642;
+  --cs-bg-deep: #002b36;
+  --cs-text: #eee8d5;
+  --cs-muted: #93a1a1;
+  --cs-border: #586e75;
+
+  /* Estados de feedback */
+  --cs-ok: #859900;
+  --cs-ok-bg: rgba(133, 153, 0, 0.15);
+  --cs-error: #dc322f;
+  --cs-error-bg: rgba(220, 50, 47, 0.15);
+  --cs-warning: #b58900;
+  --cs-warning-bg: rgba(181, 137, 0, 0.15);
+
+  /* Flashcards e componentes */
+  --cs-card-bg: #174b55;
+  --cs-radius: 12px;
+  --cs-radius-sm: 8px;
+  --cs-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  --cs-transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Tipografia */
+  --cs-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ==========================================================
+   Reset e Base
+   ========================================================== */
+.cs-etapa * {
+  box-sizing: border-box;
+}
+
+.cs-etapa {
+  color: var(--cs-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  line-height: 1.7;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ==========================================================
+   Hero / Cabeçalho da Etapa
+   ========================================================== */
+.cs-hero {
+  position: relative;
+  /* Define o container como referência de ancoragem */
+  padding: clamp(22px, 5vw, 42px);
+  padding-right: clamp(60px, 8vw, 90px);
+  /* Garante espaço à direita para o título não cobrir a logo */
+  margin: 0 0 26px;
+  border: 1px solid var(--cs-border);
+  border-left: 4px solid var(--cs-primary);
+  border-radius: var(--cs-radius);
+  background: linear-gradient(135deg, var(--cs-bg), var(--cs-bg-deep));
+}
+
+.cs-kicker {
+  display: block;
+  /* O kicker volta ao comportamento normal de bloco/linha */
+  color: var(--cs-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.logo-harvard {
+  position: absolute;
+  top: clamp(18px, 4vw, 32px);
+  /* Distância do topo alinhada ao padding */
+  right: clamp(18px, 4vw, 32px);
+  /* Distância da borda direita */
+  height: clamp(28px, 4vw, 42px);
+  /* Altura adaptável e legível */
+  width: auto;
+  object-fit: contain;
+}
+
+.cs-hero h2 {
+  color: #fdf6e3;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  line-height: 1.2;
+  margin: 10px 0 14px;
+}
+
+.cs-hero p {
+  color: var(--cs-text);
+  font-size: 1.05rem;
+  text-align: justify;
+}
+
+.cs-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 22px;
+}
+
+.cs-meta span {
+  color: var(--cs-text);
+  background: #174b55;
+  border: 1px solid #38666d;
+  border-radius: 30px;
+  padding: 5px 11px;
+  font-size: 0.82rem;
+}
+
+/* ==========================================================
+   Blocos de Conteúdo
+   ========================================================== */
+.cs-bloco {
+  margin: 26px 0;
+  padding: clamp(17px, 3vw, 26px);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  background: rgba(7, 54, 66, 0.38);
+}
+
+.cs-bloco h3 {
+  color: var(--cs-primary);
+  margin: 0 0 14px;
+  font-size: 1.25rem;
+}
+
+.cs-bloco h4 {
+  color: var(--cs-warning);
+  margin: 8px 0;
+}
+
+.cs-bloco p,
+.cs-bloco li,
+.cs-bloco dd {
+  color: var(--cs-text);
+  text-align: justify;
+}
+
+/* Formatação do timestamp (ex: [00:00:16]) */
+.cs-bloco p span {
+  display: inline;
+  color: var(--cs-primary);
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.cs-bloco p em {
+  font-style: italic;
+  color: var(--cs-warning);
+}
+
+.cs-bloco .cs-muted {
+  color: var(--cs-muted);
+  font-size: 0.92rem;
+}
+
+/* =========================================================
+   Estilização dos Termos Técnicos (em) & Popups Dicionário
+   ========================================================= */
+
+.cs-transcricao-conteudo {
+  position: relative;
+  padding-top: 20px;
+  padding-right: 16px;
+  line-height: 1.6;
+}
+
+.cs-timestamp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-right: 6px;
+}
+
+/* Termo destacado na transcrição */
+.cs-transcricao-conteudo em[data-termo] {
+  position: relative;
+  display: inline-block;
+  font-style: normal;
+  font-weight: 600;
+  color: #2563eb;
+  border-bottom: 1px dotted #2563eb;
+  cursor: help;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  z-index: 1;
+}
+
+.cs-transcricao-conteudo em[data-termo]:is(:hover, :focus) {
+  color: #1d4ed8;
+  border-bottom-style: solid;
+  z-index: 999;
+}
+
+/* Popup / Verbete do Dicionário */
+.cs-transcricao-conteudo em[data-termo]::after {
+  content:
+    attr(data-termo) "\A"
+    attr(data-classificacao) "\A"
+    attr(data-significado) "\A"
+    attr(data-contexto);
+  white-space: pre-wrap;
+
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+
+  /* Estilização Dicionário Formal */
+  background-color: #0f172a;
+  color: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+
+  font-family: "Georgia", "Cambria", serif;
+  font-size: 0.8125rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+
+  width: max-content;
+  max-width: min(360px, 85vw);
+  overflow-wrap: break-word;
+
+  /* Linha divisória fina abaixo da 1ª linha (Termo + Traduções) */
+  background-image: linear-gradient(to right, #475569, #475569);
+  background-size: calc(100% - 32px) 1px;
+  background-position: 16px 2.25em;
+  background-repeat: no-repeat;
+
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.2s ease;
+  z-index: 1000;
+}
+
+/* Seta indicadora inferior */
+.cs-transcricao-conteudo em[data-termo]::before {
+  content: '';
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+
+  border-width: 6px;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
+
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.2s ease;
+  z-index: 1000;
+}
+
+/* Exibição suave no hover/focus */
+.cs-transcricao-conteudo em[data-termo]:is(:hover, :focus)::after,
+.cs-transcricao-conteudo em[data-termo]:is(:hover, :focus)::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ==========================================================
+   Grid de Conceitos (CID: Confidencialidade, Integridade, Disponibilidade)
+   ========================================================== */
+.cs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.cs-conceito {
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  padding: 17px;
+  background: var(--cs-bg);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cs-conceito:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cs-shadow);
+}
+
+.cs-conceito p {
+  margin: 8px 0;
+}
+
+.cs-conceito small {
+  display: block;
+  color: var(--cs-muted);
+  font-size: 0.85rem;
+}
+
+.cs-simbolo {
+  color: var(--cs-warning);
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* ==========================================================
+   Definições (DL)
+   ========================================================== */
+.cs-definicoes {
+  margin: 0;
+}
+
+.cs-definicoes div {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cs-border);
+}
+
+.cs-definicoes div:last-child {
+  border-bottom: none;
+}
+
+.cs-definicoes dt {
+  color: var(--cs-primary);
+  font-weight: 800;
+}
+
+.cs-definicoes dd {
+  margin: 3px 0 0;
+  color: var(--cs-muted);
+}
+
+/* ==========================================================
+   Callouts (Destaques)
+   ========================================================== */
+.cs-callout {
+  border-left: 4px solid var(--cs-primary);
+  background: rgba(42, 161, 152, 0.1);
+  padding: 13px 16px;
+  border-radius: var(--cs-radius-sm);
+  margin: 18px 0;
+}
+
+.cs-callout p {
+  margin: 5px 0 0;
+}
+
+.cs-callout-atencao {
+  border-left-color: var(--cs-warning);
+  background: var(--cs-warning-bg);
+}
+
+/* ==========================================================
+   FLASHCARDS
+   ========================================================== */
+.cs-flashcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.cs-flashcard {
+  min-height: 155px;
+  border: 1px solid var(--cs-primary);
+  border-radius: var(--cs-radius-sm);
+  background: var(--cs-bg);
+  color: var(--cs-text);
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  padding: 20px;
+  position: relative;
+  perspective: 1000px;
+}
+
+.cs-flashcard:focus-visible {
+  outline: 3px solid var(--cs-warning);
+  outline-offset: 3px;
+}
+
+.cs-flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform var(--cs-transition);
+  transform-style: preserve-3d;
+}
+
+.cs-flashcard.flipped .cs-flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.cs-flashcard-frente,
+.cs-flashcard-verso {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  border-radius: var(--cs-radius-sm);
+}
+
+.cs-flashcard-frente {
+  background: var(--cs-bg);
+}
+
+.cs-flashcard-verso {
+  background: var(--cs-card-bg);
+  transform: rotateY(180deg);
+}
+
+.cs-flashcard-frente b {
+  color: var(--cs-primary);
+  font-size: 1.1rem;
+}
+
+.cs-flashcard-frente small {
+  color: var(--cs-muted);
+}
+
+.cs-flashcard-hint {
+  font-size: 0.75rem;
+  color: var(--cs-muted);
+  margin-top: 8px;
+}
+
+/* ==========================================================
+   DECK DE FLASHCARDS (múltiplas cartas com navegação)
+   ========================================================== */
+.cs-deck {
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.cs-deck-item[hidden] {
+  display: none;
+}
+
+.cs-deck-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.cs-deck-contagem {
+  min-width: 56px;
+  text-align: center;
+  color: var(--cs-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+}
+
+/* ==========================================================
+   BOTÕES
+   ========================================================== */
+.cs-btn {
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 8px 16px;
+  border: 1px solid var(--cs-primary);
+  background: var(--cs-bg);
+  color: var(--cs-text);
+  border-radius: var(--cs-radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.cs-btn:hover:not(:disabled) {
+  background: var(--cs-primary);
+  color: #fff;
+  border-color: var(--cs-primary);
+}
+
+.cs-btn-primario {
+  background: var(--cs-primary);
+  color: #fff;
+}
+
+.cs-btn-primario:hover:not(:disabled) {
+  background: var(--cs-primary-dark);
+}
+
+.cs-btn:focus-visible {
+  outline: 3px solid var(--cs-warning);
+  outline-offset: 2px;
+}
+
+.cs-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cs-btn-ico {
+  padding: 4px 10px;
+  line-height: 1.2;
+}
+
+/* ==========================================================
+   VÍDEO (proporção 16:9 responsiva)
+   ========================================================== */
+.cs-video {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 16 / 9;
+  margin: 24px auto;
+  overflow: hidden;
+  border-radius: var(--cs-radius-sm);
+  border: 1px solid var(--cs-border);
+}
+
+.cs-video iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  object-fit: cover;
+}
+
+/* ==========================================================
+   transcrições videos CS50 Harvard
+   ========================================================== */
+.cs-transcricao {
+  margin-top: 1.5rem;
+}
+
+.cs-transcricao-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cs-timestamp {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #00d2ff;
+  margin-right: 0.5rem;
+}
+
+/* ==========================================================
+   CENÁRIOS INTERATIVOS (phishing, decisões)
+   ========================================================== */
+.cs-cenario {
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  padding: 16px;
+  margin: 16px 0;
+  background: rgba(7, 54, 66, 0.5);
+}
+
+.cs-cenario p {
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.cs-opcoes {
+  display: grid;
+  gap: 8px;
+}
+
+.cs-opcoes button {
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  padding: 11px 13px;
+  background: var(--cs-bg);
+  color: var(--cs-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.cs-opcoes button:hover:not(:disabled) {
+  border-color: var(--cs-primary);
+  background: #104653;
+}
+
+.cs-opcoes button:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.cs-opcoes button.cs-correto {
+  border-color: var(--cs-ok);
+  background: #20352b;
+}
+
+.cs-opcoes button.cs-errado {
+  border-color: var(--cs-error);
+  background: #3b292b;
+}
+
+.cs-feedback {
+  border-radius: var(--cs-radius-sm);
+  padding: 10px 12px;
+  margin: 12px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.cs-feedback:empty {
+  display: none;
+}
+
+.cs-feedback.cs-correto {
+  background: #20352b;
+  color: #b7d36b;
+  border-left: 3px solid var(--cs-ok);
+}
+
+.cs-feedback.cs-errado {
+  background: #3b292b;
+  color: #f6aaa5;
+  border-left: 3px solid var(--cs-error);
+}
+
+/* ==========================================================
+   CHECKLIST COM PROGRESSO
+   ========================================================== */
+.cs-checklist {
+  display: grid;
+  gap: 11px;
+  margin: 16px 0;
+}
+
+.cs-checklist label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.cs-checklist input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--cs-primary);
+  cursor: pointer;
+}
+
+.cs-progresso {
+  width: 100%;
+  height: 12px;
+  accent-color: var(--cs-primary);
+  margin-top: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cs-progresso-texto {
+  color: var(--cs-muted);
+  font-size: 0.88rem;
+  margin: 6px 0 0;
+}
+
+/* ==========================================================
+   ABAS
+   ========================================================== */
+.cs-abas [role="tablist"] {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--cs-border);
+  flex-wrap: wrap;
+}
+
+.cs-abas [role="tab"] {
+  font: inherit;
+  padding: 10px 18px;
+  border: 0;
+  background: transparent;
+  color: var(--cs-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.cs-abas [role="tab"]:hover {
+  color: var(--cs-text);
+}
+
+.cs-abas [role="tab"][aria-selected="true"] {
+  color: var(--cs-primary);
+  border-bottom-color: var(--cs-primary);
+  font-weight: 700;
+}
+
+.cs-abas [role="tabpanel"] {
+  padding: 18px 4px 4px;
+}
+
+.cs-abas [role="tabpanel"][hidden] {
+  display: none;
+}
+
+.cs-abas pre,
+.cs-abas code {
+  font-family: var(--cs-font-mono);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.cs-abas pre {
+  margin: 0;
+  padding: 14px 16px;
+  background: #1f2933;
+  color: #e8edf2;
+  border-radius: var(--cs-radius-sm);
+  overflow-x: auto;
+}
+
+.cs-abas ol,
+.cs-abas ul {
+  margin: 0;
+  padding-left: 22px;
+  line-height: 1.7;
+}
+
+/* ==========================================================
+   FLUXOGRAMA (SVG)
+   ========================================================== */
+.cs-fluxo {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  color: #44505c;
+}
+
+.cs-fluxo .cs-no,
+.cs-fluxo .cs-no-term {
+  stroke-width: 1.5;
+}
+
+.cs-fluxo .cs-no {
+  fill: #fff;
+  stroke: var(--cs-primary);
+}
+
+.cs-fluxo .cs-no-term {
+  fill: var(--cs-primary);
+  stroke: var(--cs-primary);
+}
+
+.cs-fluxo .cs-no-term+text {
+  fill: #fff;
+}
+
+.cs-fluxo text {
+  font-size: 13px;
+  fill: var(--cs-text);
+}
+
+.cs-fluxo line {
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+/* ==========================================================
+   ACORDEÃO
+   ========================================================== */
+.cs-acordeao details {
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  margin-bottom: 8px;
+  background: var(--cs-bg);
+}
+
+.cs-acordeao summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  list-style-position: inside;
+  transition: background 0.15s;
+}
+
+.cs-acordeao summary:hover {
+  background: rgba(42, 161, 152, 0.05);
+}
+
+.cs-acordeao details[open] summary {
+  border-bottom: 1px solid var(--cs-border);
+}
+
+.cs-acordeao details p {
+  margin: 0;
+  padding: 12px 16px 14px;
+  line-height: 1.55;
+}
+
+/* ==========================================================
+   ORDENAR PASSOS
+   ========================================================== */
+.cs-ordem ol {
+  margin: 0;
+  padding: 0 0 0 28px;
+}
+
+.cs-ordem li {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: var(--cs-card-bg);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.cs-ordem li::marker {
+  font-weight: 700;
+  color: var(--cs-primary);
+}
+
+.cs-ordem li>span:first-child {
+  display: inline-block;
+  width: calc(100% - 92px);
+  vertical-align: middle;
+}
+
+.cs-ordem-ctrl {
+  display: inline-flex;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.cs-ordem li.cs-correto {
+  background: var(--cs-ok-bg);
+  border-color: var(--cs-ok);
+}
+
+.cs-ordem li.cs-errado {
+  background: var(--cs-error-bg);
+  border-color: var(--cs-error);
+}
+
+.cs-acoes {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================
+   VERDADEIRO OU FALSO
+   ========================================================== */
+.cs-vf-item {
+  padding: 14px 16px;
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  margin-bottom: 10px;
+  background: rgba(7, 54, 66, 0.3);
+}
+
+.cs-vf-item>p {
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.cs-vf-item .cs-acoes {
+  margin-top: 0;
+}
+
+.cs-vf-item .cs-btn.cs-correto {
+  background: var(--cs-ok);
+  border-color: var(--cs-ok);
+  color: #fff;
+}
+
+.cs-vf-item .cs-btn.cs-errado {
+  background: var(--cs-error);
+  border-color: var(--cs-error);
+  color: #fff;
+}
+
+/* ==========================================================
+   COMPLETAR LACUNAS
+   ========================================================== */
+.cs-lacuna p {
+  line-height: 2.1;
+  margin: 0;
+}
+
+.cs-lacuna select {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1.5px solid var(--cs-border);
+  border-radius: 6px;
+  background: var(--cs-bg);
+  color: var(--cs-text);
+  cursor: pointer;
+}
+
+.cs-lacuna select.cs-correto {
+  border-color: var(--cs-ok);
+  background: var(--cs-ok-bg);
+}
+
+.cs-lacuna select.cs-errado {
+  border-color: var(--cs-error);
+  background: var(--cs-error-bg);
+}
+
+/* ==========================================================
+   EDITOR DE CÓDIGO EXECUTÁVEL
+   ========================================================== */
+.cs-editor {
+  margin: 16px 0;
+}
+
+.cs-editor textarea {
+  width: 100%;
+  min-height: 110px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #3b4754;
+  border-radius: var(--cs-radius-sm);
+  background: #1f2933;
+  color: #e8edf2;
+  font-family: var(--cs-font-mono);
+  font-size: 0.88rem;
+  resize: vertical;
+}
+
+.cs-editor textarea:focus {
+  outline: 2px solid var(--cs-primary);
+  border-color: var(--cs-primary);
+}
+
+.cs-editor pre {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  min-height: 2.6em;
+  background: var(--cs-card-bg);
+  border: 1px dashed var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  white-space: pre-wrap;
+  font-family: var(--cs-font-mono);
+  font-size: 0.88rem;
+  color: var(--cs-text);
+}
+
+/* ==========================================================
+   ÁREA DE REFLEXÃO (textarea)
+   ========================================================== */
+.cs-reflexao-label {
+  display: block;
+  font-weight: 700;
+  margin: 14px 0 7px;
+  color: var(--cs-text);
+}
+
+.cs-reflexao-textarea {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-sm);
+  padding: 12px;
+  background: var(--cs-bg-deep);
+  color: var(--cs-text);
+  font: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.cs-reflexao-textarea:focus {
+  outline: 2px solid var(--cs-primary);
+  border-color: var(--cs-primary);
+}
+
+/* ==========================================================
+   OUVIR EXPLICAÇÃO (áudio/síntese de voz)
+   ========================================================== */
+.cs-ouvir {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 16px 0;
+}
+
+.cs-ouvir p {
+  margin: 0;
+  line-height: 1.55;
+  flex: 1;
+}
+
+.cs-ouvir .cs-btn {
+  flex-shrink: 0;
+}
+
+/* ==========================================================
+   RESPONSIVIDADE
+   ========================================================== */
+@media (max-width: 700px) {
+
+  .cs-grid,
+  .cs-flashcards {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-flashcard {
+    min-height: 110px;
+  }
+
+  .cs-abas [role="tab"] {
+    padding: 10px 10px;
+    font-size: 0.9rem;
+  }
+
+  .cs-ouvir {
+    flex-direction: column;
+  }
+
+  .cs-hero {
+    padding: 17px;
+  }
+
+  .cs-bloco {
+    padding: 17px;
+  }
+}
+
+/* ==========================================================
+   ACESSIBILIDADE - MOVIMENTO REDUZIDO
+   ========================================================== */
+@media (prefers-reduced-motion: reduce) {
+
+  .cs-etapa *,
+  .cs-etapa *::before,
+  .cs-etapa *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+
+  .cs-flashcard-inner {
+    transition: none;
+  }
+}

@@ -11,6 +11,38 @@ assert.equal(JSON.parse(fs.readFileSync('.firebaserc', 'utf8')).projects.default
 for (const entry of ['index.html', 'dashboard.html', 'ide.html', 'admin.html', '404.html']) {
   assert(fs.statSync(path.join('public', entry)).isFile(), entry + ' ausente');
 }
+const cursosComEtapas = [
+  { pasta: 'html', prefixo: 'html' },
+  { pasta: 'css', prefixo: 'css' },
+  { pasta: 'js', prefixo: 'js' },
+  { pasta: 'logprog', prefixo: 'logprog' },
+  { pasta: 'cyber-security', prefixo: 'cyber-security' }
+];
+for (const curso of cursosComEtapas) {
+  const cursoRoot = path.join('public', 'assets', 'content', curso.pasta);
+  let quantidadeEtapas = 0;
+  const modulos = fs.readdirSync(cursoRoot, { withFileTypes: true }).filter((entry) => entry.isDirectory() && new RegExp('^' + curso.prefixo + '-modulo-\\d+$').test(entry.name));
+  for (const modulo of modulos) {
+    const moduloPath = path.join(cursoRoot, modulo.name);
+    const numeroModulo = modulo.name.slice((curso.prefixo + '-modulo-').length);
+    const etapas = fs.readdirSync(moduloPath, { withFileTypes: true }).filter((entry) => entry.isDirectory() && new RegExp('^' + curso.prefixo + '-etapa-\\d+$').test(entry.name));
+    for (const etapa of etapas) {
+      const numeroEtapa = etapa.name.slice((curso.prefixo + '-etapa-').length);
+      const etapaPath = path.join(moduloPath, etapa.name);
+      const base = path.join(etapaPath, curso.prefixo + '-modulo-' + numeroModulo + '-etapa-' + numeroEtapa);
+      const registroEtapa = base + '.js';
+      assert(fs.statSync(registroEtapa).isFile(), path.relative(root, registroEtapa) + ' ausente');
+      for (const aba of ['conteudo', 'exercicio', 'questoes', 'desafio']) {
+        for (const extensao of ['html', 'css', 'js']) {
+          const asset = base + '-' + aba + '.' + extensao;
+          assert(fs.statSync(asset).isFile(), path.relative(root, asset) + ' ausente');
+        }
+      }
+      quantidadeEtapas++;
+    }
+  }
+  assert(quantidadeEtapas > 0, 'Nenhuma etapa organizada para ' + curso.pasta);
+}
 assert(fs.statSync(config.firestore.rules).isFile());
 JSON.parse(fs.readFileSync(config.firestore.indexes, 'utf8'));
 let scripts = 0;

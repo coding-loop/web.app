@@ -1,0 +1,14 @@
+(function () {
+  'use strict';
+
+  /* Módulos planejados: serão liberados conforme suas etapas forem criadas. */
+  for (var numero = 3; numero <= 2; numero++) {
+    var numeroFormatado = String(numero).padStart(2, '0');
+    window.CL.curso.registrarModulo('cyber-security', {
+      id: 'cyber-security-modulo-' + numeroFormatado,
+      numero: numero,
+      nome: 'Módulo ' + numero,
+      etapas: []
+    });
+  }
+})();

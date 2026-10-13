@@ -1,0 +1,27 @@
+Como o áudio original deste vídeo da Harvard é em inglês, não existe uma transcrição nativa em português oficial. Abaixo está a tradução completa do trecho falado por David J. Malan:
+
+> Olá, mundo! Meu nome é David Malan e este é o CS50 Introdução à Cibersegurança,
+voltado tanto para públicos técnicos quanto não técnicos.
+> Neste curso, você aprenderá como proteger suas contas, dados,
+ sistemas e softwares contra as ameaças de hoje, e como reconhecer e avaliar as ameaças de amanhã,
+ tanto em casa quanto no trabalho. Você aprenderá como preservar sua própria privacidade.
+ Aprenderá a ver a cibersegurança não em termos absolutos, mas relativos,
+ como uma função de riscos e recompensas para um adversário e custos e benefícios para você.
+ E aprenderá a reconhecer a cibersegurança como um equilíbrio com a própria usabilidade.
+> No mundo da cibersegurança, ouso dizer que você e eu precisamos ser perfeitos.
+ Todas as nossas portas, todas as nossas janelas, virtualmente falando, precisam estar trancadas.
+ Mas um adversário só precisa encontrar um único erro que cometemos: uma única porta
+ ou janela entreaberta.
+> Portanto, talvez devêssemos focar não apenas na prevenção, mas especialmente na detecção,
+por meio de auditoria e monitoramento, para que, mesmo que um adversário consiga entrar,
+possamos pelo menos detectar isso o mais rápido possível e minimizar os prejuízos para nós e,
+em contrapartida, os ganhos para eles.
+> Talvez, hoje em dia, ferramentas como inteligência artificial (IA) possam até ajudar nisso,
+ detectando padrões e comportamentos de potenciais adversários que nós mesmos poderíamos nem notar.
+ E talvez, se elevarmos a barra o suficiente para o adversário,
+ aumentando seus custos e riscos e diminuindo sua potencial recompensa,
+ ele simplesmente perca o interesse em nós como alvo.
+> É claro que, se ele tiver mais recursos do que nós, poderá vencer de qualquer maneira.
+Mas será que ele estará interessado em nós? Com qual dessas ameaças deveríamos realmente nos preocupar?
+> Ao longo deste curso, apresentaremos exemplos de ameaças tanto de alto nível quanto de baixo nível e forneceremos tudo o que você precisa saber tecnicamente para entender ambos, mesmo que não seja um programador ou uma pessoa da área de computação. Por meio desses exemplos, introduziremos certos princípios fundamentais sobre como os próprios computadores funcionam, para que você possa entender e deduzir, mesmo após o término do curso, como outras ameaças que o mundo ainda nem viu realmente funcionam.
+> Este é o CS50 Introdução à Cibersegurança.

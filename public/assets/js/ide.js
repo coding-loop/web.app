@@ -886,6 +886,10 @@
       } finally {
         await gravacao.close();
       }
+      if (typeof window.obterDadosDoProjeto === 'function') {
+        const dadosProjeto = window.obterDadosDoProjeto();
+        if (Object.keys(dadosProjeto.arquivos).length) await salvarProjetoNoAparelho(dadosProjeto);
+      }
       CL.api.saveBackupSettings({ lastDeviceBackupAt: new Date().toISOString(), deviceBackupError: false });
     }
 
@@ -902,6 +906,104 @@
       }
     }
 
+    // ===== Backup do PROJETO do aluno (arquivo separado do progresso) =====
+    // Mesmos destinos/credenciais do backup do curso, outro arquivo:
+    // coding-loop-projeto.json (Drive/OneDrive/pasta do aparelho).
+    async function enviarProjetoGoogleDrive(data, interativo) {
+      const settings = CL.api.getBackupSettings();
+      const token = await obterTokenGoogleDrive(Boolean(interativo));
+      const content = JSON.stringify(data, null, 2);
+      const arquivo = CL.api.PROJECT_BACKUP_FILE;
+      let response;
+      if (settings.driveProjectFileId) {
+        response = await fetch('https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(settings.driveProjectFileId) + '?uploadType=media', {
+          method: 'PATCH', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: content
+        });
+        if (response.status === 404) { CL.api.saveBackupSettings({ driveProjectFileId: null }); return enviarProjetoGoogleDrive(data, interativo); }
+      } else {
+        const boundary = 'coding-loop-projeto-' + Date.now();
+        const metadata = { name: arquivo, parents: ['appDataFolder'], mimeType: 'application/json' };
+        response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'multipart/related; boundary=' + boundary },
+          body: '--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata) + '\r\n--' + boundary + '\r\nContent-Type: application/json\r\n\r\n' + content + '\r\n--' + boundary + '--'
+        });
+      }
+      if (!response.ok) throw new Error('Não foi possível salvar o projeto no Google Drive.');
+      const file = await response.json();
+      CL.api.saveBackupSettings({ driveProjectFileId: file.id || settings.driveProjectFileId, lastProjectCloudAt: new Date().toISOString() });
+    }
+
+    async function restaurarProjetoGoogleDrive() {
+      const settings = CL.api.getBackupSettings();
+      const token = await obterTokenGoogleDrive(true);
+      let fileId = settings.driveProjectFileId;
+      if (!fileId) {
+        const list = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'" + CL.api.PROJECT_BACKUP_FILE + "'&orderBy=modifiedTime%20desc&pageSize=1&fields=files(id)&spaces=appDataFolder", { headers: { Authorization: 'Bearer ' + token } });
+        const files = await list.json();
+        fileId = files.files && files.files[0] && files.files[0].id;
+      }
+      if (!fileId) throw new Error('Nenhum backup de projeto foi encontrado no Google Drive.');
+      const response = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media', { headers: { Authorization: 'Bearer ' + token } });
+      if (!response.ok) throw new Error('Não foi possível ler o projeto do Google Drive.');
+      return CL.api.readProjectBackupResponse(response);
+    }
+
+    async function enviarProjetoOneDrive(data, interativo) {
+      const token = await obterTokenOneDrive(Boolean(interativo));
+      const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/special/approot:/' + CL.api.PROJECT_BACKUP_FILE + ':/content', {
+        method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(data, null, 2)
+      });
+      if (!response.ok) throw new Error('Não foi possível salvar o projeto no OneDrive.');
+      const file = await response.json();
+      CL.api.saveBackupSettings({ oneDriveProjectFileId: file.id, lastProjectCloudAt: new Date().toISOString() });
+    }
+
+    async function restaurarProjetoOneDrive() {
+      const token = await obterTokenOneDrive(true);
+      const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/special/approot:/' + CL.api.PROJECT_BACKUP_FILE + ':/content', { headers: { Authorization: 'Bearer ' + token } });
+      if (response.status === 404) throw new Error('Nenhum backup de projeto foi encontrado no OneDrive.');
+      if (!response.ok) throw new Error('Não foi possível ler o projeto do OneDrive.');
+      return CL.api.readProjectBackupResponse(response);
+    }
+
+    async function salvarProjetoNoAparelho(dados) {
+      const pasta = await obterPastaBackupAparelho();
+      if (!pasta || !await pastaBackupTemPermissao(pasta, false)) throw new Error('Escolha a pasta novamente para permitir a cópia no aparelho.');
+      const arquivo = await pasta.getFileHandle(CL.api.PROJECT_BACKUP_FILE, { create: true });
+      const gravacao = await arquivo.createWritable();
+      try { await gravacao.write(JSON.stringify(dados, null, 2)); } finally { await gravacao.close(); }
+    }
+
+    async function restaurarProjetoDoAparelho() {
+      const pasta = await obterPastaBackupAparelho();
+      if (!pasta || !await pastaBackupTemPermissao(pasta, true)) throw new Error('Escolha novamente a pasta usada para o backup.');
+      try {
+        const arquivo = await pasta.getFileHandle(CL.api.PROJECT_BACKUP_FILE);
+        const file = await arquivo.getFile();
+        if (file.size > CL.api.MAX_PROJECT_BACKUP_BYTES) throw new Error('Backup do projeto excede o limite de 8 MB.');
+        return CL.api.parseProjectBackup(await file.text());
+      } catch (error) {
+        throw new Error('Nenhum backup de projeto foi encontrado na pasta escolhida.');
+      }
+    }
+
+    // O editor (outro escopo) usa estes pontos de entrada.
+    window.nuvemDoProjeto = {
+      enviarDrive: enviarProjetoGoogleDrive, restaurarDrive: restaurarProjetoGoogleDrive,
+      enviarOneDrive: enviarProjetoOneDrive, restaurarOneDrive: restaurarProjetoOneDrive,
+      salvarNoAparelho: salvarProjetoNoAparelho, restaurarDoAparelho: restaurarProjetoDoAparelho
+    };
+    window.agendarSincronizacaoDoProjeto = function () {
+      const settings = CL.api.getBackupSettings();
+      const destinos = settings.destinations || [];
+      const nuvemAtiva = (destinos.includes('drive') && settings.googleDriveConnected) || (destinos.includes('onedrive') && settings.oneDriveConnected);
+      if (nuvemAtiva) {
+        CL.api.saveBackupSettings({ projectCloudPending: true });
+        agendarSincronizacaoNuvem();
+      }
+      if (destinos.includes('device')) agendarBackupNoAparelho();
+    };
+
     function agendarBackupNoAparelho() {
       clearTimeout(temporizadorBackupAparelho);
       const settings = CL.api.getBackupSettings();
@@ -913,6 +1015,8 @@
         });
       }, ATRASO_BACKUP_APARELHO);
     }
+
+    window.agendarBackupNoAparelhoDaIde = function () { agendarBackupNoAparelho(); };
 
     function atualizarAvisoSaidaNuvem() {
       if (sincronizacaoNuvemPendente && !avisoSaidaNuvemAtivo) {
@@ -942,6 +1046,8 @@
       agendarTentativaNuvem(INTERVALOS_NUVEM[settings.cloudSyncSchedule] || INTERVALOS_NUVEM['5m']);
     }
 
+    window.agendarSincronizacaoNuvemDaIde = function () { agendarSincronizacaoNuvem(); };
+
     async function sincronizarNuvemAutomaticamente(forcar) {
       if (sincronizacaoNuvemEmAndamento || (!forcar && !sincronizacaoNuvemPendente)) return false;
       const settings = CL.api.getBackupSettings();
@@ -950,6 +1056,12 @@
       const dados = CL.api.exportStudyData();
       if (destinos.includes('drive') && settings.googleDriveConnected) tarefas.push(enviarBackupGoogleDrive(dados, false));
       if (destinos.includes('onedrive') && settings.oneDriveConnected) tarefas.push(enviarBackupOneDrive(dados, false));
+      const dadosProjeto = (settings.projectCloudPending && typeof window.obterDadosDoProjeto === 'function') ? window.obterDadosDoProjeto() : null;
+      const enviarProjeto = Boolean(dadosProjeto && Object.keys(dadosProjeto.arquivos).length);
+      if (enviarProjeto) {
+        if (destinos.includes('drive') && settings.googleDriveConnected) tarefas.push(enviarProjetoGoogleDrive(dadosProjeto, false));
+        if (destinos.includes('onedrive') && settings.oneDriveConnected) tarefas.push(enviarProjetoOneDrive(dadosProjeto, false));
+      }
       if (!tarefas.length) {
         sincronizacaoNuvemPendente = false;
         CL.api.saveBackupSettings({ cloudSyncPending: false, cloudSyncRetryAt: null });
@@ -962,7 +1074,7 @@
       sincronizacaoNuvemEmAndamento = false;
       if (resultados.every(function (resultado) { return resultado.status === 'fulfilled'; })) {
         sincronizacaoNuvemPendente = false;
-        CL.api.saveBackupSettings({ cloudSyncPending: false, cloudSyncFailureCount: 0, cloudSyncRetryAt: null, lastCloudSyncAt: dados.exportedAt });
+        CL.api.saveBackupSettings({ cloudSyncPending: false, cloudSyncFailureCount: 0, cloudSyncRetryAt: null, lastCloudSyncAt: dados.exportedAt, projectCloudPending: false });
         atualizarAvisoSaidaNuvem();
         atualizarStatusBackup();
         return true;
@@ -1630,8 +1742,18 @@
       var iconPreviewThemeLight = document.getElementById('icon-preview-theme-light');
       var iconPreviewThemeDark = document.getElementById('icon-preview-theme-dark');
       var previewSplitResizer = document.getElementById('preview-split-resizer');
-      var btnRun = document.getElementById('btn-run');
       var exportCodeDialog = document.getElementById('export-code-dialog');
+      // O toggle "Live" deixou de ser um botão único no topo — agora cada
+      // arquivo tem o seu (dentro do cabeçalho estilo aba de navegador em
+      // montarBarraDoArquivo). O checkbox #chk-toggle-preview continua
+      // sendo o estado compartilhado; isto aqui só mantém os botões
+      // visuais de cada arquivo sincronizados com ele.
+      function atualizarBotaoPreviewToggle() {
+        Array.prototype.forEach.call(document.querySelectorAll('.file-preview-toggle'), function (botao) {
+          botao.setAttribute('aria-pressed', chkTogglePreview.checked ? 'true' : 'false');
+          botao.classList.toggle('is-active', chkTogglePreview.checked);
+        });
+      }
       var exportTypesDialog = document.getElementById('export-types-dialog');
       var exportCodeTitle = document.getElementById('export-code-title');
       var exportInternalTitle = document.getElementById('export-internal-title');
@@ -2111,7 +2233,7 @@
         console.warn('[CL.ide] diagnóstico do Monaco sem tradução:', mensagem);
       }
 
-      function criarEditor(id, linguagem, valorInicial, nomeDoArquivo) {
+      function criarEditor(id, linguagem, valorInicial, nomeDoArquivo, origemDoArquivo) {
         // Os workers de linguagem do Monaco (principalmente o TypeScript)
         // reconhecem e relacionam arquivos de forma mais confiável com URIs
         // `file:` e extensões reais, como .js e .ts.
@@ -2122,7 +2244,10 @@
         // Todos os arquivos reais compartilham a mesma raiz virtual para
         // que imports relativos resolvam para o modelo aberto correto.
         // Os três modelos de compatibilidade continuam isolados.
-        var raizVirtual = nomeDoArquivo ? 'file:///coding-loop/projeto/' : ('file:///coding-loop/estado-legado/' + encodeURIComponent(id) + '/');
+        // Exercício e projeto do aluno têm raízes virtuais diferentes: assim um
+        // index.html do projeto não colide com o index.html do exercício e os
+        // imports relativos de um não enxergam os arquivos do outro.
+        var raizVirtual = nomeDoArquivo ? (origemDoArquivo === 'projeto' ? 'file:///coding-loop/meu-projeto/' : 'file:///coding-loop/projeto/') : ('file:///coding-loop/estado-legado/' + encodeURIComponent(id) + '/');
         var model = monaco.editor.createModel(valorInicial, linguagemMonaco, monaco.Uri.parse(raizVirtual + caminhoDoArquivo));
         // Tamanho de tabulação é opção do modelo, não do editor de view —
         // aplicada aqui para nascer de acordo com a preferência salva.
@@ -2385,6 +2510,179 @@
           else if (editor.aoAtualizarMarcadores) editor.aoAtualizarMarcadores(editor);
         });
       }
+
+      // Precisa ser declarada ANTES de qualquer criarArquivoExtra: a
+      // restauração dos arquivos salvos (mais abaixo) já monta a barra de
+      // cada arquivo durante a inicialização. Declarada depois, ela ainda
+      // seria `undefined` e o erro derrubava a inicialização inteira —
+      // nenhum botão da barra superior chegava a receber listener.
+      var ICONES_DE_LINGUAGEM = {
+        html: svgFavicon('#E44D26', '#fff', '5'),
+        css: svgFavicon('#1572B6', '#fff', '3'),
+        scss: svgFavicon('#CF649A', '#fff', 'Sc', 7.5),
+        javascript: svgFavicon('#F7DF1E', '#1a1a1a', 'JS'),
+        typescript: svgFavicon('#3178C6', '#fff', 'TS'),
+        javascriptreact: svgFavicon('#20232A', '#61DAFB', 'JSX', 6),
+        markdown: svgFavicon('#1a1a1a', '#fff', 'M↓', 7.5),
+        svg: svgFavicon('#1a1a1a', '#FFB13B', 'SVG', 6.5),
+        json: svgFavicon('#5A5A5A', '#F5DE19', '{ }', 6.5),
+        xml: svgFavicon('#E37933', '#fff', '</>', 6),
+        plaintext: svgFavicon('#6b7280', '#fff', 'TXT', 6)
+      };
+
+      // ==================================================================
+      // PROJETO DO ALUNO — independente do curso. Guarda só os arquivos e
+      // pastas que o aluno cria/importa pelo Explorer. Vive em IndexedDB
+      // próprio (não usa o localStorage, que é pequeno e é onde ficam o
+      // progresso e os exercícios das etapas). Arquivos do projeto só
+      // viram aba quando o aluno os abre.
+      // ==================================================================
+      var projeto = { nome: 'Meu projeto', arquivos: {}, pastas: {} };
+      var projetoTimeout = null;
+      var projetoUltimaVersaoEm = 0;
+      var INTERVALO_ENTRE_VERSOES_LOCAIS_MS = 10 * 60 * 1000;
+      var BANCO_DO_PROJETO = 'coding-loop-projeto';
+
+      // Tudo é por usuário: duas contas no mesmo navegador não veem o projeto
+      // uma da outra, e "excluir conta" limpa essas chaves (api.js).
+      function uidDoProjeto() {
+        try { return (CL.api && typeof CL.api._uid === 'function' && CL.api._uid()) || 'usuario'; } catch (erro) { return 'usuario'; }
+      }
+      function chaveDoProjeto() { return 'atual:' + uidDoProjeto(); }
+      function chaveDasVersoesDoProjeto() { return 'versoes:' + uidDoProjeto(); }
+
+      function abrirBancoDoProjeto() {
+        return new Promise(function (resolve, reject) {
+          if (!window.indexedDB) { reject(new Error('Sem IndexedDB')); return; }
+          var pedido = window.indexedDB.open(BANCO_DO_PROJETO, 1);
+          pedido.onupgradeneeded = function () { pedido.result.createObjectStore('projeto'); };
+          pedido.onsuccess = function () { resolve(pedido.result); };
+          pedido.onerror = function () { reject(pedido.error); };
+        });
+      }
+      function projetoLerChave(chave) {
+        return abrirBancoDoProjeto().then(function (db) {
+          return new Promise(function (resolve) {
+            var pedido = db.transaction('projeto', 'readonly').objectStore('projeto').get(chave);
+            pedido.onsuccess = function () { db.close(); resolve(pedido.result === undefined ? null : pedido.result); };
+            pedido.onerror = function () { db.close(); resolve(null); };
+          });
+        }).catch(function () { return null; });
+      }
+      function projetoGravarChave(chave, valor) {
+        return abrirBancoDoProjeto().then(function (db) {
+          return new Promise(function (resolve, reject) {
+            var tx = db.transaction('projeto', 'readwrite');
+            tx.objectStore('projeto').put(valor, chave);
+            tx.oncomplete = function () { db.close(); resolve(true); };
+            tx.onerror = function () { db.close(); reject(tx.error); };
+          });
+        });
+      }
+
+      // Conteúdo "de verdade" (aba aberta ou modelo) no formato do backup.
+      function projetoDados() {
+        var arquivos = {};
+        Object.keys(projeto.arquivos).forEach(function (caminho) {
+          arquivos[caminho] = { linguagem: projeto.arquivos[caminho].linguagem, conteudo: conteudoAtualDoArquivoDoProjeto(caminho) };
+        });
+        return {
+          format: 'coding-loop-project', version: 1, exportedAt: new Date().toISOString(),
+          nome: projeto.nome, pastas: Object.keys(projeto.pastas), arquivos: arquivos
+        };
+      }
+      window.obterDadosDoProjeto = projetoDados;
+
+      function projetoTemArquivos() { return Object.keys(projeto.arquivos).length > 0; }
+
+      // Versões locais (para "Restaurar"): ficam no IndexedDB, não no
+      // localStorage — um projeto de verdade estouraria a cota de ~5 MB.
+      function projetoGuardarVersaoLocal(forcar) {
+        if (!projetoTemArquivos()) return Promise.resolve(false);
+        if (!forcar && Date.now() - projetoUltimaVersaoEm < INTERVALO_ENTRE_VERSOES_LOCAIS_MS) return Promise.resolve(false);
+        projetoUltimaVersaoEm = Date.now();
+        var retencao = 1;
+        try { retencao = Math.max(1, Number(CL.api.getBackupSettings().retentionCount) || 1); } catch (erro) { /* usa 1 */ }
+        return projetoLerChave(chaveDasVersoesDoProjeto()).then(function (versoes) {
+          versoes = Array.isArray(versoes) ? versoes : [];
+          versoes.unshift(projetoDados());
+          versoes.splice(retencao);
+          return projetoGravarChave(chaveDasVersoesDoProjeto(), versoes);
+        }).then(function () {
+          try { CL.api.saveBackupSettings({ lastProjectLocalBackupAt: new Date().toISOString() }); } catch (erro) { /* sem settings */ }
+          return true;
+        }).catch(function () { return false; });
+      }
+      window.versoesLocaisDoProjeto = function () {
+        return projetoLerChave(chaveDasVersoesDoProjeto()).then(function (v) { return Array.isArray(v) ? v : []; });
+      };
+
+      function projetoPersistir() {
+        clearTimeout(projetoTimeout);
+        projetoTimeout = null;
+        return projetoGravarChave(chaveDoProjeto(), { nome: projeto.nome, arquivos: projeto.arquivos, pastas: projeto.pastas, atualizadoEm: new Date().toISOString() })
+          .then(function () {
+            if (typeof espelharProjetoInteiroNoDisco === 'function') espelharProjetoInteiroNoDisco();
+            projetoGuardarVersaoLocal(false);
+            if (typeof window.agendarSincronizacaoDoProjeto === 'function') window.agendarSincronizacaoDoProjeto();
+            return true;
+          }).catch(function () { return false; });
+      }
+      function projetoAgendarPersistencia() {
+        clearTimeout(projetoTimeout);
+        projetoTimeout = setTimeout(projetoPersistir, 500);
+      }
+
+      function projetoCarregar() {
+        return projetoLerChave(chaveDoProjeto()).then(function (dados) {
+          if (dados) return dados;
+          // Migração da etapa 1: o projeto era salvo numa chave única ("atual").
+          return projetoLerChave('atual').then(function (legado) {
+            if (!legado) return null;
+            return projetoGravarChave(chaveDoProjeto(), legado).then(function () {
+              return abrirBancoDoProjeto().then(function (db) {
+                db.transaction('projeto', 'readwrite').objectStore('projeto').delete('atual');
+                db.close();
+                return legado;
+              });
+            }).catch(function () { return legado; });
+          });
+        }).then(function (dados) {
+          if (dados && dados.arquivos) {
+            projeto.nome = dados.nome || projeto.nome;
+            projeto.arquivos = dados.arquivos;
+            projeto.pastas = dados.pastas || {};
+          }
+          return projeto;
+        }).catch(function () { return projeto; });
+      }
+
+      // Substitui o projeto inteiro (restaurar backup / abrir pasta).
+      function projetoAplicar(dados) {
+        Object.keys(projeto.arquivos).forEach(function (caminho) { fecharAbaDoProjeto(caminho); });
+        var arquivos = {};
+        Object.keys(dados.arquivos).forEach(function (caminho) {
+          arquivos[caminho] = { linguagem: dados.arquivos[caminho].linguagem || linguagemDoArquivo(caminho) || 'plaintext', conteudo: dados.arquivos[caminho].conteudo || '' };
+        });
+        projeto.nome = dados.nome || 'Meu projeto';
+        projeto.arquivos = arquivos;
+        projeto.pastas = {};
+        (dados.pastas || []).forEach(function (pasta) { projeto.pastas[pasta] = true; });
+        Object.keys(arquivos).forEach(garantirPastasPai);
+        pastasAbertasNoExplorer = {};
+        itemSelecionadoNoExplorer = null;
+        pastaSelecionadaNoExplorer = '';
+        atualizarNomeDoProjetoNoExplorer();
+        renderizarExplorer();
+        agendarAtualizacaoPreview();
+        return projetoPersistir().then(function () { return Object.keys(arquivos).length; });
+      }
+      window.aplicarDadosDoProjeto = projetoAplicar;
+
+      window.addEventListener('pagehide', function () {
+        if (projetoTimeout) projetoPersistir();
+        projetoGuardarVersaoLocal(false);
+      });
 
       var carregandoCodigoDaEtapa = true;
       var codigoInicial = (window.getCodigoInicialParaEditor && window.getCodigoInicialParaEditor()) || {};
@@ -3102,9 +3400,9 @@
       // topo), mas a preferência continua global — alternar em qualquer
       // arquivo reflete em todos.
       function atualizarBotaoMinimap() {
-        Array.prototype.forEach.call(document.querySelectorAll('.file-tool-btn[data-acao="minimap"]'), function (botao) {
-          botao.setAttribute('aria-pressed', preferenciasDoEditor.minimap ? 'true' : 'false');
-          botao.classList.toggle('is-active', !!preferenciasDoEditor.minimap);
+        Array.prototype.forEach.call(document.querySelectorAll('.file-tool-menu-item[data-acao="minimap"]'), function (item) {
+          item.setAttribute('aria-checked', preferenciasDoEditor.minimap ? 'true' : 'false');
+          item.classList.toggle('is-active', !!preferenciasDoEditor.minimap);
         });
       }
       function alternarMinimap() {
@@ -3232,8 +3530,13 @@
       }
       if (compareFilesDialog) compareFilesDialog.addEventListener('close', descartarModelosDoDiff);
 
+      // Um arquivo pertence ao exercício da etapa (padrão) ou ao projeto do
+      // aluno (origem === 'projeto'). Os dois nunca se misturam: exercício
+      // vai para o salvamento da etapa; projeto vai para o próprio banco.
+      function ehArquivoDeExercicio(arquivo) { return arquivo.origem !== 'projeto'; }
+
       function removerArquivosExtras() {
-        arquivosExtras.forEach(function (arquivo) {
+        arquivosExtras.filter(ehArquivoDeExercicio).forEach(function (arquivo) {
           var aba = dragContainer.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
           var painel = document.getElementById(arquivo.idPane);
           clearTimeout(arquivo.validacaoTimeout);
@@ -3242,7 +3545,7 @@
           if (aba) aba.remove();
           if (painel) painel.remove();
         });
-        arquivosExtras = [];
+        arquivosExtras = arquivosExtras.filter(function (arquivo) { return !ehArquivoDeExercicio(arquivo); });
         if (typeof atualizarPainelDeProblemas === 'function') atualizarPainelDeProblemas();
       }
 
@@ -3274,7 +3577,7 @@
           html: codigoFonte.html,
           css: codigoFonte.css,
           js: codigoFonte.js,
-          files: arquivosExtras.map(function (arquivo) {
+          files: arquivosExtras.filter(ehArquivoDeExercicio).map(function (arquivo) {
             return { nome: arquivo.nome, linguagem: arquivo.linguagem, conteudo: arquivo.editor.getValue() };
           })
         };
@@ -3310,7 +3613,7 @@
           html: codigoFonte.html,
           css: codigoFonte.css,
           js: codigoFonte.js,
-          files: arquivosExtras.map(function (arquivo) {
+          files: arquivosExtras.filter(ehArquivoDeExercicio).map(function (arquivo) {
             return { nome: arquivo.nome, linguagem: arquivo.linguagem, conteudo: arquivo.editor.getValue() };
           })
         });
@@ -3330,8 +3633,12 @@
         return salvarCodigoAgora().then(function (salvou) {
           if (salvou) {
             marcarComoSalvo();
-            agendarSincronizacaoNuvem();
-            agendarBackupNoAparelho();
+            // Estas duas funções vivem em iniciarTeoria (outro escopo): são
+            // expostas em window. Chamá-las direto lançava ReferenceError, que o
+            // .catch abaixo engolia — todo salvamento terminava como "não salvo"
+            // e a nuvem/pasta do aparelho nunca eram agendadas a partir do IDE.
+            if (typeof window.agendarSincronizacaoNuvemDaIde === 'function') window.agendarSincronizacaoNuvemDaIde();
+            if (typeof window.agendarBackupNoAparelhoDaIde === 'function') window.agendarBackupNoAparelhoDaIde();
           }
           return salvou;
         }).catch(function () {
@@ -3704,7 +4011,7 @@
 
       function editorVisivelDoTipo(tipo) {
         var linguagensPorTipo = { html: ['html'], css: ['css'], js: ['javascript'] };
-        var arquivo = arquivosExtras.find(function (item) {
+        var arquivo = arquivosExtras.filter(ehArquivoDeExercicio).find(function (item) {
           return (linguagensPorTipo[tipo] || []).indexOf(item.linguagem) >= 0;
         });
         return arquivo ? arquivo.editor : null;
@@ -3717,13 +4024,13 @@
       var anotacoesExecucaoJS = [];
       function arquivoVisivelDoTipo(tipo) {
         var linguagensPorTipo = { html: ['html'], css: ['css'], js: ['javascript'] };
-        return arquivosExtras.find(function (arquivo) {
+        return arquivosExtras.filter(ehArquivoDeExercicio).find(function (arquivo) {
           return (linguagensPorTipo[tipo] || []).indexOf(arquivo.linguagem) >= 0;
         }) || null;
       }
 
       function mesclarAnotacoesExecucaoJS() {
-        obterArquivosPorLinguagem(['javascript']).forEach(function (arquivo) {
+        obterArquivosPorLinguagem(['javascript'], 'todas').forEach(function (arquivo) {
           var estaticas = arquivo.editor.session.getAnnotations().filter(function (a) { return !a.__execucao; });
           var execucaoDesteArquivo = anotacoesExecucaoJS.filter(function (a) { return a.__idPane === arquivo.idPane; });
           arquivo.editor.session.setAnnotations(estaticas.concat(execucaoDesteArquivo));
@@ -3731,7 +4038,7 @@
       }
 
       function finalizarAtualizacaoJS() {
-        obterArquivosPorLinguagem(['javascript']).forEach(function (arquivo) {
+        obterArquivosPorLinguagem(['javascript'], 'todas').forEach(function (arquivo) {
           var anotacoes = arquivo.editor.session.getAnnotations().concat(arquivo.editor.getNativeAnnotations());
           atualizarBadgeDoArquivo(arquivo, anotacoes);
         });
@@ -3826,8 +4133,9 @@
           botao.type = 'button';
           botao.className = 'preview-tab-btn';
           botao.setAttribute('role', 'tab');
-          botao.title = 'Ver preview de ' + arquivo.nome;
-          botao.textContent = arquivo.nome;
+          var rotuloDoPreview = arquivo.origem === 'projeto' ? '(projeto) ' + arquivo.nome : arquivo.nome;
+          botao.title = 'Ver preview de ' + rotuloDoPreview;
+          botao.textContent = rotuloDoPreview;
           var ativo = arquivo.idPane === previewAtivoIdPane;
           botao.classList.toggle('is-active', ativo);
           botao.setAttribute('aria-selected', ativo ? 'true' : 'false');
@@ -3879,9 +4187,13 @@
         }).join('\n');
       }
 
-      function obterArquivosPorLinguagem(linguagens) {
+      // origem: 'exercicio' (padrão), 'projeto' ou 'todas'. O preview de uma
+      // página só enxerga os CSS/JS da MESMA origem dela (ver montarCodigoPreview).
+      function obterArquivosPorLinguagem(linguagens, origem) {
+        origem = origem || 'exercicio';
         var ordemDasAbas = obterAbasOrdenadas().map(function (aba) { return aba.getAttribute('data-target'); });
         return arquivosExtras.filter(function (arquivo) {
+          if (origem !== 'todas' && (arquivo.origem || 'exercicio') !== origem) return false;
           return linguagens.indexOf(arquivo.linguagem) >= 0;
         }).sort(function (a, b) {
           return ordemDasAbas.indexOf(a.idPane) - ordemDasAbas.indexOf(b.idPane);
@@ -3924,9 +4236,10 @@
         // aba). CSS/JS não geram aba: são recursos compartilhados,
         // injetados dentro de qualquer página ativa, seja ela HTML,
         // Markdown ou SVG.
-        var arquivosPreview = obterArquivosPorLinguagem(['html', 'markdown', 'svg']);
-        var arquivosCss = obterArquivosPorLinguagem(['css']);
-        var arquivosJs = obterArquivosPorLinguagem(['javascript']);
+        var origemDoPreview = arquivoAtivo ? (arquivoAtivo.origem || 'exercicio') : 'exercicio';
+        var arquivosPreview = obterArquivosPorLinguagem(['html', 'markdown', 'svg'], origemDoPreview);
+        var arquivosCss = obterArquivosPorLinguagem(['css'], origemDoPreview);
+        var arquivosJs = obterArquivosPorLinguagem(['javascript'], origemDoPreview);
         var html = arquivoAtivo ? conteudoDaPaginaPreview(arquivoAtivo) : (arquivosPreview.length ? conteudoDaPaginaPreview(arquivosPreview[0]) : htmlEditor.getValue());
         var css = (arquivosCss.length ? arquivosCss.map(function (arquivo) { return arquivo.editor.getValue(); }).join('\n\n') : cssEditor.getValue());
         var linhaAcumuladaJs = 0;
@@ -4015,7 +4328,7 @@
         // HTML, Markdown e SVG usam preview — todos entram na mesma lista
         // de abas de visualização (CSS/JS são recursos injetados, não
         // geram aba própria).
-        var arquivosPreview = obterArquivosPorLinguagem(['html', 'markdown', 'svg']);
+        var arquivosPreview = obterArquivosPorLinguagem(['html', 'markdown', 'svg'], 'todas');
 
         if (!arquivosPreview.length) {
           // Caminho legado: nenhum arquivo HTML/Markdown/SVG em
@@ -4047,8 +4360,8 @@
           // entre todas as páginas) mudam.
           sincronizarIframesDePreview(arquivosPreview);
 
-          var arquivosCss = obterArquivosPorLinguagem(['css']);
-          var arquivosJs = obterArquivosPorLinguagem(['javascript']);
+          var arquivosCss = obterArquivosPorLinguagem(['css'], 'todas');
+          var arquivosJs = obterArquivosPorLinguagem(['javascript'], 'todas');
           var assinaturaCssJsAtual = arquivosCss.map(function (a) { return a.editor.getValue(); }).join('\u0000') +
             '\u0001' + arquivosJs.map(function (a) { return a.editor.getValue(); }).join('\u0000');
           var cssOuJsMudou = assinaturaCssJsAtual !== ultimaAssinaturaCssJs;
@@ -4168,6 +4481,7 @@
       });
 
       function atualizarJanela() {
+        if (!IDE_ABERTO && typeof fecharExplorer === 'function' && explorerPanel && !explorerPanel.hidden) fecharExplorer();
         mainWindowContainer.classList.toggle('is-collapsed', !IDE_ABERTO);
         contentWrapper.classList.toggle('hide-entire-window', !IDE_ABERTO);
         btnIdeCollapse.classList.toggle('is-active', !IDE_ABERTO);
@@ -4216,7 +4530,7 @@
       function mostrarPreview() {
         abrirJanela();
         chkTogglePreview.checked = true;
-        btnRun.classList.add('active');
+        atualizarBotaoPreviewToggle();
         contentWrapper.classList.add('with-preview');
         previewContainer.classList.add('show-preview');
 
@@ -4243,7 +4557,7 @@
 
       function fecharPreview() {
         chkTogglePreview.checked = false;
-        btnRun.classList.remove('active');
+        atualizarBotaoPreviewToggle();
         removerTodosOsIframesDePreview();
         previewContainer.classList.remove('show-preview');
         contentWrapper.classList.remove('with-preview');
@@ -4291,9 +4605,14 @@
             e.preventDefault();
             e.stopPropagation();
             var idPane = aba.getAttribute('data-target');
+            var eraDoProjeto = false;
             var indice = arquivosExtras.findIndex(function (arquivo) { return arquivo.idPane === idPane; });
             if (indice >= 0) {
               var arquivoFechado = arquivosExtras[indice];
+              eraDoProjeto = arquivoFechado.origem === 'projeto';
+              // Fechar a aba de um arquivo do projeto NÃO apaga o arquivo: o
+              // modelo do projeto já tem o conteúdo mais recente.
+              if (eraDoProjeto) sincronizarArquivoDoProjeto(arquivoFechado);
               clearTimeout(arquivoFechado.validacaoTimeout);
               if (arquivoFechado.layoutFrame) cancelAnimationFrame(arquivoFechado.layoutFrame);
               arquivoFechado.editor.dispose();
@@ -4311,7 +4630,7 @@
             sincronizarArquivosPrincipais();
             atualizarLayoutAbas();
             agendarAtualizacaoPreview();
-            agendarSalvamentoAutomatico();
+            if (!eraDoProjeto) agendarSalvamentoAutomatico();
             if (typeof atualizarPainelDeProblemas === 'function') atualizarPainelDeProblemas();
           });
         }
@@ -4319,7 +4638,7 @@
 
       function sincronizarArquivosPrincipais() {
         var principal = function (linguagens) {
-          return arquivosExtras.find(function (arquivo) { return linguagens.indexOf(arquivo.linguagem) >= 0; });
+          return arquivosExtras.filter(ehArquivoDeExercicio).find(function (arquivo) { return linguagens.indexOf(arquivo.linguagem) >= 0; });
         };
         var html = principal(['html']);
         var css = principal(['css']);
@@ -4337,8 +4656,12 @@
 
       function nomeUnicoDoArquivo(nomeDesejado) {
         var nome = String(nomeDesejado || 'arquivo.txt').replace(/\\/g, '/');
+        var origemDoNome = arguments[1] || 'exercicio';
         var existe = function (candidato) {
-          return arquivosExtras.some(function (arquivo) { return arquivo.nome.toLowerCase() === candidato.toLowerCase(); });
+          if (origemDoNome === 'projeto') {
+            return Object.keys(projeto.arquivos).some(function (caminho) { return caminho.toLowerCase() === candidato.toLowerCase(); });
+          }
+          return arquivosExtras.filter(ehArquivoDeExercicio).some(function (arquivo) { return arquivo.nome.toLowerCase() === candidato.toLowerCase(); });
         };
         if (!existe(nome)) return nome;
         var partes = nome.match(/^(.*?)(\.[^./]+)?$/);
@@ -4381,11 +4704,11 @@
 
       function sincronizarDependenciasLocais() {
         var referencias = [];
-        arquivosExtras.slice().forEach(function (arquivo) {
+        arquivosExtras.filter(ehArquivoDeExercicio).forEach(function (arquivo) {
           referencias = referencias.concat(referenciasLocaisDoArquivo(arquivo));
         });
         referencias.filter(function (nome, indice) { return referencias.indexOf(nome) === indice; }).forEach(function (nome) {
-          var existe = arquivosExtras.some(function (arquivo) { return arquivo.nome.toLowerCase() === nome.toLowerCase(); });
+          var existe = arquivosExtras.filter(ehArquivoDeExercicio).some(function (arquivo) { return arquivo.nome.toLowerCase() === nome.toLowerCase(); });
           var linguagem = linguagemDoArquivo(nome);
           if (!existe && linguagem) criarArquivoExtra(linguagem, nome, '');
         });
@@ -4397,6 +4720,94 @@
       // navegador) e age SOMENTE sobre aquele arquivo. Os botões gerais
       // (recolher, tela cheia, atalhos, preferências, adicionar arquivo)
       // continuam na barra do topo.
+      // ==================================================================
+      // ----------------------------------------------------------------
+      // Favicon por linguagem: fundo colorido + glifo simples, no mesmo
+      // espírito de temas de ícone de editor (fácil de reconhecer em ~18px,
+      // sem tentar reproduzir a logomarca oficial traço a traço).
+      // ----------------------------------------------------------------
+      function svgFavicon(corDeFundo, corDoTexto, texto, tamanhoFonte) {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5" fill="' + corDeFundo + '"/>' +
+          '<text x="12" y="16" font-size="' + (tamanhoFonte || 9) + '" font-weight="700" text-anchor="middle" fill="' + corDoTexto + '" font-family="Arial,Helvetica,sans-serif">' + texto + '</text></svg>';
+      }
+      // (ICONES_DE_LINGUAGEM foi movida para antes da restauração dos arquivos
+      // salvos — ver comentário lá.)
+
+      // Menu de ferramentas atualmente aberto (só um por vez, de qualquer
+      // arquivo) — fechado por clique fora ou Esc. Registrado uma única
+      // vez (fora de montarBarraDoArquivo, que roda por arquivo).
+      var menuDeFerramentasAberto = null;
+      function fecharMenuDeFerramentas() {
+        if (!menuDeFerramentasAberto) return;
+        if (menuDeFerramentasAberto.__botaoTrigger) menuDeFerramentasAberto.__botaoTrigger.setAttribute('aria-expanded', 'false');
+        if (menuDeFerramentasAberto.__descartavel) menuDeFerramentasAberto.remove();
+        else menuDeFerramentasAberto.hidden = true;
+        menuDeFerramentasAberto = null;
+      }
+      // Menu de contexto genérico de uso único (árvore do Explorer): cria,
+      // posiciona perto do botão-gatilho e remove ao fechar, reaproveitando
+      // o mesmo mecanismo de fechar-por-clique-fora/Esc acima.
+      function abrirMenuGenerico(botaoTrigger, itens, ponto) {
+        fecharMenuDeFerramentas();
+        var menu = document.createElement('div');
+        menu.className = 'file-tools-menu';
+        menu.setAttribute('role', 'menu');
+        itens.forEach(function (definicao) {
+          if (definicao.separador) {
+            var separador = document.createElement('div');
+            separador.className = 'file-tool-menu-sep';
+            separador.setAttribute('role', 'separator');
+            menu.appendChild(separador);
+            return;
+          }
+          var item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'file-tool-menu-item';
+          item.setAttribute('role', 'menuitem');
+          item.disabled = !!definicao.desabilitado;
+          item.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + definicao.icone + '"/></svg><span></span>' + (definicao.atalho ? '<kbd class="file-tool-menu-shortcut"></kbd>' : '');
+          item.querySelector('span').textContent = definicao.label;
+          if (definicao.atalho) item.querySelector('kbd').textContent = definicao.atalho;
+          item.addEventListener('click', function () {
+            fecharMenuDeFerramentas();
+            definicao.acao();
+          });
+          menu.appendChild(item);
+        });
+        // Dentro da janela do IDE (e não do body), para continuar visível em tela cheia.
+        mainWindowContainer.appendChild(menu);
+        var x, y;
+        if (ponto) { x = ponto.x; y = ponto.y; }
+        else { var retangulo = botaoTrigger.getBoundingClientRect(); x = retangulo.left; y = retangulo.bottom + 4; }
+        menu.style.top = Math.max(4, Math.min(y, window.innerHeight - menu.offsetHeight - 4)) + 'px';
+        menu.style.left = Math.max(4, Math.min(x, window.innerWidth - menu.offsetWidth - 4)) + 'px';
+        if (botaoTrigger) {
+          botaoTrigger.setAttribute('aria-expanded', 'true');
+          menu.__botaoTrigger = botaoTrigger;
+        }
+        menu.__descartavel = true;
+        menuDeFerramentasAberto = menu;
+        var primeiro = menu.querySelector('button:not(:disabled)');
+        if (primeiro && !ponto) primeiro.focus();
+      }
+      document.addEventListener('pointerdown', function (event) {
+        if (!menuDeFerramentasAberto) return;
+        if (menuDeFerramentasAberto.contains(event.target)) return;
+        if (menuDeFerramentasAberto.__botaoTrigger && menuDeFerramentasAberto.__botaoTrigger.contains(event.target)) return;
+        fecharMenuDeFerramentas();
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape' || !menuDeFerramentasAberto) return;
+        var botao = menuDeFerramentasAberto.__botaoTrigger;
+        fecharMenuDeFerramentas();
+        if (botao) botao.focus();
+      });
+
+      // ==================================================================
+      // Barra do arquivo: agora é uma aba de navegador de verdade —
+      // favicon da linguagem (que também é o gatilho do dropdown de
+      // ferramentas), nome do arquivo, toggle de preview e fechar. Tudo
+      // que antes era uma fileira de ícones vira itens do dropdown.
       // ==================================================================
       function montarBarraDoArquivo(arquivo, aba) {
         // Tabela e ícones ficam aqui dentro (e não em var externa) porque
@@ -4412,67 +4823,136 @@
           'buscar-arquivo': 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M16.5 16.5 21 21',
           comparar: 'M9 3v18 M15 3v18 M4 8h5 M4 12h5 M15 12h5 M15 16h5',
           minimap: 'M4 4h11v16H4z M18 4h2v6h-2z M18 12h2v3h-2z M18 17h2v3h-2z',
-          problemas: 'M12 3 2 20h20z M12 10v4 M12 17h.01',
-          console: 'M4 5h16v14H4z M7 9l3 3-3 3 M12 15h5',
-          'buscar-projeto': 'M4 4h9l4 4v2 M13 4v4h4 M4 4v16h6 M16 13a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M18.2 18.2 21 21',
+          painel: 'M12 3 2 20h20z M12 10v4 M12 17h.01',
           renomear: 'M4 20h4L19 9l-4-4L4 16z M14 6l4 4',
           duplicar: 'M9 9h11v11H9z M5 15V4h11',
-          limpar: 'M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6',
-          fechar: 'M6 6l12 12 M18 6 6 18'
+          limpar: 'M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6'
         };
         var grupos = [
           [['salvar', 'Salvar projeto (Ctrl+S)'], ['importar', 'Importar arquivo do computador'], ['exportar', 'Exportar este arquivo']],
-          [['desfazer', 'Desfazer (Ctrl+Z)'], ['refazer', 'Refazer (Ctrl+Y)'], ['formatar', 'Formatar código (Shift+Alt+F)'], ['buscar-arquivo', 'Buscar neste arquivo (Ctrl+F)'], ['comparar', 'Comparar com outro arquivo'], ['minimap', 'Mostrar/ocultar minimapa']],
-          [['problemas', 'Problemas'], ['console', 'Console'], ['buscar-projeto', 'Buscar em todos os arquivos']],
-          [['renomear', 'Renomear arquivo'], ['duplicar', 'Duplicar arquivo'], ['limpar', 'Limpar conteúdo do arquivo'], ['fechar', 'Fechar arquivo']]
+          [['desfazer', 'Desfazer'], ['refazer', 'Refazer'], ['formatar', 'Formatar código (Shift+Alt+F)'], ['buscar-arquivo', 'Buscar neste arquivo (Ctrl+F)'], ['comparar', 'Comparar com outro arquivo'], ['minimap', 'Mostrar/ocultar minimapa']],
+          [['painel', 'Problemas, console e busca no projeto']],
+          [['renomear', 'Renomear arquivo'], ['duplicar', 'Duplicar arquivo'], ['limpar', 'Limpar conteúdo do arquivo']]
         ];
 
         var barra = document.createElement('div');
         barra.className = 'file-toolbar';
-        barra.setAttribute('role', 'toolbar');
-        barra.setAttribute('aria-label', 'Ferramentas de ' + arquivo.nome);
+
+        // ---- Cabeçalho: favicon + nome + preview + fechar ----
+        var cabecalho = document.createElement('div');
+        cabecalho.className = 'file-toolbar-tab';
+
+        var botaoFavicon = document.createElement('button');
+        botaoFavicon.type = 'button';
+        botaoFavicon.className = 'file-favicon-btn';
+        botaoFavicon.setAttribute('aria-haspopup', 'menu');
+        botaoFavicon.setAttribute('aria-expanded', 'false');
+        botaoFavicon.title = 'Ferramentas de ' + arquivo.nome;
+        botaoFavicon.setAttribute('aria-label', 'Ferramentas de ' + arquivo.nome);
+        botaoFavicon.innerHTML = ICONES_DE_LINGUAGEM[arquivo.linguagem] || ICONES_DE_LINGUAGEM.plaintext;
+        cabecalho.appendChild(botaoFavicon);
+
+        var nomeSpan = document.createElement('span');
+        nomeSpan.className = 'file-toolbar-name';
+        nomeSpan.setAttribute('data-origem', arquivo.origem || 'exercicio');
+        nomeSpan.textContent = arquivo.nome;
+        cabecalho.appendChild(nomeSpan);
+        arquivo.spanNomeNaBarra = nomeSpan;
+
+        var espacador = document.createElement('span');
+        espacador.className = 'file-toolbar-spacer';
+        cabecalho.appendChild(espacador);
+
+        var botaoPreview = document.createElement('button');
+        botaoPreview.type = 'button';
+        botaoPreview.className = 'file-preview-toggle';
+        botaoPreview.title = 'Mostrar/ocultar preview';
+        botaoPreview.setAttribute('aria-label', 'Mostrar/ocultar preview');
+        var previewAtivo = !!(chkTogglePreview && chkTogglePreview.checked);
+        botaoPreview.setAttribute('aria-pressed', previewAtivo ? 'true' : 'false');
+        botaoPreview.classList.toggle('is-active', previewAtivo);
+        botaoPreview.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+        botaoPreview.addEventListener('click', function () {
+          chkTogglePreview.checked = !chkTogglePreview.checked;
+          chkTogglePreview.dispatchEvent(new Event('change'));
+        });
+        cabecalho.appendChild(botaoPreview);
+        arquivo.botaoPreviewToggle = botaoPreview;
+
+        var botaoFechar = document.createElement('button');
+        botaoFechar.type = 'button';
+        botaoFechar.className = 'file-toolbar-close-btn';
+        botaoFechar.title = 'Fechar arquivo';
+        botaoFechar.setAttribute('aria-label', 'Fechar arquivo');
+        botaoFechar.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+        botaoFechar.addEventListener('click', function () { executarAcaoDaBarra(arquivo, aba, 'fechar'); });
+        cabecalho.appendChild(botaoFechar);
+
+        barra.appendChild(cabecalho);
+
+        // ---- Dropdown de ferramentas (aberto pelo favicon) ----
+        var menu = document.createElement('div');
+        menu.className = 'file-tools-menu';
+        menu.hidden = true;
+        menu.setAttribute('role', 'menu');
+        menu.setAttribute('aria-label', 'Ferramentas de ' + arquivo.nome);
 
         grupos.forEach(function (grupo, indice) {
           if (indice > 0) {
-            var separador = document.createElement('span');
-            separador.className = 'file-tool-sep';
+            var separador = document.createElement('div');
+            separador.className = 'file-tool-menu-sep';
             separador.setAttribute('aria-hidden', 'true');
-            barra.appendChild(separador);
+            menu.appendChild(separador);
           }
           grupo.forEach(function (definicao) {
             var acao = definicao[0];
-            var botao = document.createElement('button');
-            botao.type = 'button';
-            botao.className = 'file-tool-btn';
-            botao.setAttribute('data-acao', acao);
-            botao.title = definicao[1];
-            botao.setAttribute('aria-label', definicao[1]);
+            var item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'file-tool-menu-item';
+            item.setAttribute('data-acao', acao);
+            item.setAttribute('role', 'menuitem');
             // Conteúdo 100% estático (sem dado do usuário): innerHTML é seguro aqui.
-            botao.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + icones[acao] + '"/></svg>';
-            if (acao === 'problemas') botao.insertAdjacentHTML('beforeend', '<span class="file-tool-count" hidden>0</span>');
-            if (acao === 'desfazer' || acao === 'refazer') botao.disabled = true;
+            item.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + icones[acao] + '"/></svg><span>' + definicao[1] + '</span>';
+            if (acao === 'painel') item.insertAdjacentHTML('beforeend', '<span class="file-tool-count" hidden>0</span>');
+            if (acao === 'desfazer' || acao === 'refazer') item.disabled = true;
             if (acao === 'minimap') {
-              // Não dá pra confiar em atualizarBotaoMinimap() aqui: ela usa
-              // document.querySelectorAll, e este botão ainda não foi
-              // inserido no documento (isso só acontece depois que esta
-              // função retornar) — por isso o estado inicial é definido
-              // diretamente, na criação.
+              // Não dá pra confiar em atualizarBotaoMinimap() aqui: usa
+              // document.querySelectorAll, e este item ainda não foi
+              // inserido no documento (só depois que a função retornar).
               var minimapAtivo = !!preferenciasDoEditor.minimap;
-              botao.setAttribute('aria-pressed', minimapAtivo ? 'true' : 'false');
-              botao.classList.toggle('is-active', minimapAtivo);
+              item.setAttribute('aria-checked', minimapAtivo ? 'true' : 'false');
+              item.classList.toggle('is-active', minimapAtivo);
             }
-            barra.appendChild(botao);
+            menu.appendChild(item);
           });
         });
 
-        arquivo.botaoDesfazer = barra.querySelector('[data-acao="desfazer"]');
-        arquivo.botaoRefazer = barra.querySelector('[data-acao="refazer"]');
-        arquivo.contadorProblemas = barra.querySelector('.file-tool-count');
+        barra.appendChild(menu);
 
-        barra.addEventListener('click', function (event) {
-          var botao = event.target.closest('button[data-acao]');
-          if (!botao || botao.disabled) return;
-          executarAcaoDaBarra(arquivo, aba, botao.getAttribute('data-acao'));
+        arquivo.botaoDesfazer = menu.querySelector('[data-acao="desfazer"]');
+        arquivo.botaoRefazer = menu.querySelector('[data-acao="refazer"]');
+        arquivo.contadorProblemas = menu.querySelector('.file-tool-count');
+        arquivo.botaoFavicon = botaoFavicon;
+        arquivo.menuDeFerramentas = menu;
+
+        menu.addEventListener('click', function (event) {
+          var item = event.target.closest('button[data-acao]');
+          if (!item || item.disabled) return;
+          fecharMenuDeFerramentas();
+          executarAcaoDaBarra(arquivo, aba, item.getAttribute('data-acao'));
+        });
+
+        botaoFavicon.addEventListener('click', function (event) {
+          event.stopPropagation();
+          if (menuDeFerramentasAberto === menu) { fecharMenuDeFerramentas(); return; }
+          fecharMenuDeFerramentas();
+          var retangulo = botaoFavicon.getBoundingClientRect();
+          menu.style.top = (retangulo.bottom + 4) + 'px';
+          menu.style.left = retangulo.left + 'px';
+          menu.hidden = false;
+          botaoFavicon.setAttribute('aria-expanded', 'true');
+          menu.__botaoTrigger = botaoFavicon;
+          menuDeFerramentasAberto = menu;
         });
 
         atualizarControlesHistorico();
@@ -4491,14 +4971,9 @@
           case 'buscar-arquivo': editor.focus(); editor.executarComando('actions.find'); break;
           case 'comparar': abrirComparacaoDeArquivos(arquivo); break;
           case 'minimap': alternarMinimap(); break;
-          case 'problemas': abrirPainelInferior('problemas'); break;
-          case 'console': abrirPainelInferior('console'); break;
-          case 'buscar-projeto':
-            abrirPainelInferior('buscar');
-            if (inputBuscaProjeto) inputBuscaProjeto.focus();
-            break;
-          case 'renomear': renomearArquivo(arquivo, aba); break;
-          case 'duplicar': duplicarArquivo(arquivo); break;
+          case 'painel': abrirPainelInferior('problemas'); break;
+          case 'renomear': if (arquivo.origem === 'projeto') renomearNoProjeto(arquivo.nome, false); else renomearArquivo(arquivo, aba); break;
+          case 'duplicar': if (arquivo.origem === 'projeto') duplicarNoProjeto(arquivo.nome, false); else duplicarArquivo(arquivo); break;
           case 'limpar': limparArquivo(arquivo); break;
           case 'fechar': aba.querySelector('.file-close-btn').click(); break;
         }
@@ -4526,11 +5001,16 @@
         if (!novoNome || novoNome.trim() === arquivo.nome) return;
         novoNome = nomeUnicoDoArquivo(novoNome.trim());
         arquivo.nome = novoNome;
-        aba.querySelector('.tab-text').textContent = novoNome;
+        var textoDaAba = aba.querySelector('.tab-text');
+        if (textoDaAba) textoDaAba.textContent = novoNome;
         aba.setAttribute('aria-label', novoNome);
         aba.setAttribute('title', novoNome);
-        var barra = document.getElementById(arquivo.idPane).querySelector('.file-toolbar');
-        if (barra) barra.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
+        if (arquivo.spanNomeNaBarra) arquivo.spanNomeNaBarra.textContent = novoNome;
+        if (arquivo.botaoFavicon) {
+          arquivo.botaoFavicon.title = 'Ferramentas de ' + novoNome;
+          arquivo.botaoFavicon.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
+        }
+        if (arquivo.menuDeFerramentas) arquivo.menuDeFerramentas.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
         sincronizarDependenciasLocais();
         agendarSalvamentoAutomatico();
         agendarAtualizacaoPreview();
@@ -4542,15 +5022,1481 @@
         mostrarToast('Arquivo duplicado.');
       }
 
-      function criarArquivoExtra(linguagem, nome, conteudo) {
+      // ==================================================================
+      // Explorer do projeto (item 6). Pastas são virtuais por padrão — só
+      // existem como prefixo de caminho em arquivo.nome (ex.:
+      // "componentes/Header.jsx") mais um registro à parte para pastas
+      // vazias (pastasVirtuais). Opcionalmente, o usuário pode vincular
+      // uma pasta real do computador (File System Access API) para
+      // espelhar os arquivos nela — reaproveitando o mesmo padrão já usado
+      // pelo backup manual em pasta local, mas com armazenamento próprio,
+      // sem interferir com ele.
+      // ==================================================================
+      var pastaSelecionadaNoExplorer = '';
+      var pastasAbertasNoExplorer = {};
+      var pastaRealHandle = null;
+      var explorerPanel = document.getElementById('explorer-panel');
+      var explorerTree = document.getElementById('explorer-tree');
+      var explorerStatus = document.getElementById('explorer-status');
+      var explorerVincularPasta = document.getElementById('explorer-abrir-pasta');
+      var btnExplorerToggle = document.getElementById('btn-explorer-toggle');
+
+      function caminhoCompletoNoExplorer(pastaBase, nome) {
+        return pastaBase ? (pastaBase + '/' + nome) : nome;
+      }
+
+      function construirArvoreDoProjeto() {
+        var raiz = { pastas: {}, arquivos: [] };
+        function obterNo(caminhoDaPasta) {
+          if (!caminhoDaPasta) return raiz;
+          var partes = caminhoDaPasta.split('/');
+          var no = raiz;
+          var acumulado = '';
+          partes.forEach(function (parte) {
+            acumulado = acumulado ? acumulado + '/' + parte : parte;
+            if (!no.pastas[parte]) no.pastas[parte] = { pastas: {}, arquivos: [], caminho: acumulado };
+            no = no.pastas[parte];
+          });
+          return no;
+        }
+        Object.keys(projeto.pastas).forEach(function (caminho) { obterNo(caminho); });
+        Object.keys(projeto.arquivos).forEach(function (caminho) {
+          var partes = caminho.split('/');
+          var nomeExibido = partes.pop();
+          obterNo(partes.join('/')).arquivos.push({ caminho: caminho, linguagem: projeto.arquivos[caminho].linguagem, nomeExibido: nomeExibido });
+        });
+        return raiz;
+      }
+
+      var ICONE_PASTA_EXPLORER = '<svg class="explorer-node-folder-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z"/></svg>';
+      var ICONE_CARET_EXPLORER = '<svg class="explorer-node-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+      var ICONE_MENU_PONTOS_EXPLORER = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
+
+      function preencherListaDeNosDoExplorer(lista, no) {
+        Object.keys(no.pastas).sort().forEach(function (nomeDaPasta) {
+          lista.appendChild(renderizarPastaDoExplorer(no.pastas[nomeDaPasta], nomeDaPasta));
+        });
+        no.arquivos.sort(function (a, b) { return a.nomeExibido.localeCompare(b.nomeExibido); }).forEach(function (item) {
+          lista.appendChild(renderizarArquivoDoExplorer(item));
+        });
+      }
+
+      function renderizarPastaDoExplorer(no, nomeDoNo) {
+        var li = document.createElement('li');
+        li.className = 'explorer-node ' + (pastasAbertasNoExplorer[no.caminho] ? 'is-aberto' : 'is-fechado');
+        li.setAttribute('data-pasta', no.caminho);
+
+        var linha = document.createElement('div');
+        linha.className = 'explorer-node-row' + (pastaSelecionadaNoExplorer === no.caminho ? ' is-active' : '');
+        linha.tabIndex = 0;
+        linha.innerHTML = ICONE_CARET_EXPLORER + ICONE_PASTA_EXPLORER + '<span class="explorer-node-name"></span>';
+        linha.querySelector('.explorer-node-name').textContent = nomeDoNo;
+        var botaoMenu = document.createElement('button');
+        botaoMenu.type = 'button';
+        botaoMenu.className = 'explorer-icon-btn explorer-node-menu-btn';
+        botaoMenu.title = 'Mais ações';
+        botaoMenu.setAttribute('aria-label', 'Mais ações para a pasta ' + nomeDoNo);
+        botaoMenu.innerHTML = ICONE_MENU_PONTOS_EXPLORER;
+        linha.appendChild(botaoMenu);
+        li.appendChild(linha);
+
+        var filhos = document.createElement('ul');
+        filhos.className = 'explorer-children';
+        preencherListaDeNosDoExplorer(filhos, no);
+        li.appendChild(filhos);
+        return li;
+      }
+
+      // ---- Operações sobre o projeto (modelo em `projeto`, não em abas) ----
+      var itemSelecionadoNoExplorer = null; // { caminho, ehPasta }
+      var areaDeTransferenciaDoProjeto = null; // { modo: 'copiar'|'recortar', caminho, ehPasta }
+      var ICONES_MENU = {
+        abrir: 'M5 4h9l5 5v11H5z M14 4v5h5',
+        novoArquivo: 'M12 5v14M5 12h14',
+        novaPasta: 'M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z M12 11v5M9.5 13.5h5',
+        recortar: 'M6 7a2 2 0 1 0 .01 0 M6 17a2 2 0 1 0 .01 0 M8 8l12 10 M8 16 20 6',
+        copiar: 'M9 9h11v11H9z M5 15V4h11',
+        colar: 'M9 4h6v3H9z M7 5H5v15h14V5h-2 M9 12h6 M9 16h6',
+        caminho: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1 M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+        renomear: 'M4 20h4L19 9l-4-4L4 16z M14 6l4 4',
+        baixar: 'M12 4v11 M8 11l4 4 4-4 M5 20h14',
+        excluir: 'M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13'
+      };
+
+      function nomeBaseDoCaminho(caminho) { return String(caminho).split('/').pop(); }
+      function pastaPaiDoCaminho(caminho) { var partes = String(caminho).split('/'); partes.pop(); return partes.join('/'); }
+
+      function garantirPastasPai(caminho) {
+        var partes = pastaPaiDoCaminho(caminho).split('/').filter(Boolean);
+        var acumulado = '';
+        partes.forEach(function (parte) {
+          acumulado = acumulado ? acumulado + '/' + parte : parte;
+          projeto.pastas[acumulado] = true;
+        });
+      }
+
+      // Nomes que não podem virar chave do modelo do projeto (um arquivo chamado
+      // "__proto__" alteraria o protótipo do objeto em vez de criar uma entrada).
+      function caminhoSeguroNoProjeto(caminho) {
+        return String(caminho).split('/').every(function (parte) { return parte && parte !== '__proto__' && parte !== '.' && parte !== '..'; });
+      }
+
+      function caminhoExisteNoProjeto(caminho) {
+        var minusculo = caminho.toLowerCase();
+        return Object.keys(projeto.arquivos).concat(Object.keys(projeto.pastas)).some(function (c) { return c.toLowerCase() === minusculo; });
+      }
+
+      function caminhoUnicoNoProjeto(caminho) {
+        if (!caminhoExisteNoProjeto(caminho)) return caminho;
+        var partes = caminho.match(/^(.*?)(\.[^./]+)?$/);
+        var base = partes && partes[1] ? partes[1] : caminho;
+        var extensao = partes && partes[2] ? partes[2] : '';
+        var n = 2;
+        while (caminhoExisteNoProjeto(base + '-' + n + extensao)) n++;
+        return base + '-' + n + extensao;
+      }
+
+      function arquivoAbertoDoProjeto(caminho) {
+        return arquivosExtras.filter(function (a) { return a.origem === 'projeto' && a.nome === caminho; })[0] || null;
+      }
+
+      function conteudoAtualDoArquivoDoProjeto(caminho) {
+        var aberto = arquivoAbertoDoProjeto(caminho);
+        if (aberto) return aberto.editor.getValue();
+        return projeto.arquivos[caminho] ? projeto.arquivos[caminho].conteudo : '';
+      }
+
+      function sincronizarArquivoDoProjeto(arquivo) {
+        if (!projeto.arquivos[arquivo.nome]) return;
+        projeto.arquivos[arquivo.nome].conteudo = arquivo.editor.getValue();
+        projetoAgendarPersistencia();
+      }
+
+      function fecharAbaDoProjeto(caminho) {
+        var aberto = arquivoAbertoDoProjeto(caminho);
+        if (!aberto) return;
+        var aba = dragContainer.querySelector('.code-tab[data-target="' + aberto.idPane + '"]');
+        var botao = aba && aba.querySelector('.file-close-btn');
+        if (botao) botao.click();
+      }
+
+      function aplicarNovoNomeNaAba(arquivo, novoNome) {
+        var aba = dragContainer.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
+        arquivo.nome = novoNome;
+        if (aba) {
+          var textoDaAba = aba.querySelector('.tab-text');
+          if (textoDaAba) textoDaAba.textContent = novoNome;
+          aba.setAttribute('aria-label', novoNome);
+          aba.setAttribute('title', novoNome);
+        }
+        if (arquivo.spanNomeNaBarra) arquivo.spanNomeNaBarra.textContent = novoNome;
+        if (arquivo.botaoFavicon) {
+          arquivo.botaoFavicon.title = 'Ferramentas de ' + novoNome;
+          arquivo.botaoFavicon.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
+        }
+      }
+
+      function criarArquivoDoProjeto(linguagem, caminho, conteudo, abrir) {
+        caminho = String(caminho || '').replace(/\\/g, '/').replace(/^\/+/, '');
+        if (!caminho) return null;
+        if (!caminhoSeguroNoProjeto(caminho)) { mostrarToast('Nome de arquivo não permitido.'); return null; }
+        caminho = caminhoUnicoNoProjeto(caminho);
+        garantirPastasPai(caminho);
+        projeto.arquivos[caminho] = { linguagem: linguagem || linguagemDoArquivo(caminho) || 'plaintext', conteudo: conteudo || '' };
+        projetoAgendarPersistencia();
+        if (abrir) abrirArquivoDoProjeto(caminho); else renderizarExplorer();
+        return caminho;
+      }
+
+      function abrirArquivoDoProjeto(caminho) {
+        var dados = projeto.arquivos[caminho];
+        if (!dados) return;
+        var aberto = arquivoAbertoDoProjeto(caminho);
+        if (aberto) { ativarArquivoNoExplorer(aberto); return; }
+        abrirJanela();
+        criarArquivoExtra(dados.linguagem, caminho, dados.conteudo, { origem: 'projeto', exato: true });
+        renderizarExplorer();
+      }
+
+      // Lista o que um caminho engloba (ele mesmo, ou a pasta com tudo dentro).
+      function itensDoCaminho(origem, ehPasta) {
+        if (!ehPasta) return { arquivos: [origem], pastas: [] };
+        var prefixo = origem + '/';
+        return {
+          arquivos: Object.keys(projeto.arquivos).filter(function (c) { return c.indexOf(prefixo) === 0; }),
+          pastas: [origem].concat(Object.keys(projeto.pastas).filter(function (c) { return c.indexOf(prefixo) === 0; }))
+        };
+      }
+
+      function reescreverPrefixo(caminho, origem, destino) {
+        return caminho === origem ? destino : destino + caminho.slice(origem.length);
+      }
+
+      function moverNoProjeto(origem, destino, ehPasta) {
+        if (origem === destino) return true;
+        if (ehPasta && (destino + '/').indexOf(origem + '/') === 0) { mostrarToast('Não é possível mover uma pasta para dentro dela mesma.'); return false; }
+        if (caminhoExisteNoProjeto(destino) && destino.toLowerCase() !== origem.toLowerCase()) { mostrarToast('Já existe um item chamado "' + nomeBaseDoCaminho(destino) + '" nesse local.'); return false; }
+        var itens = itensDoCaminho(origem, ehPasta);
+        // Se a extensão muda a linguagem de um arquivo aberto, fecha a aba antes.
+        itens.arquivos.forEach(function (c) {
+          var nova = reescreverPrefixo(c, origem, destino);
+          var linguagemNova = linguagemDoArquivo(nova);
+          if (linguagemNova && linguagemNova !== projeto.arquivos[c].linguagem) fecharAbaDoProjeto(c);
+        });
+        var novosArquivos = {};
+        Object.keys(projeto.arquivos).forEach(function (c) {
+          if (itens.arquivos.indexOf(c) === -1) { novosArquivos[c] = projeto.arquivos[c]; return; }
+          var nova = reescreverPrefixo(c, origem, destino);
+          var dados = projeto.arquivos[c];
+          dados.conteudo = conteudoAtualDoArquivoDoProjeto(c);
+          if (linguagemDoArquivo(nova)) dados.linguagem = linguagemDoArquivo(nova);
+          novosArquivos[nova] = dados;
+          var aberto = arquivoAbertoDoProjeto(c);
+          if (aberto) aplicarNovoNomeNaAba(aberto, nova);
+        });
+        projeto.arquivos = novosArquivos;
+        itens.pastas.forEach(function (c) {
+          delete projeto.pastas[c];
+          pastasAbertasNoExplorer[reescreverPrefixo(c, origem, destino)] = pastasAbertasNoExplorer[c];
+          delete pastasAbertasNoExplorer[c];
+        });
+        itens.pastas.forEach(function (c) { projeto.pastas[reescreverPrefixo(c, origem, destino)] = true; });
+        garantirPastasPai(destino);
+        if (itemSelecionadoNoExplorer && itemSelecionadoNoExplorer.caminho === origem) itemSelecionadoNoExplorer.caminho = destino;
+        if (pastaSelecionadaNoExplorer === origem) pastaSelecionadaNoExplorer = destino;
+        projetoAgendarPersistencia();
+        agendarAtualizacaoPreview();
+        renderizarExplorer();
+        return true;
+      }
+
+      function copiarNoProjeto(origem, destino, ehPasta) {
+        var itens = itensDoCaminho(origem, ehPasta);
+        itens.arquivos.forEach(function (c) {
+          var dados = projeto.arquivos[c];
+          projeto.arquivos[reescreverPrefixo(c, origem, destino)] = { linguagem: dados.linguagem, conteudo: conteudoAtualDoArquivoDoProjeto(c) };
+        });
+        itens.pastas.forEach(function (c) { projeto.pastas[reescreverPrefixo(c, origem, destino)] = true; });
+        garantirPastasPai(destino);
+        projetoAgendarPersistencia();
+        renderizarExplorer();
+      }
+
+      function renomearNoProjeto(caminho, ehPasta) {
+        var novoNome = window.prompt('Novo nome:', nomeBaseDoCaminho(caminho));
+        if (novoNome === null) return;
+        novoNome = novoNome.trim().replace(/[\\/]+/g, '-');
+        if (!novoNome || novoNome === nomeBaseDoCaminho(caminho)) return;
+        var pai = pastaPaiDoCaminho(caminho);
+        moverNoProjeto(caminho, caminhoCompletoNoExplorer(pai, novoNome), ehPasta);
+      }
+
+      function duplicarNoProjeto(caminho, ehPasta) {
+        var destino = caminhoUnicoNoProjeto(caminho);
+        if (destino === caminho) return;
+        copiarNoProjeto(caminho, destino, ehPasta);
+        mostrarToast('Duplicado como ' + nomeBaseDoCaminho(destino) + '.');
+      }
+
+      function excluirNoProjeto(caminho, ehPasta) {
+        var itens = itensDoCaminho(caminho, ehPasta);
+        var texto = ehPasta
+          ? 'Excluir a pasta "' + caminho + '" e os ' + itens.arquivos.length + ' arquivo(s) dentro dela? Isso não pode ser desfeito.'
+          : 'Excluir "' + caminho + '"? Isso não pode ser desfeito.';
+        if (!window.confirm(texto)) return;
+        itens.arquivos.forEach(function (c) { fecharAbaDoProjeto(c); delete projeto.arquivos[c]; });
+        itens.pastas.forEach(function (c) { delete projeto.pastas[c]; delete pastasAbertasNoExplorer[c]; });
+        if (itemSelecionadoNoExplorer && itemSelecionadoNoExplorer.caminho === caminho) itemSelecionadoNoExplorer = null;
+        if (pastaSelecionadaNoExplorer === caminho || pastaSelecionadaNoExplorer.indexOf(caminho + '/') === 0) pastaSelecionadaNoExplorer = '';
+        projetoAgendarPersistencia();
+        agendarAtualizacaoPreview();
+        renderizarExplorer();
+      }
+
+      function colarNoProjeto(pastaDestino) {
+        var area = areaDeTransferenciaDoProjeto;
+        if (!area) return;
+        if (area.ehPasta && (pastaDestino + '/').indexOf(area.caminho + '/') === 0) { mostrarToast('Não é possível colar uma pasta dentro dela mesma.'); return; }
+        var base = nomeBaseDoCaminho(area.caminho);
+        var destino = caminhoCompletoNoExplorer(pastaDestino, base);
+        if (area.modo === 'copiar') {
+          copiarNoProjeto(area.caminho, caminhoUnicoNoProjeto(destino), area.ehPasta);
+        } else if (moverNoProjeto(area.caminho, destino, area.ehPasta)) {
+          areaDeTransferenciaDoProjeto = null;
+        }
+        if (pastaDestino) pastasAbertasNoExplorer[pastaDestino] = true;
+        renderizarExplorer();
+      }
+
+      function pastaDeDestinoParaColar(item) {
+        if (!item) return pastaSelecionadaNoExplorer || '';
+        return item.ehPasta ? item.caminho : pastaPaiDoCaminho(item.caminho);
+      }
+
+      function copiarTextoParaAreaDeTransferencia(texto) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(texto).then(function () { mostrarToast('Caminho copiado.'); }, function () { mostrarToast('Não foi possível copiar.'); });
+        }
+      }
+
+      var baixarItemDoProjeto = function (caminho, ehPasta) {
+        if (!ehPasta) { baixarArquivo(conteudoAtualDoArquivoDoProjeto(caminho), nomeBaseDoCaminho(caminho)); return; }
+        mostrarToast('Baixar pasta inteira como .zip chega na próxima etapa (use "Exportar projeto").');
+      }
+
+      function itensDoMenuDoExplorer(item) {
+        var ehPasta = !!(item && item.ehPasta);
+        var caminho = item ? item.caminho : '';
+        var pastaAlvo = pastaDeDestinoParaColar(item);
+        var colarAtivo = !!areaDeTransferenciaDoProjeto;
+        var colar = { label: 'Colar', icone: ICONES_MENU.colar, atalho: 'Ctrl+V', desabilitado: !colarAtivo, acao: function () { colarNoProjeto(pastaAlvo); } };
+        if (!item) {
+          return [
+            { label: 'Novo arquivo', icone: ICONES_MENU.novoArquivo, acao: function () { criarArquivoNoExplorer(''); } },
+            { label: 'Nova pasta', icone: ICONES_MENU.novaPasta, acao: function () { criarPastaNoExplorer(''); } },
+            { separador: true },
+            colar
+          ];
+        }
+        var lista = [];
+        if (ehPasta) {
+          lista.push({ label: 'Novo arquivo', icone: ICONES_MENU.novoArquivo, acao: function () { criarArquivoNoExplorer(caminho); } });
+          lista.push({ label: 'Nova pasta', icone: ICONES_MENU.novaPasta, acao: function () { criarPastaNoExplorer(caminho); } });
+        } else {
+          lista.push({ label: 'Abrir', icone: ICONES_MENU.abrir, atalho: 'Enter', acao: function () { abrirArquivoDoProjeto(caminho); } });
+        }
+        lista.push({ separador: true });
+        lista.push({ label: 'Recortar', icone: ICONES_MENU.recortar, atalho: 'Ctrl+X', acao: function () { areaDeTransferenciaDoProjeto = { modo: 'recortar', caminho: caminho, ehPasta: ehPasta }; } });
+        lista.push({ label: 'Copiar', icone: ICONES_MENU.copiar, atalho: 'Ctrl+C', acao: function () { areaDeTransferenciaDoProjeto = { modo: 'copiar', caminho: caminho, ehPasta: ehPasta }; } });
+        lista.push(colar);
+        lista.push({ separador: true });
+        lista.push({ label: 'Copiar caminho', icone: ICONES_MENU.caminho, acao: function () { copiarTextoParaAreaDeTransferencia(caminho); } });
+        lista.push({ label: 'Duplicar', icone: ICONES_MENU.copiar, acao: function () { duplicarNoProjeto(caminho, ehPasta); } });
+        lista.push({ label: 'Renomear…', icone: ICONES_MENU.renomear, atalho: 'F2', acao: function () { renomearNoProjeto(caminho, ehPasta); } });
+        lista.push({ label: ehPasta ? 'Baixar pasta' : 'Baixar', icone: ICONES_MENU.baixar, acao: function () { baixarItemDoProjeto(caminho, ehPasta); } });
+        lista.push({ separador: true });
+        lista.push({ label: 'Excluir', icone: ICONES_MENU.excluir, atalho: 'Del', acao: function () { excluirNoProjeto(caminho, ehPasta); } });
+        return lista;
+      }
+
+      function renderizarArquivoDoExplorer(item) {
+        var li = document.createElement('li');
+        li.className = 'explorer-node';
+        var aberto = arquivoAbertoDoProjeto(item.caminho);
+        var aba = aberto && document.querySelector('.code-tab[data-target="' + aberto.idPane + '"]');
+        var checkbox = aba && aba.querySelector('.editor-toggle-checkbox');
+        var ativo = !!(checkbox && checkbox.checked);
+        var selecionado = itemSelecionadoNoExplorer && !itemSelecionadoNoExplorer.ehPasta && itemSelecionadoNoExplorer.caminho === item.caminho;
+        var linha = document.createElement('div');
+        linha.className = 'explorer-node-row' + (ativo ? ' is-active' : '') + (selecionado ? ' is-selecionado' : '');
+        linha.tabIndex = 0;
+        linha.setAttribute('data-caminho', item.caminho);
+        linha.draggable = true;
+        var favicon = (ICONES_DE_LINGUAGEM[item.linguagem] || ICONES_DE_LINGUAGEM.plaintext).replace('<svg ', '<svg class="explorer-node-favicon" ');
+        linha.innerHTML = '<span class="explorer-node-caret" aria-hidden="true" style="visibility:hidden">' + ICONE_CARET_EXPLORER + '</span>' + favicon + '<span class="explorer-node-name"></span>';
+        linha.querySelector('.explorer-node-name').textContent = item.nomeExibido;
+        var botaoMenu = document.createElement('button');
+        botaoMenu.type = 'button';
+        botaoMenu.className = 'explorer-icon-btn explorer-node-menu-btn';
+        botaoMenu.title = 'Mais ações';
+        botaoMenu.setAttribute('aria-label', 'Mais ações para ' + item.nomeExibido);
+        botaoMenu.innerHTML = ICONE_MENU_PONTOS_EXPLORER;
+        linha.appendChild(botaoMenu);
+        li.appendChild(linha);
+        return li;
+      }
+
+      // Devolve o foco à linha do Explorer (teclado: F2, Del, Ctrl+C/X/V).
+      function focarLinhaDoExplorer(item) {
+        if (!explorerTree || !item) return;
+        var linhas = explorerTree.querySelectorAll('.explorer-node-row');
+        for (var i = 0; i < linhas.length; i++) {
+          var linha = linhas[i];
+          var pasta = linha.parentNode && linha.parentNode.getAttribute && linha.parentNode.getAttribute('data-pasta');
+          var combina = item.ehPasta ? pasta === item.caminho : linha.getAttribute('data-caminho') === item.caminho;
+          if (combina) { linha.focus(); return; }
+        }
+      }
+
+      function renderizarExplorer() {
+        if (!explorerTree) return;
+        var itemComFoco = (document.activeElement && explorerTree.contains(document.activeElement)) ? itemDoElementoNoExplorer(document.activeElement) : null;
+        var raiz = construirArvoreDoProjeto();
+        explorerTree.innerHTML = '';
+        if (!Object.keys(raiz.pastas).length && !raiz.arquivos.length) {
+          var vazio = document.createElement('p');
+          vazio.className = 'explorer-empty';
+          vazio.textContent = 'Projeto vazio. Crie um arquivo ou pasta, ou importe um projeto do computador.';
+          explorerTree.appendChild(vazio);
+          return;
+        }
+        preencherListaDeNosDoExplorer(explorerTree, raiz);
+        if (itemComFoco) focarLinhaDoExplorer(itemComFoco);
+      }
+
+      function criarPastaNoExplorer(pastaBase) {
+        var nome = window.prompt('Nome da nova pasta:', '');
+        if (!nome) return;
+        nome = nome.trim().replace(/[\\/]+/g, '-');
+        if (!nome) return;
+        var caminho = caminhoUnicoNoProjeto(caminhoCompletoNoExplorer(pastaBase != null ? pastaBase : pastaSelecionadaNoExplorer, nome));
+        projeto.pastas[caminho] = true;
+        garantirPastasPai(caminho);
+        pastasAbertasNoExplorer[caminho] = true;
+        pastaSelecionadaNoExplorer = caminho;
+        projetoAgendarPersistencia();
+        renderizarExplorer();
+      }
+
+      function criarArquivoNoExplorer(pastaBase) {
+        var pasta = pastaBase != null ? pastaBase : pastaSelecionadaNoExplorer;
+        var nome = window.prompt('Nome do novo arquivo (com extensão, ex.: estilo.css):', 'arquivo.js');
+        if (!nome) return;
+        nome = nome.trim();
+        if (!nome) return;
+        var linguagem = linguagemDoArquivo(nome) || 'plaintext';
+        if (pasta) pastasAbertasNoExplorer[pasta] = true;
+        criarArquivoDoProjeto(linguagem, caminhoCompletoNoExplorer(pasta, nome), '', true);
+      }
+
+      function ativarArquivoNoExplorer(arquivo) {
+        var aba = document.querySelector('.code-tab[data-target="' + arquivo.idPane + '"]');
+        var checkbox = aba && aba.querySelector('.editor-toggle-checkbox');
+        if (checkbox && !checkbox.checked) {
+          checkbox.checked = true;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+        arquivo.editor.focus();
+        renderizarExplorer();
+      }
+
+      function itemDoElementoNoExplorer(alvo) {
+        var linhaArquivo = alvo.closest && alvo.closest('.explorer-node-row[data-caminho]');
+        if (linhaArquivo) return { caminho: linhaArquivo.getAttribute('data-caminho'), ehPasta: false };
+        var liPasta = alvo.closest && alvo.closest('.explorer-node[data-pasta]');
+        if (liPasta) return { caminho: liPasta.getAttribute('data-pasta'), ehPasta: true };
+        return null;
+      }
+
+      if (explorerTree) {
+        explorerTree.addEventListener('click', function (event) {
+          var item = itemDoElementoNoExplorer(event.target);
+          var botaoMenu = event.target.closest('.explorer-node-menu-btn');
+          if (botaoMenu && item) {
+            event.stopPropagation();
+            itemSelecionadoNoExplorer = item;
+            abrirMenuGenerico(botaoMenu, itensDoMenuDoExplorer(item));
+            return;
+          }
+          if (!item) return;
+          itemSelecionadoNoExplorer = item;
+          if (!item.ehPasta) {
+            abrirArquivoDoProjeto(item.caminho);
+            // Como no VS Code: um clique abre o arquivo mas mantém o foco na
+            // árvore (para F2/Del/Ctrl+C/V). Enter ou duplo clique levam ao editor.
+            setTimeout(function () { focarLinhaDoExplorer(item); }, 0);
+            return;
+          }
+          var liDaPasta = event.target.closest('.explorer-node[data-pasta]');
+          if (event.target.closest('.explorer-node-row') === liDaPasta.querySelector(':scope > .explorer-node-row')) {
+            pastaSelecionadaNoExplorer = item.caminho;
+            pastasAbertasNoExplorer[item.caminho] = !pastasAbertasNoExplorer[item.caminho];
+            renderizarExplorer();
+          }
+        });
+
+        explorerTree.addEventListener('dblclick', function (event) {
+          var item = itemDoElementoNoExplorer(event.target);
+          if (!item || item.ehPasta) return;
+          var aberto = arquivoAbertoDoProjeto(item.caminho);
+          if (aberto) ativarArquivoNoExplorer(aberto);
+        });
+
+        // Botão direito = menu de contexto (como no VS Code), inclusive no
+        // espaço vazio da árvore (novo arquivo/pasta, colar).
+        explorerTree.addEventListener('contextmenu', function (event) {
+          event.preventDefault();
+          var item = itemDoElementoNoExplorer(event.target);
+          if (item) {
+            itemSelecionadoNoExplorer = item;
+            if (item.ehPasta) pastaSelecionadaNoExplorer = item.caminho;
+          }
+          abrirMenuGenerico(null, itensDoMenuDoExplorer(item), { x: event.clientX, y: event.clientY });
+        });
+        var painelDoExplorer = document.getElementById('explorer-panel');
+        if (painelDoExplorer) {
+          painelDoExplorer.addEventListener('contextmenu', function (event) {
+            if (event.target.closest('#explorer-tree')) return;
+            if (event.target.closest('.explorer-header')) return;
+            event.preventDefault();
+            abrirMenuGenerico(null, itensDoMenuDoExplorer(null), { x: event.clientX, y: event.clientY });
+          });
+        }
+
+        // Atalhos de teclado do Explorer.
+        explorerTree.addEventListener('keydown', function (event) {
+          var item = itemDoElementoNoExplorer(event.target);
+          if (!item) return;
+          var ctrl = event.ctrlKey || event.metaKey;
+          if (event.key === 'Enter') { event.preventDefault(); if (item.ehPasta) { pastasAbertasNoExplorer[item.caminho] = !pastasAbertasNoExplorer[item.caminho]; renderizarExplorer(); } else { abrirArquivoDoProjeto(item.caminho); var abertoPorEnter = arquivoAbertoDoProjeto(item.caminho); if (abertoPorEnter) abertoPorEnter.editor.focus(); } }
+          else if (event.key === 'F2') { event.preventDefault(); renomearNoProjeto(item.caminho, item.ehPasta); }
+          else if (event.key === 'Delete') { event.preventDefault(); excluirNoProjeto(item.caminho, item.ehPasta); }
+          else if (ctrl && event.key.toLowerCase() === 'c') { event.preventDefault(); areaDeTransferenciaDoProjeto = { modo: 'copiar', caminho: item.caminho, ehPasta: item.ehPasta }; }
+          else if (ctrl && event.key.toLowerCase() === 'x') { event.preventDefault(); areaDeTransferenciaDoProjeto = { modo: 'recortar', caminho: item.caminho, ehPasta: item.ehPasta }; }
+          else if (ctrl && event.key.toLowerCase() === 'v') { event.preventDefault(); colarNoProjeto(pastaDeDestinoParaColar(item)); }
+        });
+      }
+
+      // ---- Criar/importar a partir do cabeçalho do Explorer --------------
+      var explorerNovaPasta = document.getElementById('explorer-nova-pasta');
+      var explorerNovoArquivo = document.getElementById('explorer-novo-arquivo');
+      var explorerImportarProjeto = document.getElementById('explorer-importar-projeto');
+      var explorerInputImportar = document.getElementById('explorer-input-importar');
+
+      if (explorerNovaPasta) explorerNovaPasta.addEventListener('click', function () { criarPastaNoExplorer(pastaSelecionadaNoExplorer); });
+      if (explorerNovoArquivo) explorerNovoArquivo.addEventListener('click', function () { criarArquivoNoExplorer(pastaSelecionadaNoExplorer); });
+      if (explorerImportarProjeto && explorerInputImportar) {
+        explorerImportarProjeto.addEventListener('click', function () { explorerInputImportar.click(); });
+        explorerInputImportar.addEventListener('change', function () {
+          importarProjetoDoComputadorNoExplorer(explorerInputImportar.files);
+          explorerInputImportar.value = '';
+        });
+      }
+
+      // Importar NÃO abre nenhum arquivo: só coloca no projeto. O aluno abre
+      // manualmente, clicando no arquivo no Explorer.
+      var PASTAS_IGNORADAS_NA_IMPORTACAO = ['node_modules', '.git', '.svn', '.hg', '.idea', '.vscode', 'dist', 'build'];
+      function importarProjetoDoComputadorNoExplorer(fileList) {
+        if (!fileList || !fileList.length) return;
+        var todos = Array.prototype.slice.call(fileList);
+        var ignoradosPorPasta = 0;
+        var candidatos = todos.filter(function (file) {
+          var partes = String(file.webkitRelativePath || file.name).replace(/\\/g, '/').split('/');
+          if (partes.length > 1) partes.shift();
+          var emPastaIgnorada = partes.slice(0, -1).some(function (p) { return PASTAS_IGNORADAS_NA_IMPORTACAO.indexOf(p) >= 0; });
+          if (emPastaIgnorada) { ignoradosPorPasta++; return false; }
+          return linguagemDoArquivo(file.name) !== null;
+        });
+        if (!candidatos.length) {
+          mostrarToast('Nenhum arquivo reconhecido nessa pasta (html, css, js, ts, scss, jsx, md, svg, json, xml).');
+          return;
+        }
+        Promise.all(candidatos.map(function (file) {
+          return new Promise(function (resolve) {
+            var reader = new FileReader();
+            reader.onload = function () { resolve({ file: file, texto: String(reader.result || '') }); };
+            reader.onerror = function () { resolve(null); };
+            reader.readAsText(file);
+          });
+        })).then(function (lidos) {
+          var importados = 0;
+          lidos.forEach(function (lido) {
+            if (!lido) return;
+            var partes = String(lido.file.webkitRelativePath || lido.file.name).replace(/\\/g, '/').split('/');
+            if (partes.length > 1) partes.shift(); // remove o nome da pasta raiz escolhida
+            if (!caminhoSeguroNoProjeto(partes.join('/') || lido.file.name)) return;
+            var caminho = caminhoUnicoNoProjeto(partes.join('/') || lido.file.name);
+            garantirPastasPai(caminho);
+            projeto.arquivos[caminho] = { linguagem: linguagemDoArquivo(lido.file.name), conteudo: lido.texto };
+            importados++;
+          });
+          projetoAgendarPersistencia();
+          renderizarExplorer();
+          mostrarToast(importados + ' arquivo(s) importado(s) para o projeto. Clique em um arquivo para abri-lo.');
+        });
+      }
+
+      // =====================================================================
+      // BARRA DO EXPLORER — exportar, abrir pasta, nuvem, backup, pesquisa,
+      // arrastar e soltar, abrir por nome (Ctrl+P), nome do projeto.
+      // =====================================================================
+      ICONES_MENU.pesquisar = 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M21 21l-5-5';
+      ICONES_MENU.substituir = 'M4 7h12l-3-3 M20 17H8l3 3';
+      ICONES_MENU.nuvem = 'M6 19h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 9.5 4.5 4.5 0 0 0 6 19Z M12 10v7m0-7-3 3m3-3 3 3';
+      ICONES_MENU.engrenagem = 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z';
+      ICONES_MENU.restaurar = 'M3 12a9 9 0 1 0 3-6.7 M3 4v5h5';
+
+      function nomeDeArquivoSeguro(nome) {
+        return String(nome || 'projeto').trim().replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').replace(/\s+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'projeto';
+      }
+
+      function baixarBlob(blob, nomeDoArquivo) {
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = nomeDoArquivo;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      // ---- Nome do projeto -------------------------------------------------
+      function atualizarNomeDoProjetoNoExplorer() {
+        var botao = document.getElementById('explorer-nome-projeto');
+        if (!botao) return;
+        botao.textContent = projeto.nome;
+        botao.title = 'Projeto "' + projeto.nome + '" — clique para renomear';
+      }
+      var explorerNomeProjeto = document.getElementById('explorer-nome-projeto');
+      if (explorerNomeProjeto) explorerNomeProjeto.addEventListener('click', function () {
+        var novo = window.prompt('Nome do projeto:', projeto.nome);
+        if (novo === null) return;
+        novo = novo.trim().slice(0, 100);
+        if (!novo) return;
+        projeto.nome = novo;
+        atualizarNomeDoProjetoNoExplorer();
+        projetoAgendarPersistencia();
+      });
+
+      // ---- ZIP (sem compressão — "store" — sem dependências) ---------------
+      var TABELA_CRC32 = null;
+      function crc32(bytes) {
+        if (!TABELA_CRC32) {
+          TABELA_CRC32 = new Uint32Array(256);
+          for (var n = 0; n < 256; n++) {
+            var c = n;
+            for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+            TABELA_CRC32[n] = c >>> 0;
+          }
+        }
+        var crc = 0xFFFFFFFF;
+        for (var i = 0; i < bytes.length; i++) crc = TABELA_CRC32[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+        return (crc ^ 0xFFFFFFFF) >>> 0;
+      }
+
+      // entradas: [{ nome, dados: Uint8Array, pasta?: true }]. Nomes em UTF-8.
+      function gerarZip(entradas) {
+        var codificador = new TextEncoder();
+        var partes = [];
+        var central = [];
+        var deslocamento = 0;
+        var agora = new Date();
+        var hora = (agora.getHours() << 11) | (agora.getMinutes() << 5) | (agora.getSeconds() >> 1);
+        var data = ((agora.getFullYear() - 1980) << 9) | ((agora.getMonth() + 1) << 5) | agora.getDate();
+        entradas.forEach(function (entrada) {
+          var nome = codificador.encode(entrada.nome);
+          var dados = entrada.dados;
+          var crc = crc32(dados);
+          var local = new DataView(new ArrayBuffer(30));
+          local.setUint32(0, 0x04034b50, true); local.setUint16(4, 20, true); local.setUint16(6, 0x0800, true);
+          local.setUint16(8, 0, true); local.setUint16(10, hora, true); local.setUint16(12, data, true);
+          local.setUint32(14, crc, true); local.setUint32(18, dados.length, true); local.setUint32(22, dados.length, true);
+          local.setUint16(26, nome.length, true); local.setUint16(28, 0, true);
+          partes.push(new Uint8Array(local.buffer), nome, dados);
+          var dir = new DataView(new ArrayBuffer(46));
+          dir.setUint32(0, 0x02014b50, true); dir.setUint16(4, 20, true); dir.setUint16(6, 20, true); dir.setUint16(8, 0x0800, true);
+          dir.setUint16(10, 0, true); dir.setUint16(12, hora, true); dir.setUint16(14, data, true);
+          dir.setUint32(16, crc, true); dir.setUint32(20, dados.length, true); dir.setUint32(24, dados.length, true);
+          dir.setUint16(28, nome.length, true); dir.setUint16(30, 0, true); dir.setUint16(32, 0, true);
+          dir.setUint16(34, 0, true); dir.setUint16(36, 0, true); dir.setUint32(38, entrada.pasta ? 0x10 : 0, true);
+          dir.setUint32(42, deslocamento, true);
+          central.push(new Uint8Array(dir.buffer), nome);
+          deslocamento += 30 + nome.length + dados.length;
+        });
+        var tamanhoCentral = central.reduce(function (soma, parte) { return soma + parte.length; }, 0);
+        var fim = new DataView(new ArrayBuffer(22));
+        fim.setUint32(0, 0x06054b50, true); fim.setUint16(8, entradas.length, true); fim.setUint16(10, entradas.length, true);
+        fim.setUint32(12, tamanhoCentral, true); fim.setUint32(16, deslocamento, true);
+        return new Blob(partes.concat(central, [new Uint8Array(fim.buffer)]), { type: 'application/zip' });
+      }
+
+      function entradasDeZipDoProjeto(prefixo) {
+        var codificador = new TextEncoder();
+        var dados = projetoDados();
+        var corte = prefixo ? prefixo.length + 1 : 0;
+        var entradas = [];
+        dados.pastas.slice().sort().forEach(function (pasta) {
+          if (prefixo && pasta.indexOf(prefixo + '/') !== 0) return;
+          entradas.push({ nome: pasta.slice(corte) + '/', dados: new Uint8Array(0), pasta: true });
+        });
+        Object.keys(dados.arquivos).sort().forEach(function (caminho) {
+          if (prefixo && caminho.indexOf(prefixo + '/') !== 0) return;
+          entradas.push({ nome: caminho.slice(corte), dados: codificador.encode(dados.arquivos[caminho].conteudo) });
+        });
+        return entradas;
+      }
+
+      function exportarProjetoZip() {
+        var entradas = entradasDeZipDoProjeto('');
+        if (!entradas.length) { mostrarToast('O projeto está vazio — não há o que exportar.'); return; }
+        baixarBlob(gerarZip(entradas), nomeDeArquivoSeguro(projeto.nome) + '.zip');
+        mostrarToast('Projeto exportado como ' + nomeDeArquivoSeguro(projeto.nome) + '.zip.');
+      }
+      window.exportarProjetoZipDaIde = exportarProjetoZip;
+
+      // "Baixar" no menu de uma pasta: .zip só dessa pasta.
+      baixarItemDoProjeto = function (caminho, ehPasta) {
+        if (!ehPasta) { baixarArquivo(conteudoAtualDoArquivoDoProjeto(caminho), nomeBaseDoCaminho(caminho)); return; }
+        var entradas = entradasDeZipDoProjeto(caminho);
+        if (!entradas.length) { mostrarToast('A pasta está vazia.'); return; }
+        baixarBlob(gerarZip(entradas), nomeDeArquivoSeguro(nomeBaseDoCaminho(caminho)) + '.zip');
+      };
+
+      var explorerExportar = document.getElementById('explorer-exportar');
+      if (explorerExportar) explorerExportar.addEventListener('click', exportarProjetoZip);
+
+      // ---- Abrir pasta do computador (lê para dentro do projeto) -----------
+      var LIMITE_ARQUIVOS_DA_PASTA = 2000;
+      var LIMITE_BYTES_DA_PASTA = 8 * 1024 * 1024;
+      async function lerPastaReal(pasta, prefixo, acumulado) {
+        for await (var entrada of pasta.entries()) {
+          var nome = entrada[0], handle = entrada[1];
+          var caminho = prefixo ? prefixo + '/' + nome : nome;
+          if (!caminhoSeguroNoProjeto(caminho)) { acumulado.ignorados++; continue; }
+          if (handle.kind === 'directory') {
+            if (PASTAS_IGNORADAS_NA_IMPORTACAO.indexOf(nome) >= 0) { acumulado.ignorados++; continue; }
+            acumulado.pastas.push(caminho);
+            await lerPastaReal(handle, caminho, acumulado);
+          } else {
+            var linguagem = linguagemDoArquivo(nome);
+            if (!linguagem) { acumulado.ignorados++; continue; }
+            var arquivo = await handle.getFile();
+            if (arquivo.size > 1024 * 1024) { acumulado.ignorados++; continue; }
+            acumulado.total += arquivo.size;
+            if (Object.keys(acumulado.arquivos).length >= LIMITE_ARQUIVOS_DA_PASTA || acumulado.total > LIMITE_BYTES_DA_PASTA) { acumulado.estourou = true; return; }
+            acumulado.arquivos[caminho] = { linguagem: linguagem, conteudo: await arquivo.text() };
+          }
+          if (acumulado.estourou) return;
+        }
+      }
+
+      function desvincularPastaReal() {
+        pastaRealHandle = null;
+        atualizarStatusDeVinculoNoExplorer('');
+        abrirBancoDoExplorer().then(function (db) {
+          var tx = db.transaction('pastas', 'readwrite');
+          tx.objectStore('pastas').delete(chaveDaPastaVinculada());
+        }).catch(function () { /* sem banco: nada a limpar */ });
+      }
+
+      async function abrirPastaDoComputadorNoExplorer() {
+        if (!window.showDirectoryPicker) {
+          mostrarToast('Este navegador não abre pastas com gravação (use Chrome ou Edge). Importando uma cópia da pasta no lugar.');
+          if (explorerInputImportar) explorerInputImportar.click();
+          return;
+        }
+        var pasta;
+        try { pasta = await window.showDirectoryPicker({ id: 'coding-loop-explorer', mode: 'readwrite' }); }
+        catch (erro) { if (erro && erro.name !== 'AbortError') mostrarToast('Não foi possível abrir a pasta.'); return; }
+        if ((projetoTemArquivos() || Object.keys(projeto.pastas).length) &&
+          !window.confirm('Abrir "' + pasta.name + '" substitui o projeto atual neste navegador. Uma cópia do projeto atual fica guardada nas versões locais ("Backup do projeto → Restaurar"). Continuar?')) return;
+        mostrarToast('Lendo a pasta…');
+        var lidos = { arquivos: {}, pastas: [], ignorados: 0, total: 0, estourou: false };
+        try { await lerPastaReal(pasta, '', lidos); }
+        catch (erro) { mostrarToast('Não foi possível ler a pasta.'); return; }
+        if (lidos.estourou) { mostrarToast('A pasta é grande demais (limite de ' + LIMITE_ARQUIVOS_DA_PASTA + ' arquivos ou 8 MB de texto). Abra uma subpasta.'); return; }
+        if (!Object.keys(lidos.arquivos).length) { mostrarToast('Nenhum arquivo de texto reconhecido nessa pasta.'); return; }
+        await projetoGuardarVersaoLocal(true);
+        pastaRealHandle = null; // evita espelhar o projeto antigo na pasta nova durante a troca
+        await projetoAplicar({ nome: pasta.name, pastas: lidos.pastas, arquivos: lidos.arquivos });
+        pastaRealHandle = pasta;
+        // Guardar o vínculo é só para reabrir sem escolher de novo; se falhar, a
+        // pasta continua aberta nesta sessão.
+        try { await salvarHandleDaPastaReal(pasta); } catch (erro) { /* sem persistência do vínculo */ }
+        atualizarStatusDeVinculoNoExplorer(pasta.name);
+        mostrarToast('Pasta "' + pasta.name + '" aberta: ' + Object.keys(lidos.arquivos).length + ' arquivo(s). Ao editar, os arquivos são gravados nela.');
+      }
+      if (explorerVincularPasta) explorerVincularPasta.addEventListener('click', abrirPastaDoComputadorNoExplorer);
+
+      // ---- Nuvem e backup do projeto ---------------------------------------
+      function abrirConfiguracaoDeBackup() {
+        var botao = document.getElementById('btn-backup-settings');
+        if (botao) botao.click(); else mostrarToast('A configuração de backup não está disponível agora.');
+      }
+
+      async function salvarProjetoNaNuvem() {
+        if (!projetoTemArquivos()) { mostrarToast('O projeto está vazio — nada para enviar.'); return; }
+        var nuvem = window.nuvemDoProjeto;
+        var settings = CL.api.getBackupSettings();
+        var destinos = settings.destinations || [];
+        var drive = destinos.indexOf('drive') >= 0 && settings.googleDriveConnected;
+        var onedrive = destinos.indexOf('onedrive') >= 0 && settings.oneDriveConnected;
+        if (!nuvem || (!drive && !onedrive)) {
+          mostrarToast('Conecte o Google Drive ou o OneDrive em "Configurar backup" para salvar na nuvem.');
+          abrirConfiguracaoDeBackup();
+          return;
+        }
+        await projetoPersistir();
+        var dados = projetoDados();
+        var nomes = [];
+        var tarefas = [];
+        if (drive) { nomes.push('Google Drive'); tarefas.push(nuvem.enviarDrive(dados, true)); }
+        if (onedrive) { nomes.push('OneDrive'); tarefas.push(nuvem.enviarOneDrive(dados, true)); }
+        mostrarToast('Enviando o projeto…');
+        var resultados = await Promise.allSettled(tarefas);
+        var falhas = [];
+        var sucessos = [];
+        resultados.forEach(function (resultado, indice) { (resultado.status === 'fulfilled' ? sucessos : falhas).push(nomes[indice]); });
+        if (!falhas.length) CL.api.saveBackupSettings({ projectCloudPending: false });
+        mostrarToast(sucessos.length ? ('Projeto salvo em: ' + sucessos.join(', ') + '.' + (falhas.length ? ' Falhou em: ' + falhas.join(', ') + '.' : '')) : ('Não foi possível salvar o projeto (' + falhas.join(', ') + ').'));
+      }
+      var explorerNuvem = document.getElementById('explorer-nuvem');
+      if (explorerNuvem) explorerNuvem.addEventListener('click', salvarProjetoNaNuvem);
+
+      function baixarBackupDoProjetoJson() {
+        if (!projetoTemArquivos()) { mostrarToast('O projeto está vazio — nada para salvar.'); return; }
+        var dados = projetoDados();
+        baixarBlob(new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' }), nomeDeArquivoSeguro(projeto.nome) + '-backup-projeto.json');
+        CL.api.saveBackupSettings({ lastProjectBackupDownloadAt: dados.exportedAt });
+        mostrarToast('Backup do projeto baixado (.json).');
+      }
+
+      async function restaurarProjetoDe(origem) {
+        var dados;
+        try {
+          if (origem === 'local') {
+            var versoes = await window.versoesLocaisDoProjeto();
+            if (!versoes.length) throw new Error('Ainda não há cópia local do projeto.');
+            dados = CL.api.parseProjectBackup(JSON.stringify(versoes[0]));
+          } else if (origem === 'arquivo') {
+            dados = await escolherArquivoDeBackupDoProjeto();
+            if (!dados) return;
+          } else if (origem === 'drive') { dados = await window.nuvemDoProjeto.restaurarDrive();
+          } else if (origem === 'onedrive') { dados = await window.nuvemDoProjeto.restaurarOneDrive();
+          } else if (origem === 'aparelho') { dados = await window.nuvemDoProjeto.restaurarDoAparelho(); }
+        } catch (erro) {
+          mostrarToast((erro && erro.message) || 'Não foi possível ler o backup do projeto.');
+          return;
+        }
+        var total = Object.keys(dados.arquivos).length;
+        if (!window.confirm('Restaurar o projeto "' + dados.nome + '" (' + total + ' arquivo(s))? O projeto atual será substituído. Uma cópia dele fica guardada nas versões locais.')) return;
+        await projetoGuardarVersaoLocal(true);
+        if (pastaRealHandle) desvincularPastaReal(); // não sobrescreve a pasta do computador com outro projeto
+        await projetoAplicar(dados);
+        mostrarToast('Projeto restaurado: ' + total + ' arquivo(s).');
+      }
+
+      function escolherArquivoDeBackupDoProjeto() {
+        return new Promise(function (resolve, reject) {
+          var entrada = document.createElement('input');
+          entrada.type = 'file';
+          entrada.accept = '.json,application/json';
+          entrada.addEventListener('change', function () {
+            var arquivo = entrada.files && entrada.files[0];
+            if (!arquivo) { resolve(null); return; }
+            if (arquivo.size > CL.api.MAX_PROJECT_BACKUP_BYTES) { reject(new Error('Backup do projeto excede o limite de 8 MB.')); return; }
+            var leitor = new FileReader();
+            leitor.onload = function () { try { resolve(CL.api.parseProjectBackup(String(leitor.result || ''))); } catch (erro) { reject(erro); } };
+            leitor.onerror = function () { reject(new Error('Não foi possível ler o arquivo.')); };
+            leitor.readAsText(arquivo);
+          });
+          entrada.click();
+        });
+      }
+
+      var explorerBackup = document.getElementById('explorer-backup');
+      if (explorerBackup) explorerBackup.addEventListener('click', function (evento) {
+        evento.stopPropagation();
+        abrirMenuGenerico(explorerBackup, [
+          { label: 'Configurar backup…', icone: ICONES_MENU.engrenagem, acao: abrirConfiguracaoDeBackup },
+          { label: 'Baixar backup do projeto (.json)', icone: ICONES_MENU.baixar, acao: baixarBackupDoProjetoJson },
+          { separador: true },
+          { label: 'Restaurar da última cópia local', icone: ICONES_MENU.restaurar, acao: function () { restaurarProjetoDe('local'); } },
+          { label: 'Restaurar de arquivo (.json)…', icone: ICONES_MENU.restaurar, acao: function () { restaurarProjetoDe('arquivo'); } },
+          { label: 'Restaurar do Google Drive', icone: ICONES_MENU.nuvem, acao: function () { restaurarProjetoDe('drive'); } },
+          { label: 'Restaurar do OneDrive', icone: ICONES_MENU.nuvem, acao: function () { restaurarProjetoDe('onedrive'); } },
+          { label: 'Restaurar da pasta do aparelho', icone: ICONES_MENU.restaurar, acao: function () { restaurarProjetoDe('aparelho'); } }
+        ]);
+      });
+
+      // ---- Pesquisar e substituir no projeto -------------------------------
+      var buscaPainel = document.getElementById('explorer-search');
+      var buscaTermo = document.getElementById('explorer-busca-termo');
+      var buscaSubstituto = document.getElementById('explorer-busca-substituto');
+      var buscaLinhaSubstituir = document.getElementById('explorer-substituir-linha');
+      var buscaResumo = document.getElementById('explorer-busca-resumo');
+      var buscaResultados = document.getElementById('explorer-busca-resultados');
+      var buscaBotaoCaso = document.getElementById('explorer-busca-caso');
+      var buscaBotaoRegex = document.getElementById('explorer-busca-regex');
+      var buscaTimer = null;
+      var buscaUltima = { re: null, resultados: [], total: 0 };
+      var LIMITE_LINHAS_DA_BUSCA = 1000;
+
+      function modoDeSubstituicaoAtivo() { return !!(buscaPainel && buscaPainel.classList.contains('is-substituir')); }
+
+      function criarRegexDaBusca(termo) {
+        if (!termo) return { vazio: true };
+        var usarRegex = buscaBotaoRegex.getAttribute('aria-pressed') === 'true';
+        var diferenciar = buscaBotaoCaso.getAttribute('aria-pressed') === 'true';
+        try {
+          var re = new RegExp(usarRegex ? termo : termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g' + (diferenciar ? '' : 'i'));
+          if (new RegExp('^(?:' + re.source + ')$', re.flags.replace('g', '')).test('')) return { erro: 'A expressão corresponde a texto vazio.' };
+          return { re: re };
+        } catch (erro) { return { erro: 'Expressão inválida: ' + erro.message }; }
+      }
+
+      function procurarNoProjeto(re) {
+        var resultados = [];
+        var total = 0;
+        var linhasTotais = 0;
+        Object.keys(projeto.arquivos).sort().forEach(function (caminho) {
+          if (linhasTotais >= LIMITE_LINHAS_DA_BUSCA) return;
+          var linhas = conteudoAtualDoArquivoDoProjeto(caminho).split('\n');
+          var achadas = [];
+          var ocorrenciasNoArquivo = 0;
+          linhas.forEach(function (texto, indice) {
+            re.lastIndex = 0;
+            var primeira = re.exec(texto);
+            if (!primeira) return;
+            var ocorrencias = 1;
+            while (re.exec(texto) !== null) ocorrencias++;
+            ocorrenciasNoArquivo += ocorrencias;
+            if (linhasTotais < LIMITE_LINHAS_DA_BUSCA) {
+              achadas.push({ numero: indice, texto: texto, coluna: primeira.index, tamanho: primeira[0].length });
+              linhasTotais++;
+            }
+          });
+          if (ocorrenciasNoArquivo) { resultados.push({ caminho: caminho, linhas: achadas, ocorrencias: ocorrenciasNoArquivo }); total += ocorrenciasNoArquivo; }
+        });
+        return { resultados: resultados, total: total, truncado: linhasTotais >= LIMITE_LINHAS_DA_BUSCA };
+      }
+
+      function trechoComDestaque(linha) {
+        var span = document.createElement('span');
+        span.className = 'explorer-search-line-text';
+        var inicio = Math.max(0, linha.coluna - 24);
+        var antes = (inicio > 0 ? '…' : '') + linha.texto.slice(inicio, linha.coluna).replace(/^\s+/, '');
+        var achado = linha.texto.slice(linha.coluna, linha.coluna + linha.tamanho);
+        var depois = linha.texto.slice(linha.coluna + linha.tamanho, linha.coluna + linha.tamanho + 80);
+        var marca = document.createElement('mark');
+        marca.textContent = achado;
+        span.appendChild(document.createTextNode(antes));
+        span.appendChild(marca);
+        span.appendChild(document.createTextNode(depois));
+        return span;
+      }
+
+      function executarBuscaNoExplorer() {
+        buscaResultados.innerHTML = '';
+        buscaResumo.classList.remove('is-error');
+        var criada = criarRegexDaBusca(buscaTermo.value);
+        if (criada.vazio) { buscaResumo.textContent = ''; buscaUltima = { re: null, resultados: [], total: 0 }; return; }
+        if (criada.erro) { buscaResumo.textContent = criada.erro; buscaResumo.classList.add('is-error'); buscaUltima = { re: null, resultados: [], total: 0 }; return; }
+        var achado = procurarNoProjeto(criada.re);
+        buscaUltima = { re: criada.re, resultados: achado.resultados, total: achado.total };
+        buscaResumo.textContent = achado.total
+          ? (achado.total + ' resultado(s) em ' + achado.resultados.length + ' arquivo(s)' + (achado.truncado ? ' (mostrando os primeiros ' + LIMITE_LINHAS_DA_BUSCA + ' trechos)' : ''))
+          : 'Nenhum resultado.';
+        achado.resultados.forEach(function (arquivo) {
+          var cabecalho = document.createElement('li');
+          cabecalho.className = 'explorer-search-file';
+          cabecalho.setAttribute('data-caminho', arquivo.caminho);
+          var nome = document.createElement('span');
+          nome.textContent = arquivo.caminho;
+          var contagem = document.createElement('span');
+          contagem.className = 'explorer-search-count';
+          contagem.textContent = String(arquivo.ocorrencias);
+          cabecalho.appendChild(nome);
+          cabecalho.appendChild(contagem);
+          buscaResultados.appendChild(cabecalho);
+          arquivo.linhas.forEach(function (linha) {
+            var item = document.createElement('li');
+            item.className = 'explorer-search-line';
+            item.setAttribute('data-caminho', arquivo.caminho);
+            item.setAttribute('data-linha', String(linha.numero));
+            item.setAttribute('data-coluna', String(linha.coluna));
+            item.appendChild(trechoComDestaque(linha));
+            var substituirUm = document.createElement('button');
+            substituirUm.type = 'button';
+            substituirUm.className = 'explorer-search-replace-one';
+            substituirUm.textContent = 'Substituir';
+            substituirUm.title = 'Substituir nesta linha';
+            item.appendChild(substituirUm);
+            buscaResultados.appendChild(item);
+          });
+        });
+      }
+
+      function agendarBuscaNoExplorer() {
+        clearTimeout(buscaTimer);
+        buscaTimer = setTimeout(executarBuscaNoExplorer, 200);
+      }
+
+      function abrirPesquisaNoExplorer(modo) {
+        if (explorerPanel.hidden) abrirExplorer();
+        explorerPanel.classList.add('is-pesquisando');
+        buscaPainel.hidden = false;
+        buscaPainel.classList.toggle('is-substituir', modo === 'substituir');
+        buscaLinhaSubstituir.hidden = modo !== 'substituir';
+        buscaTermo.setAttribute('aria-label', modo === 'substituir' ? 'Pesquisar e substituir no projeto' : 'Pesquisar no projeto');
+        buscaTermo.focus();
+        buscaTermo.select();
+        executarBuscaNoExplorer();
+      }
+
+      function fecharPesquisaNoExplorer() {
+        if (!buscaPainel) return;
+        buscaPainel.hidden = true;
+        explorerPanel.classList.remove('is-pesquisando');
+      }
+
+      function textoDeSubstituicao() {
+        var usarRegex = buscaBotaoRegex.getAttribute('aria-pressed') === 'true';
+        return usarRegex ? buscaSubstituto.value : buscaSubstituto.value.replace(/\$/g, '$$$$');
+      }
+
+      function gravarConteudoNoArquivoDoProjeto(caminho, novoConteudo) {
+        if (!projeto.arquivos[caminho]) return;
+        projeto.arquivos[caminho].conteudo = novoConteudo;
+        var aberto = arquivoAbertoDoProjeto(caminho);
+        if (aberto && aberto.editor.getValue() !== novoConteudo) aberto.editor.setValue(novoConteudo);
+      }
+
+      function substituirTudoNoProjeto() {
+        if (!buscaUltima.re || !buscaUltima.total) { mostrarToast('Nada para substituir.'); return; }
+        if (!window.confirm('Substituir ' + buscaUltima.total + ' ocorrência(s) em ' + buscaUltima.resultados.length + ' arquivo(s) do projeto?')) return;
+        var re = buscaUltima.re;
+        var troca = textoDeSubstituicao();
+        var arquivosAfetados = buscaUltima.resultados.map(function (r) { return r.caminho; });
+        arquivosAfetados.forEach(function (caminho) {
+          re.lastIndex = 0;
+          gravarConteudoNoArquivoDoProjeto(caminho, conteudoAtualDoArquivoDoProjeto(caminho).replace(re, troca));
+        });
+        projetoAgendarPersistencia();
+        agendarAtualizacaoPreview();
+        mostrarToast(buscaUltima.total + ' ocorrência(s) substituída(s) em ' + arquivosAfetados.length + ' arquivo(s).');
+        executarBuscaNoExplorer();
+      }
+
+      function substituirNaLinha(caminho, numeroDaLinha) {
+        var re = buscaUltima.re;
+        if (!re) return;
+        var linhas = conteudoAtualDoArquivoDoProjeto(caminho).split('\n');
+        if (numeroDaLinha < 0 || numeroDaLinha >= linhas.length) return;
+        re.lastIndex = 0;
+        linhas[numeroDaLinha] = linhas[numeroDaLinha].replace(re, textoDeSubstituicao());
+        gravarConteudoNoArquivoDoProjeto(caminho, linhas.join('\n'));
+        projetoAgendarPersistencia();
+        agendarAtualizacaoPreview();
+        executarBuscaNoExplorer();
+      }
+
+      if (buscaPainel) {
+        buscaTermo.addEventListener('input', agendarBuscaNoExplorer);
+        buscaTermo.addEventListener('keydown', function (evento) {
+          if (evento.key === 'Enter') { evento.preventDefault(); clearTimeout(buscaTimer); executarBuscaNoExplorer(); }
+          else if (evento.key === 'Escape') { evento.preventDefault(); fecharPesquisaNoExplorer(); }
+        });
+        buscaSubstituto.addEventListener('keydown', function (evento) {
+          if (evento.key === 'Enter') { evento.preventDefault(); substituirTudoNoProjeto(); }
+          else if (evento.key === 'Escape') { evento.preventDefault(); fecharPesquisaNoExplorer(); }
+        });
+        [buscaBotaoCaso, buscaBotaoRegex].forEach(function (botao) {
+          botao.addEventListener('click', function () {
+            botao.setAttribute('aria-pressed', botao.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+            executarBuscaNoExplorer();
+          });
+        });
+        document.getElementById('explorer-busca-fechar').addEventListener('click', fecharPesquisaNoExplorer);
+        document.getElementById('explorer-substituir-tudo').addEventListener('click', substituirTudoNoProjeto);
+        buscaResultados.addEventListener('click', function (evento) {
+          var botaoUm = evento.target.closest('.explorer-search-replace-one');
+          var item = evento.target.closest('li[data-caminho]');
+          if (!item) return;
+          var caminho = item.getAttribute('data-caminho');
+          if (botaoUm) { evento.stopPropagation(); substituirNaLinha(caminho, Number(item.getAttribute('data-linha'))); return; }
+          abrirArquivoDoProjeto(caminho);
+          var linha = item.getAttribute('data-linha');
+          var aberto = arquivoAbertoDoProjeto(caminho);
+          if (aberto && linha !== null) irParaLocalizacaoNoArquivo(aberto, Number(linha), Number(item.getAttribute('data-coluna')) || 0);
+        });
+      }
+
+      var explorerPesquisar = document.getElementById('explorer-pesquisar');
+      if (explorerPesquisar) explorerPesquisar.addEventListener('click', function (evento) {
+        evento.stopPropagation();
+        abrirMenuGenerico(explorerPesquisar, [
+          { label: 'Pesquisar no projeto', icone: ICONES_MENU.pesquisar, atalho: 'Ctrl+Shift+F', acao: function () { abrirPesquisaNoExplorer('buscar'); } },
+          { label: 'Pesquisar e substituir no projeto', icone: ICONES_MENU.substituir, atalho: 'Ctrl+Shift+H', acao: function () { abrirPesquisaNoExplorer('substituir'); } }
+        ]);
+      });
+
+      // ---- Arrastar e soltar na árvore (mover arquivos/pastas) -------------
+      var itemSendoArrastado = null;
+      function pastaAlvoDoDrop(alvo) {
+        var linhaPasta = alvo.closest && alvo.closest('.explorer-node[data-pasta]');
+        if (linhaPasta) return linhaPasta.getAttribute('data-pasta');
+        var linhaArquivo = alvo.closest && alvo.closest('.explorer-node-row[data-caminho]');
+        if (linhaArquivo) return pastaPaiDoCaminho(linhaArquivo.getAttribute('data-caminho'));
+        return '';
+      }
+      function limparAlvosDeDrop() {
+        explorerTree.classList.remove('is-drop-alvo');
+        Array.prototype.forEach.call(explorerTree.querySelectorAll('.is-drop-alvo'), function (el) { el.classList.remove('is-drop-alvo'); });
+      }
+      function marcarPastasComoArrastaveis() {
+        Array.prototype.forEach.call(explorerTree.querySelectorAll('.explorer-node[data-pasta] > .explorer-node-row'), function (linha) { linha.draggable = true; });
+      }
+      if (explorerTree) {
+        explorerTree.addEventListener('dragstart', function (evento) {
+          marcarPastasComoArrastaveis();
+          var item = itemDoElementoNoExplorer(evento.target);
+          if (!item) { evento.preventDefault(); return; }
+          itemSendoArrastado = item;
+          evento.dataTransfer.effectAllowed = 'move';
+          evento.dataTransfer.setData('text/plain', item.caminho);
+        });
+        explorerTree.addEventListener('dragover', function (evento) {
+          if (!itemSendoArrastado) return;
+          evento.preventDefault();
+          evento.dataTransfer.dropEffect = 'move';
+          limparAlvosDeDrop();
+          var linhaPasta = evento.target.closest && evento.target.closest('.explorer-node[data-pasta] > .explorer-node-row, .explorer-node[data-pasta]');
+          var linha = evento.target.closest && evento.target.closest('.explorer-node[data-pasta]');
+          if (linha) linha.querySelector(':scope > .explorer-node-row').classList.add('is-drop-alvo');
+          else explorerTree.classList.add('is-drop-alvo');
+        });
+        explorerTree.addEventListener('dragleave', function (evento) { if (evento.target === explorerTree) limparAlvosDeDrop(); });
+        explorerTree.addEventListener('dragend', function () { itemSendoArrastado = null; limparAlvosDeDrop(); });
+        explorerTree.addEventListener('drop', function (evento) {
+          if (!itemSendoArrastado) return;
+          evento.preventDefault();
+          var origem = itemSendoArrastado;
+          itemSendoArrastado = null;
+          limparAlvosDeDrop();
+          var pastaDestino = pastaAlvoDoDrop(evento.target);
+          var destino = caminhoCompletoNoExplorer(pastaDestino, nomeBaseDoCaminho(origem.caminho));
+          if (destino === origem.caminho) return;
+          if (moverNoProjeto(origem.caminho, destino, origem.ehPasta) && pastaDestino) { pastasAbertasNoExplorer[pastaDestino] = true; renderizarExplorer(); }
+        });
+      }
+
+      // ---- Abrir arquivo por nome (Ctrl+P) ----------------------------------
+      var quickOpen = document.createElement('div');
+      quickOpen.className = 'quick-open';
+      quickOpen.hidden = true;
+      quickOpen.setAttribute('role', 'dialog');
+      quickOpen.setAttribute('aria-label', 'Abrir arquivo do projeto');
+      quickOpen.innerHTML = '<input type="text" autocomplete="off" spellcheck="false" placeholder="Abrir arquivo do projeto pelo nome…" aria-label="Nome do arquivo"><ul role="listbox"></ul>';
+      mainWindowContainer.appendChild(quickOpen);
+      var quickOpenEntrada = quickOpen.querySelector('input');
+      var quickOpenLista = quickOpen.querySelector('ul');
+      var quickOpenIndice = 0;
+      var quickOpenItens = [];
+
+      function pontuarNomeNaBusca(caminho, consulta) {
+        var alvo = caminho.toLowerCase();
+        var termo = consulta.toLowerCase();
+        if (!termo) return 1;
+        var base = nomeBaseDoCaminho(alvo);
+        if (base.indexOf(termo) === 0) return 1000 - base.length;
+        if (base.indexOf(termo) >= 0) return 800 - base.length;
+        if (alvo.indexOf(termo) >= 0) return 600 - alvo.length;
+        var posicao = 0, pontos = 0;
+        for (var i = 0; i < termo.length; i++) {
+          var achou = alvo.indexOf(termo[i], posicao);
+          if (achou < 0) return 0;
+          pontos += 10 - Math.min(9, achou - posicao);
+          posicao = achou + 1;
+        }
+        return Math.max(1, pontos);
+      }
+
+      function renderizarQuickOpen() {
+        var consulta = quickOpenEntrada.value.trim();
+        quickOpenItens = Object.keys(projeto.arquivos)
+          .map(function (c) { return { caminho: c, pontos: pontuarNomeNaBusca(c, consulta) }; })
+          .filter(function (r) { return r.pontos > 0; })
+          .sort(function (a, b) { return b.pontos - a.pontos || a.caminho.localeCompare(b.caminho); })
+          .slice(0, 50);
+        quickOpenIndice = Math.min(quickOpenIndice, Math.max(0, quickOpenItens.length - 1));
+        quickOpenLista.innerHTML = '';
+        if (!quickOpenItens.length) {
+          var vazio = document.createElement('p');
+          vazio.textContent = projetoTemArquivos() ? 'Nenhum arquivo com esse nome.' : 'O projeto ainda não tem arquivos.';
+          quickOpenLista.appendChild(vazio);
+          return;
+        }
+        quickOpenItens.forEach(function (item, indice) {
+          var li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          li.className = indice === quickOpenIndice ? 'is-ativo' : '';
+          li.setAttribute('data-indice', String(indice));
+          var nome = document.createElement('span');
+          nome.textContent = nomeBaseDoCaminho(item.caminho);
+          var pasta = document.createElement('small');
+          pasta.textContent = pastaPaiDoCaminho(item.caminho);
+          li.appendChild(nome);
+          li.appendChild(pasta);
+          quickOpenLista.appendChild(li);
+        });
+      }
+      function abrirQuickOpen() {
+        quickOpen.hidden = false;
+        quickOpenEntrada.value = '';
+        quickOpenIndice = 0;
+        renderizarQuickOpen();
+        quickOpenEntrada.focus();
+      }
+      function fecharQuickOpen() { quickOpen.hidden = true; }
+      function confirmarQuickOpen() {
+        var escolhido = quickOpenItens[quickOpenIndice];
+        fecharQuickOpen();
+        if (!escolhido) return;
+        abrirArquivoDoProjeto(escolhido.caminho);
+        var aberto = arquivoAbertoDoProjeto(escolhido.caminho);
+        if (aberto) aberto.editor.focus();
+      }
+      quickOpenEntrada.addEventListener('input', function () { quickOpenIndice = 0; renderizarQuickOpen(); });
+      quickOpenEntrada.addEventListener('keydown', function (evento) {
+        if (evento.key === 'ArrowDown') { evento.preventDefault(); quickOpenIndice = Math.min(quickOpenItens.length - 1, quickOpenIndice + 1); renderizarQuickOpen(); }
+        else if (evento.key === 'ArrowUp') { evento.preventDefault(); quickOpenIndice = Math.max(0, quickOpenIndice - 1); renderizarQuickOpen(); }
+        else if (evento.key === 'Enter') { evento.preventDefault(); confirmarQuickOpen(); }
+        else if (evento.key === 'Escape') { evento.preventDefault(); fecharQuickOpen(); }
+      });
+      quickOpenLista.addEventListener('click', function (evento) {
+        var li = evento.target.closest('li[data-indice]');
+        if (!li) return;
+        quickOpenIndice = Number(li.getAttribute('data-indice'));
+        confirmarQuickOpen();
+      });
+      document.addEventListener('pointerdown', function (evento) { if (!quickOpen.hidden && !quickOpen.contains(evento.target)) fecharQuickOpen(); });
+
+      // Atalhos globais do IDE (só valem enquanto a janela do IDE está na tela).
+      mainWindowContainer.addEventListener('keydown', function (evento) {
+        var ctrl = evento.ctrlKey || evento.metaKey;
+        if (!ctrl) return;
+        var tecla = evento.key.toLowerCase();
+        if (tecla === 'p' && !evento.shiftKey && !evento.altKey) { evento.preventDefault(); abrirQuickOpen(); }
+        else if (tecla === 'f' && evento.shiftKey) { evento.preventDefault(); abrirPesquisaNoExplorer('buscar'); }
+        else if (tecla === 'h' && evento.shiftKey) { evento.preventDefault(); abrirPesquisaNoExplorer('substituir'); }
+      }, true);
+
+      atualizarNomeDoProjetoNoExplorer();
+
+      // ---- Vincular pasta real do computador (espelhamento) --------------
+      // Reaproveita a mesma técnica do backup manual em pasta local
+      // (File System Access API + handle salvo em IndexedDB), mas com um
+      // banco próprio — não compartilha estado com o backup, de propósito,
+      // para as duas funções não interferirem uma na outra.
+      var BANCO_DO_EXPLORER = 'coding-loop-explorer';
+      function chaveDaPastaVinculada() { return 'pasta-vinculada:' + uidDoProjeto(); }
+      function abrirBancoDoExplorer() {
+        return new Promise(function (resolve, reject) {
+          if (!window.indexedDB) { reject(new Error('Sem IndexedDB')); return; }
+          var pedido = window.indexedDB.open(BANCO_DO_EXPLORER, 1);
+          pedido.onupgradeneeded = function () { pedido.result.createObjectStore('pastas'); };
+          pedido.onsuccess = function () { resolve(pedido.result); };
+          pedido.onerror = function () { reject(pedido.error); };
+        });
+      }
+      function salvarHandleDaPastaReal(handle) {
+        return abrirBancoDoExplorer().then(function (db) {
+          return new Promise(function (resolve, reject) {
+            var tx = db.transaction('pastas', 'readwrite');
+            tx.objectStore('pastas').put(handle, chaveDaPastaVinculada());
+            tx.oncomplete = function () { resolve(); };
+            tx.onerror = function () { reject(tx.error); };
+          });
+        });
+      }
+      function carregarHandleDaPastaReal() {
+        return abrirBancoDoExplorer().then(function (db) {
+          return new Promise(function (resolve) {
+            var tx = db.transaction('pastas', 'readonly');
+            var pedido = tx.objectStore('pastas').get(chaveDaPastaVinculada());
+            pedido.onsuccess = function () { resolve(pedido.result || null); };
+            pedido.onerror = function () { resolve(null); };
+          });
+        }).catch(function () { return null; });
+      }
+      function atualizarStatusDeVinculoNoExplorer(nomeDaPasta) {
+        if (explorerStatus) {
+          explorerStatus.hidden = !nomeDaPasta;
+          explorerStatus.textContent = nomeDaPasta ? ('Pasta aberta: ' + nomeDaPasta + ' — as alterações são gravadas nela.') : '';
+        }
+        if (explorerVincularPasta) {
+          explorerVincularPasta.classList.toggle('is-active', !!nomeDaPasta);
+          explorerVincularPasta.setAttribute('aria-pressed', nomeDaPasta ? 'true' : 'false');
+        }
+      }
+      async function obterSubpastaReal(pastaRaiz, caminhoDaPasta) {
+        var pasta = pastaRaiz;
+        if (!caminhoDaPasta) return pasta;
+        var partes = caminhoDaPasta.split('/');
+        for (var i = 0; i < partes.length; i++) {
+          pasta = await pasta.getDirectoryHandle(partes[i], { create: true });
+        }
+        return pasta;
+      }
+      async function espelharArquivoNoDisco(arquivo) {
+        if (!pastaRealHandle) return;
+        try {
+          var permissao = await pastaRealHandle.queryPermission({ mode: 'readwrite' });
+          if (permissao !== 'granted') {
+            permissao = await pastaRealHandle.requestPermission({ mode: 'readwrite' });
+            if (permissao !== 'granted') return;
+          }
+          var partes = arquivo.nome.split('/');
+          var nomeDoArquivo = partes.pop();
+          var pastaDestino = await obterSubpastaReal(pastaRealHandle, partes.join('/'));
+          var arquivoHandle = await pastaDestino.getFileHandle(nomeDoArquivo, { create: true });
+          var gravavel = await arquivoHandle.createWritable();
+          await gravavel.write(arquivo.conteudo);
+          await gravavel.close();
+        } catch (erro) {
+          // Falha ao espelhar não deve travar o salvamento normal, que já
+          // aconteceu no armazenamento interno (localStorage/IndexedDB).
+        }
+      }
+      function espelharProjetoInteiroNoDisco() {
+        if (!pastaRealHandle) return Promise.resolve();
+        return Promise.all(Object.keys(projeto.arquivos).map(function (caminho) {
+          return espelharArquivoNoDisco({ nome: caminho, conteudo: projeto.arquivos[caminho].conteudo });
+        }));
+      }
+      async function vincularPastaDoComputadorNoExplorer() {
+        if (!window.showDirectoryPicker) {
+          mostrarToast('Esse navegador não permite vincular uma pasta real (funciona em Chrome, Edge e outros baseados em Chromium).');
+          return;
+        }
+        try {
+          var pasta = await window.showDirectoryPicker({ id: 'coding-loop-explorer', mode: 'readwrite', startIn: 'documents' });
+          pastaRealHandle = pasta;
+          await salvarHandleDaPastaReal(pasta);
+          atualizarStatusDeVinculoNoExplorer(pasta.name);
+          mostrarToast('Pasta "' + pasta.name + '" vinculada — os arquivos serão espelhados nela ao salvar.');
+          espelharProjetoInteiroNoDisco();
+        } catch (erro) {
+          if (erro && erro.name !== 'AbortError') mostrarToast('Não foi possível vincular a pasta.');
+        }
+      }
+
+      // Ao carregar, tenta restaurar uma pasta vinculada em sessão
+      // anterior. Só confirma com queryPermission (não pede permissão de
+      // novo sozinho — isso exige gesto do usuário, por isso fica pendente
+      // até o aluno clicar em "vincular" de novo).
+      carregarHandleDaPastaReal().then(function (pasta) {
+        if (!pasta || typeof pasta.queryPermission !== 'function') return;
+        return pasta.queryPermission({ mode: 'readwrite' }).then(function (estado) {
+          if (estado === 'granted') {
+            pastaRealHandle = pasta;
+            atualizarStatusDeVinculoNoExplorer(pasta.name);
+          } else if (explorerStatus) {
+            explorerStatus.hidden = false;
+            explorerStatus.textContent = 'Pasta aberta antes — clique em "Abrir pasta" para escolher e confirmar de novo.';
+          }
+        });
+      }).catch(function () { /* sem pasta vinculada ainda, segue no modo virtual */ });
+
+      projetoCarregar().then(function () {
+        if (explorerPanel && !explorerPanel.hidden) renderizarExplorer();
+      });
+
+      // ---- Abrir/fechar o Explorer ----------------------------------------
+      // O painel mora dentro da janela do IDE (#ide-body), então funciona
+      // igual em modo normal, tela cheia e layout vertical, e não mexe na
+      // largura da Teoria. Ao abrir/fechar/redimensionar, o evento
+      // ide:resize já existente reencaixa editores e preview.
+      var explorerResizer = document.getElementById('explorer-resizer');
+      var ideBody = document.getElementById('ide-body');
+      var EXPLORER_LARGURA_PADRAO_PX = 240;
+      var EXPLORER_LARGURA_MIN_PX = 140;
+      var EXPLORER_AREA_MIN_EDITORES_PX = 220;
+      var explorerLarguraPx = EXPLORER_LARGURA_PADRAO_PX;
+
+      function avisarMudancaDeLayout() {
+        requestAnimationFrame(function () { window.dispatchEvent(new Event('ide:resize')); });
+      }
+
+      function definirLarguraDoExplorer(px) {
+        var disponivel = ideBody ? ideBody.getBoundingClientRect().width : 0;
+        var maximo = Math.max(EXPLORER_LARGURA_MIN_PX, disponivel - EXPLORER_AREA_MIN_EDITORES_PX);
+        explorerLarguraPx = Math.round(Math.min(maximo, Math.max(EXPLORER_LARGURA_MIN_PX, px)));
+        explorerPanel.style.setProperty('--explorer-largura', explorerLarguraPx + 'px');
+        if (explorerResizer) explorerResizer.setAttribute('aria-valuenow', String(explorerLarguraPx));
+      }
+
+      function abrirExplorer() {
+        if (!explorerPanel) return;
+        explorerPanel.hidden = false;
+        if (explorerResizer) explorerResizer.hidden = false;
+        definirLarguraDoExplorer(explorerLarguraPx);
+        if (btnExplorerToggle) {
+          btnExplorerToggle.setAttribute('aria-expanded', 'true');
+          btnExplorerToggle.classList.add('is-active');
+        }
+        renderizarExplorer();
+        avisarMudancaDeLayout();
+      }
+
+      function fecharExplorer() {
+        if (!explorerPanel) return;
+        explorerPanel.hidden = true;
+        if (explorerResizer) explorerResizer.hidden = true;
+        if (btnExplorerToggle) {
+          btnExplorerToggle.setAttribute('aria-expanded', 'false');
+          btnExplorerToggle.classList.remove('is-active');
+        }
+        avisarMudancaDeLayout();
+      }
+
+      // Divisor arrastável (mouse/toque) + teclado, no mesmo espírito dos
+      // divisores entre editores: duplo clique restaura a largura padrão.
+      if (explorerResizer && ideBody) {
+        explorerResizer.addEventListener('pointerdown', function (evento) {
+          if (evento.button !== undefined && evento.button !== 0) return;
+          evento.preventDefault();
+          var esquerda = ideBody.getBoundingClientRect().left;
+          explorerResizer.classList.add('is-dragging');
+          document.body.style.userSelect = 'none';
+          try { explorerResizer.setPointerCapture(evento.pointerId); } catch (e) { /* sem captura: segue com listeners no documento */ }
+          function mover(e) {
+            definirLarguraDoExplorer(e.clientX - esquerda);
+            avisarMudancaDeLayout();
+          }
+          function soltar(e) {
+            explorerResizer.classList.remove('is-dragging');
+            document.body.style.userSelect = '';
+            try { explorerResizer.releasePointerCapture(e.pointerId); } catch (err) { /* já liberado */ }
+            explorerResizer.removeEventListener('pointermove', mover);
+            explorerResizer.removeEventListener('pointerup', soltar);
+            explorerResizer.removeEventListener('pointercancel', soltar);
+            avisarMudancaDeLayout();
+          }
+          explorerResizer.addEventListener('pointermove', mover);
+          explorerResizer.addEventListener('pointerup', soltar);
+          explorerResizer.addEventListener('pointercancel', soltar);
+        });
+        explorerResizer.addEventListener('keydown', function (evento) {
+          var passo = evento.shiftKey ? 48 : 16;
+          if (evento.key === 'ArrowLeft') definirLarguraDoExplorer(explorerLarguraPx - passo);
+          else if (evento.key === 'ArrowRight') definirLarguraDoExplorer(explorerLarguraPx + passo);
+          else if (evento.key === 'Home') definirLarguraDoExplorer(EXPLORER_LARGURA_MIN_PX);
+          else return;
+          evento.preventDefault();
+          avisarMudancaDeLayout();
+        });
+        explorerResizer.addEventListener('dblclick', function () {
+          definirLarguraDoExplorer(EXPLORER_LARGURA_PADRAO_PX);
+          avisarMudancaDeLayout();
+        });
+        // Se a janela do IDE encolher (tela cheia→normal, resize), mantém
+        // sempre uma área mínima para os editores.
+        window.addEventListener('ide:resize', function () {
+          if (!explorerPanel.hidden) definirLarguraDoExplorer(explorerLarguraPx);
+        });
+      }
+
+      if (btnExplorerToggle) {
+        btnExplorerToggle.addEventListener('click', function () {
+          if (explorerPanel.hidden) abrirExplorer(); else fecharExplorer();
+        });
+      }
+
+      function criarArquivoExtra(linguagem, nome, conteudo, opcoes) {
+        opcoes = opcoes || {};
+        var origem = opcoes.origem === 'projeto' ? 'projeto' : 'exercicio';
         var extensoes = { svg: 'svg', markdown: 'md', json: 'json', xml: 'xml', typescript: 'ts', scss: 'scss', javascriptreact: 'jsx', html: 'html', css: 'css', javascript: 'js' };
         var sufixo = extensoes[linguagem] || 'txt';
         var identificador = 'arquivo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
         var idPane = identificador + '-pane';
-        var nomeArquivo = nomeUnicoDoArquivo(nome || ('novo-arquivo.' + sufixo));
+        var nomeArquivo = opcoes.exato ? nome : nomeUnicoDoArquivo(nome || ('novo-arquivo.' + sufixo), origem);
         var aba = document.createElement('div');
         aba.className = 'tab-btn code-tab';
         aba.setAttribute('data-target', idPane);
+        aba.setAttribute('data-origem', origem);
         aba.draggable = true;
         aba.innerHTML = '<input checked class="editor-toggle-checkbox" type="checkbox"><span class="tab-text"></span><span class="file-tab-actions"><button aria-label="Fechar arquivo" class="tab-action-btn file-close-btn" draggable="false" title="Fechar arquivo" type="button">×</button></span>';
         aba.querySelector('.tab-text').textContent = nomeArquivo;
@@ -4566,7 +6512,7 @@
         painel.appendChild(container);
         editorsContainer.appendChild(painel);
 
-        var arquivo = { idPane: idPane, nome: nomeArquivo, linguagem: linguagem, editor: criarEditor(container.id, linguagem, conteudo || '', nomeArquivo) };
+        var arquivo = { idPane: idPane, origem: origem, nome: nomeArquivo, linguagem: linguagem, editor: criarEditor(container.id, linguagem, conteudo || '', nomeArquivo, origem) };
         arquivosExtras.push(arquivo);
         registrarAbaDeArquivo(aba, aba.querySelector('.editor-toggle-checkbox'), aba.querySelector('.file-close-btn'));
         // Ferramentas específicas deste arquivo ficam numa barra dentro do
@@ -4577,7 +6523,8 @@
           sincronizarDependenciasLocais();
           agendarValidacaoArquivo(arquivo);
           agendarAtualizacaoPreview();
-          if (!carregandoCodigoDaEtapa) agendarSalvamentoAutomatico();
+          if (arquivo.origem === 'projeto') sincronizarArquivoDoProjeto(arquivo);
+          else if (!carregandoCodigoDaEtapa) agendarSalvamentoAutomatico();
         });
         arquivo.editor.on('focus', function () {
           editorAtivoParaHistorico = arquivo.editor;
@@ -4603,7 +6550,7 @@
         if (!carregandoCodigoDaEtapa) sincronizarDependenciasLocais();
         agendarValidacaoArquivo(arquivo);
         arquivo.editor.focus();
-        if (!carregandoCodigoDaEtapa) agendarSalvamentoAutomatico();
+        if (!carregandoCodigoDaEtapa && origem !== 'projeto') agendarSalvamentoAutomatico();
       }
 
       function atualizarLayoutAbas() {
@@ -4632,11 +6579,14 @@
         if (idsAtivos.length === 3) editorsContainer.classList.add('split-3');
 
         contentWrapper.classList.toggle('no-tabs-active', idsAtivos.length === 0);
+        mainWindowContainer.classList.toggle('mistura-contextos', arquivosExtras.some(function (a) { return a.origem === 'projeto'; }));
         sincronizarPreviewComAbas(idsAtivos.length);
 
         limparTamanhosDosPaineis();
         configurarRedimensionadores();
         setTimeout(redimensionarEditores, 50);
+
+        if (typeof renderizarExplorer === 'function' && explorerPanel && !explorerPanel.hidden) renderizarExplorer();
       }
 
       [htmlEditor, cssEditor, jsEditor].forEach(function (editor) {
@@ -4746,13 +6696,9 @@
         var reader = new FileReader();
         reader.onload = function () {
           var conteudo = String(reader.result || '');
-          var mensagemImportacao = importarArquivoPorTipo(file, conteudo);
-          mostrarToast(mensagemImportacao);
-
-          abrirJanela();
-          atualizarLayoutAbas();
-          agendarAtualizacaoPreview();
-          if (!mensagemImportacao) mostrarToast('Arquivo importado.');
+          // Arquivo avulso importado vira arquivo do PROJETO (nunca do exercício).
+          var caminhoImportado = criarArquivoDoProjeto(linguagemDoArquivo(file.name) || 'plaintext', file.name, conteudo, true);
+          mostrarToast((caminhoImportado || file.name) + ' adicionado ao projeto.');
         };
         reader.readAsText(file);
         inputImportFile.value = '';
@@ -5057,7 +7003,7 @@
           if (!/\.[A-Za-z0-9]+$/.test(nome)) nome += '.' + tipoEmCriacao.ext;
           var linguagem = tipoEmCriacao.linguagem;
           fecharMenuNovoArquivo();
-          criarArquivoExtra(linguagem, nome, '');
+          criarArquivoDoProjeto(linguagem, nome, '', true);
         });
         if (botaoImportarDoMenu) {
           botaoImportarDoMenu.addEventListener('click', function () {
@@ -5140,14 +7086,7 @@
           btnPreviewTheme.title = previewTemaEscuro ? 'Tema Claro do Preview' : 'Tema Escuro do Preview';
           btnPreviewTheme.setAttribute('aria-label', btnPreviewTheme.title);
           alternarIcones(iconPreviewThemeLight, iconPreviewThemeDark, previewTemaEscuro);
-          if (previewContainer.classList.contains('show-preview')) {
-            // O tema é inserido no srcdoc de cada iframe. Invalidar este
-            // cache força a reconstrução do preview sem alterar o fluxo
-            // de criação e abertura de arquivos.
-            ultimoHtmlPorIdPane = {};
-            ultimaAssinaturaCssJs = null;
-            renderizarPreview();
-          }
+          if (previewContainer.classList.contains('show-preview')) renderizarPreview();
         });
       }
 

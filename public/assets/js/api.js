@@ -333,6 +333,85 @@
         } finally { await reader.cancel(); reader.releaseLock(); }
     };
 
+    /* ===================================================== */
+    /* BACKUP DO PROJETO DO ALUNO (Explorer do IDE)           */
+    /* Formato PRÓPRIO, separado do backup do curso: o        */
+    /* validateStudyData só aceita "coding-loop-study", então */
+    /* um arquivo de projeto nunca restaura (nem sobrescreve) */
+    /* o progresso, e vice-versa.                             */
+    /* ===================================================== */
+
+    CL.api.MAX_PROJECT_BACKUP_BYTES = 8 * 1024 * 1024;
+    CL.api.PROJECT_BACKUP_FILE = "coding-loop-projeto.json";
+
+    CL.api.validateProjectData = function (data) {
+        const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
+        const string = (value, max) => typeof value === "string" && value.length <= max;
+        const path = value => string(value, 400) && value.length > 0 && !/^\/|\/$|\\|[\u0000-\u001f]/.test(value) &&
+            value.split("/").every(part => part.length > 0 && part !== "." && part !== ".." && !["__proto__", "constructor", "prototype"].includes(part));
+        try {
+            if (!object(data) || !Object.keys(data).every(key => ["format", "version", "exportedAt", "nome", "pastas", "arquivos"].includes(key))) return false;
+            if (data.format !== "coding-loop-project" || data.version !== 1) return false;
+            if (data.exportedAt !== undefined && !(string(data.exportedAt, 40) && Number.isFinite(Date.parse(data.exportedAt)))) return false;
+            if (!string(data.nome, 100)) return false;
+            if (!Array.isArray(data.pastas) || data.pastas.length > 2000 || !data.pastas.every(path)) return false;
+            if (!object(data.arquivos)) return false;
+            const caminhos = Object.keys(data.arquivos);
+            if (caminhos.length > 2000) return false;
+            if (new TextEncoder().encode(JSON.stringify(data)).length > CL.api.MAX_PROJECT_BACKUP_BYTES) return false;
+            return caminhos.every(caminho => path(caminho) && object(data.arquivos[caminho]) &&
+                Object.keys(data.arquivos[caminho]).every(key => ["linguagem", "conteudo"].includes(key)) &&
+                string(data.arquivos[caminho].linguagem, 80) && string(data.arquivos[caminho].conteudo, 1024 * 1024));
+        } catch (error) { return false; }
+    };
+
+    CL.api.parseProjectBackup = function (text) {
+        if (typeof text !== "string" || text.length > CL.api.MAX_PROJECT_BACKUP_BYTES || new TextEncoder().encode(text).length > CL.api.MAX_PROJECT_BACKUP_BYTES) throw new Error("Backup do projeto excede o limite de 8 MB.");
+        let data;
+        try { data = JSON.parse(text); } catch (error) { throw new Error("Arquivo de projeto inválido."); }
+        if (!CL.api.validateProjectData(data)) throw new Error("Arquivo de projeto inválido. (Backups do curso não podem ser usados aqui.)");
+        return data;
+    };
+
+    CL.api.readProjectBackupResponse = async function (response) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let bytes = 0, text = "";
+        try {
+            while (true) {
+                const chunk = await reader.read();
+                if (chunk.done) break;
+                bytes += chunk.value.byteLength;
+                if (bytes > CL.api.MAX_PROJECT_BACKUP_BYTES) throw new Error("Backup do projeto excede o limite de 8 MB.");
+                text += decoder.decode(chunk.value, { stream: true });
+            }
+            return CL.api.parseProjectBackup(text + decoder.decode());
+        } finally { await reader.cancel(); reader.releaseLock(); }
+    };
+
+    /* O projeto vive em IndexedDB (banco "coding-loop-projeto"), com chaves
+       por usuário: "atual:<uid>" e "versoes:<uid>". Chamado ao excluir a
+       conta / limpar dados locais. Assíncrono e "melhor esforço". */
+    CL.api.clearProjectStorage = function (uid) {
+        return new Promise(function (resolve) {
+            try {
+                if (!window.indexedDB) return resolve(false);
+                const request = window.indexedDB.open("coding-loop-projeto", 1);
+                request.onupgradeneeded = function () { request.result.createObjectStore("projeto"); };
+                request.onerror = function () { resolve(false); };
+                request.onsuccess = function () {
+                    const db = request.result;
+                    const tx = db.transaction("projeto", "readwrite");
+                    const store = tx.objectStore("projeto");
+                    store.delete("atual:" + uid);
+                    store.delete("versoes:" + uid);
+                    tx.oncomplete = function () { db.close(); resolve(true); };
+                    tx.onerror = function () { db.close(); resolve(false); };
+                };
+            } catch (error) { resolve(false); }
+        });
+    };
+
     CL.api.importStudyData = function (data) {
         if (!CL.api.validateStudyData(data)) {
             throw new Error("Arquivo de progresso inválido.");
@@ -478,6 +557,7 @@
             })) keys.push(key);
         }
         keys.forEach(function (key) { localStorage.removeItem(key); });
+        if (typeof CL.api.clearProjectStorage === "function") CL.api.clearProjectStorage(uid);
         return true;
     };
 

@@ -1,0 +1,619 @@
+/*
+ * O Coding Loop oferece os temas Solarized Light e Solarized Dark.
+ * Ao criar estilos ou projetos, verifique o contraste de texto, fundo e controles nos dois temas.
+ */
+/* ==========================================================
+   Variáveis de Tema
+   ========================================================== */
+.logprog-etapa {
+  --fc-primary-color: #007bff;
+  --fc-bg-front: #f8f9fa;
+  --fc-text-front: #333333;
+  --fc-text-back: #ffffff;
+  --fc-border-radius: 12px;
+  --fc-transition-speed: 0.6s;
+
+  /* Novos recursos */
+  --rc-ok: #1a7f4b;
+  --rc-ok-bg: #e6f4ec;
+  --rc-erro: #b42318;
+  --rc-erro-bg: #fdecea;
+  --rc-borda: #d5dbe1;
+  --rc-suave: #f1f4f7;
+  --rc-texto: #2b3138;
+  --rc-mudo: #5c6670;
+}
+
+@scope (.logprog-etapa) {
+
+  /* ==========================================================
+   FLASHCARD (original)
+   ========================================================== */
+  .flashcard-container {
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 16 / 9;
+    margin: 20px auto;
+    perspective: 1000px;
+    cursor: pointer;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .flashcard-container:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+    border-radius: var(--fc-border-radius);
+  }
+
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform var(--fc-transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    border-radius: var(--fc-border-radius);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .flashcard-container.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flashcard-front,
+  .flashcard-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--fc-border-radius);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    overflow: hidden;
+  }
+
+  .flashcard-content {
+    width: 100%;
+    height: 100%;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+  }
+
+  .flashcard-front {
+    background-color: var(--fc-bg-front);
+    border-left: 6px solid var(--fc-primary-color);
+    color: var(--fc-text-front);
+  }
+
+  .flashcard-back {
+    background-color: var(--fc-primary-color);
+    color: var(--fc-text-back);
+    transform: rotateY(180deg);
+  }
+
+  .flashcard-back .flashcard-title {
+    color: #e0e0e0;
+  }
+
+  .flashcard-title {
+    display: block;
+    color: var(--fc-primary-color);
+    font-size: 0.9em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  .flashcard-definition {
+    font-size: 1.1em;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+  }
+
+  .flashcard-steps {
+    text-align: left;
+    margin: 8px 0;
+    padding-left: 20px;
+    font-size: 0.95em;
+    line-height: 1.4;
+  }
+
+  .flashcard-hint {
+    font-size: 0.8em;
+    opacity: 0.8;
+    margin-top: auto;
+    padding-top: 8px;
+  }
+
+  /* ==========================================================
+   VÍDEO (original)
+   ========================================================== */
+  .video-container {
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 16 / 9;
+    margin: 24px auto;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  .video-container iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 0;
+  }
+
+  /* ==========================================================
+   NOVOS RECURSOS: estrutura comum
+   ========================================================== */
+  .rc-recurso {
+    max-width: 800px;
+    margin: 36px auto;
+    color: var(--rc-texto);
+  }
+
+  .rc-titulo {
+    margin: 0 0 4px;
+    font-size: 1.15em;
+  }
+
+  .rc-legenda {
+    margin: 0 0 14px;
+    color: var(--rc-mudo);
+    font-size: 0.9em;
+    line-height: 1.45;
+  }
+
+  .rc-btn {
+    font: inherit;
+    font-size: 0.92em;
+    padding: 8px 16px;
+    border: 1px solid var(--fc-primary-color);
+    background: #fff;
+    color: var(--fc-primary-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .rc-btn:hover {
+    background: var(--fc-primary-color);
+    color: #fff;
+  }
+
+  .rc-btn-cheio {
+    background: var(--fc-primary-color);
+    color: #fff;
+  }
+
+  .rc-btn-cheio:hover {
+    background: #0062cc;
+  }
+
+  .rc-btn:focus-visible,
+  .rc-abas [role="tab"]:focus-visible,
+  .rc-acordeao summary:focus-visible,
+  .rc-exec textarea:focus-visible,
+  .rc-lacuna select:focus-visible {
+    outline: 3px solid rgba(0, 123, 255, 0.5);
+    outline-offset: 2px;
+  }
+
+  .rc-btn[disabled] {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .rc-feedback {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.92em;
+    line-height: 1.45;
+  }
+
+  .rc-feedback:empty {
+    display: none;
+  }
+
+  .rc-feedback.rc-ok {
+    background: var(--rc-ok-bg);
+    color: var(--rc-ok);
+  }
+
+  .rc-feedback.rc-erro {
+    background: var(--rc-erro-bg);
+    color: var(--rc-erro);
+  }
+
+  /* ==========================================================
+   Destaques (dica / atenção)
+   ========================================================== */
+  .rc-destaque {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 14px 18px;
+    border-left: 5px solid var(--fc-primary-color);
+    background: #eaf3ff;
+    border-radius: 0 10px 10px 0;
+    line-height: 1.5;
+  }
+
+  .rc-destaque p {
+    margin: 0;
+  }
+
+  .rc-destaque.rc-atencao {
+    border-left-color: #c77700;
+    background: #fff4e0;
+  }
+
+  /* ==========================================================
+   Ouvir explicação
+   ========================================================== */
+  .rc-ouvir {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .rc-ouvir p {
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  .rc-ouvir .rc-btn {
+    flex-shrink: 0;
+  }
+
+  /* ==========================================================
+   Deck de flashcards
+   ========================================================== */
+  .rc-deck-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-top: 4px;
+  }
+
+  .rc-deck-contagem {
+    min-width: 56px;
+    text-align: center;
+    color: var(--rc-mudo);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rc-deck-item[hidden] {
+    display: none;
+  }
+
+  /* ==========================================================
+   Abas
+   ========================================================== */
+  .rc-abas [role="tablist"] {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--rc-borda);
+  }
+
+  .rc-abas [role="tab"] {
+    font: inherit;
+    padding: 10px 18px;
+    border: 0;
+    background: transparent;
+    color: var(--rc-mudo);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+
+  .rc-abas [role="tab"][aria-selected="true"] {
+    color: var(--fc-primary-color);
+    border-bottom-color: var(--fc-primary-color);
+    font-weight: 700;
+  }
+
+  .rc-abas [role="tabpanel"] {
+    padding: 18px 4px 4px;
+  }
+
+  .rc-abas [role="tabpanel"][hidden] {
+    display: none;
+  }
+
+  .rc-abas pre,
+  .rc-exec textarea,
+  .rc-exec pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    line-height: 1.55;
+  }
+
+  .rc-abas pre {
+    margin: 0;
+    padding: 14px 16px;
+    background: #1f2933;
+    color: #e8edf2;
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+
+  .rc-abas ol {
+    margin: 0;
+    padding-left: 22px;
+    line-height: 1.7;
+  }
+
+  .rc-fluxo {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    color: #44505c;
+  }
+
+  .rc-fluxo .rc-no,
+  .rc-fluxo .rc-no-term {
+    stroke-width: 1.5;
+  }
+
+  .rc-fluxo .rc-no {
+    fill: #fff;
+    stroke: var(--fc-primary-color);
+  }
+
+  .rc-fluxo .rc-no-term {
+    fill: var(--fc-primary-color);
+    stroke: var(--fc-primary-color);
+  }
+
+  .rc-fluxo .rc-no-term+text {
+    fill: #fff;
+  }
+
+  .rc-fluxo text {
+    font-size: 13px;
+    fill: var(--rc-texto);
+  }
+
+  .rc-fluxo line {
+    stroke: currentColor;
+    stroke-width: 1.5;
+  }
+
+  /* ==========================================================
+   Acordeão
+   ========================================================== */
+  .rc-acordeao details {
+    border: 1px solid var(--rc-borda);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+
+  .rc-acordeao summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-weight: 600;
+    list-style-position: inside;
+  }
+
+  .rc-acordeao details[open] summary {
+    border-bottom: 1px solid var(--rc-borda);
+  }
+
+  .rc-acordeao details p {
+    margin: 0;
+    padding: 12px 16px 14px;
+    line-height: 1.55;
+  }
+
+  /* ==========================================================
+   Ordenar passos
+   ========================================================== */
+  .rc-ordem ol {
+    margin: 0;
+    padding: 0 0 0 28px;
+  }
+
+  .rc-ordem li {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background: var(--rc-suave);
+    border: 1px solid var(--rc-borda);
+    border-radius: 8px;
+  }
+
+  .rc-ordem li::marker {
+    font-weight: 700;
+    color: var(--fc-primary-color);
+  }
+
+  .rc-ordem li>span:first-child {
+    display: inline-block;
+    width: calc(100% - 92px);
+    vertical-align: middle;
+  }
+
+  .rc-ordem-ctrl {
+    display: inline-flex;
+    gap: 6px;
+    vertical-align: middle;
+  }
+
+  .rc-btn-ico {
+    padding: 4px 10px;
+    line-height: 1.2;
+  }
+
+  .rc-ordem li.rc-certo {
+    background: var(--rc-ok-bg);
+    border-color: var(--rc-ok);
+  }
+
+  .rc-ordem li.rc-errado {
+    background: var(--rc-erro-bg);
+    border-color: var(--rc-erro);
+  }
+
+  .rc-acoes {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* ==========================================================
+   Verdadeiro ou falso
+   ========================================================== */
+  .rc-vf-item {
+    padding: 14px 16px;
+    border: 1px solid var(--rc-borda);
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  .rc-vf-item>p {
+    margin: 0 0 10px;
+    line-height: 1.5;
+  }
+
+  .rc-vf-item .rc-acoes {
+    margin-top: 0;
+  }
+
+  .rc-vf-item .rc-btn.rc-marcado-ok {
+    background: var(--rc-ok);
+    border-color: var(--rc-ok);
+    color: #fff;
+  }
+
+  .rc-vf-item .rc-btn.rc-marcado-erro {
+    background: var(--rc-erro);
+    border-color: var(--rc-erro);
+    color: #fff;
+  }
+
+  /* ==========================================================
+   Completar lacunas
+   ========================================================== */
+  .rc-lacuna p {
+    line-height: 2.1;
+    margin: 0;
+  }
+
+  .rc-lacuna select {
+    font: inherit;
+    padding: 4px 8px;
+    border: 1.5px solid var(--rc-borda);
+    border-radius: 6px;
+    background: #fff;
+  }
+
+  .rc-lacuna select.rc-certo {
+    border-color: var(--rc-ok);
+    background: var(--rc-ok-bg);
+  }
+
+  .rc-lacuna select.rc-errado {
+    border-color: var(--rc-erro);
+    background: var(--rc-erro-bg);
+  }
+
+  /* ==========================================================
+   Editor executável
+   ========================================================== */
+  .rc-exec textarea {
+    width: 100%;
+    min-height: 110px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #3b4754;
+    border-radius: 10px;
+    background: #1f2933;
+    color: #e8edf2;
+    resize: vertical;
+  }
+
+  .rc-exec pre {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    min-height: 2.6em;
+    background: var(--rc-suave);
+    border: 1px dashed var(--rc-borda);
+    border-radius: 10px;
+    white-space: pre-wrap;
+  }
+
+  /* ==========================================================
+   Checklist com progresso
+   ========================================================== */
+  .rc-check label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 0;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+
+  .rc-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--fc-primary-color);
+  }
+
+  .rc-check progress {
+    width: 100%;
+    height: 10px;
+    accent-color: var(--fc-primary-color);
+  }
+
+  .rc-check-texto {
+    margin: 6px 0 0;
+    color: var(--rc-mudo);
+    font-size: 0.88em;
+  }
+
+  /* ==========================================================
+   Responsivo e movimento reduzido
+   ========================================================== */
+  @media (max-width: 560px) {
+    .rc-ouvir {
+      flex-direction: column;
+    }
+
+    .rc-abas [role="tab"] {
+      padding: 10px 10px;
+      font-size: 0.9em;
+    }
+
+    .flashcard-content {
+      padding: 14px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flashcard-inner {
+      transition: none;
+    }
+
+    .rc-btn {
+      transition: none;
+    }
+  }
+
+}

@@ -2434,6 +2434,194 @@
       fill: currentColor;
     }
 
+    /* ==================================================================
+       Explorer do projeto. Mora DENTRO da janela do IDE (#ide-body, dentro
+       de #main-window-container), ao lado de .window-content — por isso
+       acompanha o IDE em tela cheia e nunca mexe na largura da Teoria. É
+       um irmão flex de verdade: "empurra" os editores ao abrir, e a
+       largura é ajustável por #explorer-resizer (ver ide.js).
+       ================================================================== */
+    .explorer-panel {
+      display: flex;
+      flex: 0 0 var(--explorer-largura, 240px);
+      flex-direction: column;
+      width: var(--explorer-largura, 240px);
+      min-width: 140px;
+      max-width: 80%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d1117;
+    }
+
+    .explorer-panel[hidden],
+    .editor-split-resizer.explorer-resizer[hidden] {
+      display: none;
+    }
+
+    /* Divisor entre Explorer e editores: reaproveita o visual de
+       .editor-split-resizer (linha discreta + pegador central). */
+    .explorer-resizer {
+      z-index: 30;
+    }
+
+    .explorer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      /* altura livre: com 8 botões a barra quebra em 2 linhas (antes era fixa
+         em 34px e a 2ª linha ficava debaixo da árvore). */
+      min-height: 34px;
+      padding: 4px 6px 4px 10px;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .explorer-title {
+      color: #8b949e;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .06em;
+    }
+
+    .explorer-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .explorer-icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      color: #8b949e;
+      cursor: pointer;
+    }
+
+    .explorer-icon-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .explorer-icon-btn:hover,
+    .explorer-icon-btn:focus-visible {
+      border-color: #4ab5f7;
+      color: #4ab5f7;
+      outline: none;
+    }
+
+    .explorer-icon-btn.is-active {
+      color: #4ab5f7;
+      border-color: #4ab5f7;
+    }
+
+    .explorer-status {
+      margin: 0;
+      padding: 6px 10px;
+      color: #8b949e;
+      font-size: 10.5px;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .explorer-tree {
+      flex: 1 1 auto;
+      min-height: 0;
+      margin: 0;
+      padding: 4px;
+      overflow-y: auto;
+      list-style: none;
+    }
+
+    .explorer-node {
+      margin: 0;
+      padding: 0;
+    }
+
+    .explorer-node-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 24px;
+      padding: 0 6px;
+      border-radius: 4px;
+      color: #d7dee6;
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .explorer-node-row:hover,
+    .explorer-node-row:focus-visible {
+      background: #161b22;
+      outline: none;
+    }
+
+    .explorer-node-row.is-active {
+      background: #1c2a3a;
+      color: #4ab5f7;
+    }
+
+    .explorer-node-caret {
+      flex-shrink: 0;
+      width: 12px;
+      height: 12px;
+      color: #8b949e;
+      transition: transform .12s ease;
+    }
+
+    .explorer-node.is-aberto > .explorer-node-row .explorer-node-caret {
+      transform: rotate(90deg);
+    }
+
+    .explorer-node-favicon {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+    }
+
+    .explorer-node-folder-icon {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: #e8b84b;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .explorer-node-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .explorer-children {
+      margin: 0;
+      padding-left: 16px;
+      list-style: none;
+    }
+
+    .explorer-node.is-fechado > .explorer-children {
+      display: none;
+    }
+
+    .explorer-empty {
+      margin: 10px;
+      color: #8b949e;
+      font-size: 11.5px;
+      text-align: center;
+    }
+
     /* Painel Direito: onde o IDE é encaixado */
     .ide-container-pane {
       flex: 1;
@@ -2554,6 +2742,8 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #fff;
       display: flex;
+      flex: 1 1 auto;
+      min-width: 0;
       width: 100%;
       height: 100%;
     }
@@ -2615,9 +2805,16 @@
     .browser-window.is-collapsed .toolbar-btn,
     .browser-window.is-collapsed .browser-tabs-right,
     .browser-window.is-collapsed .browser-tabs-scroll-wrapper,
-    .browser-window.is-collapsed .browser-tabs-fixed-right {
+    .browser-window.is-collapsed #btn-explorer-toggle {
       display: none !important;
     }
+
+    /* .browser-tabs-fixed-right não entra na lista acima de propósito: é
+       onde mora o botão de recolher/expandir agora (ver item 5) — tem que
+       continuar visível e clicável mesmo com o IDE recolhido, senão não
+       haveria como expandir de volta. O checkbox de preview que também
+       mora aqui já é `hidden` por conta própria, então não aparece de
+       qualquer forma. */
 
     .browser-window.is-collapsed .browser-tabs {
       border-bottom: none;
@@ -2937,27 +3134,72 @@
     }
 
     /* ==================================================================
-       Barra de ferramentas por arquivo — vive dentro de cada .tab-pane,
-       acima do editor, como a barra de um navegador sob a aba ativa. Cada
-       arquivo tem a sua (ver montarBarraDoArquivo em ide.js).
+       Barra do arquivo — vive dentro de cada .tab-pane, acima do editor.
+       Agora é uma aba de navegador de verdade: favicon (que também abre o
+       dropdown de ferramentas) + nome + preview + fechar. Ver
+       montarBarraDoArquivo em ide.js.
        ================================================================== */
     .file-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+      position: relative;
       flex-shrink: 0;
-      gap: 1px;
-      padding: 3px 4px;
       background: #161b22;
       border-bottom: 1px solid #30363d;
     }
 
-    .file-tool-btn {
-      position: relative;
+    .file-toolbar-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 4px 0 6px;
+    }
+
+    .file-favicon-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 26px;
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .file-favicon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .file-favicon-btn:hover,
+    .file-favicon-btn:focus-visible,
+    .file-favicon-btn[aria-expanded="true"] {
+      border-color: #4ab5f7;
+      outline: none;
+    }
+
+    .file-toolbar-name {
+      overflow: hidden;
+      color: #d7dee6;
+      font-size: 12.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .file-toolbar-spacer {
+      flex: 1 1 auto;
+    }
+
+    .file-preview-toggle,
+    .file-toolbar-close-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 24px;
       height: 24px;
       padding: 0;
       border: 1px solid transparent;
@@ -2965,10 +3207,10 @@
       background: transparent;
       color: #8b949e;
       cursor: pointer;
-      flex-shrink: 0;
     }
 
-    .file-tool-btn svg {
+    .file-preview-toggle svg,
+    .file-toolbar-close-btn svg {
       width: 14px;
       height: 14px;
       fill: none;
@@ -2978,50 +3220,109 @@
       stroke-linejoin: round;
     }
 
-    .file-tool-btn:hover,
-    .file-tool-btn:focus-visible {
+    .file-preview-toggle svg circle {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .file-preview-toggle:hover,
+    .file-preview-toggle:focus-visible,
+    .file-toolbar-close-btn:hover,
+    .file-toolbar-close-btn:focus-visible {
       border-color: #4ab5f7;
       color: #4ab5f7;
       outline: none;
     }
 
-    .file-tool-btn:disabled {
+    .file-preview-toggle.is-active {
+      color: #4ab5f7;
+    }
+
+    /* ---- Dropdown de ferramentas (aberto pelo favicon) ----------------- */
+    .file-tools-menu {
+      position: fixed;
+      z-index: 10020;
+      display: flex;
+      flex-direction: column;
+      width: 240px;
+      max-width: calc(100vw - 16px);
+      padding: 4px;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: #21262d;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .35);
+    }
+
+    /* `display: flex` acima vence a regra [hidden] do navegador: sem esta
+       linha, o menu de cada arquivo ficava sempre visível (fixed + z-index
+       alto), cobrindo a barra superior e interceptando os cliques. */
+    .file-tools-menu[hidden] {
+      display: none;
+    }
+
+    .file-tool-menu-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 0 8px;
+      border: none;
+      border-radius: 5px;
+      background: transparent;
+      color: #d7dee6;
+      font: inherit;
+      font-size: 12.5px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .file-tool-menu-item svg {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .file-tool-menu-item:hover,
+    .file-tool-menu-item:focus-visible {
+      background: #30363d;
+      outline: none;
+    }
+
+    .file-tool-menu-item:disabled {
       color: #4b5563;
       cursor: default;
     }
 
-    .file-tool-btn:disabled:hover {
-      border-color: transparent;
-      color: #4b5563;
+    .file-tool-menu-item:disabled:hover {
+      background: transparent;
     }
 
-    .file-tool-btn.is-active {
-      background: #21262d;
+    .file-tool-menu-item.is-active {
       color: #4ab5f7;
-      border-color: #4ab5f7;
     }
 
-    .file-tool-sep {
-      width: 1px;
-      height: 18px;
-      margin: 0 3px;
+    .file-tool-menu-sep {
+      height: 1px;
+      margin: 4px 6px;
       background: #30363d;
-      flex-shrink: 0;
     }
 
     .file-tool-count {
-      position: absolute;
-      top: 1px;
-      right: 1px;
-      min-width: 12px;
-      height: 12px;
-      padding: 0 3px;
-      border-radius: 6px;
+      margin-left: auto;
+      min-width: 14px;
+      padding: 0 4px;
+      border-radius: 7px;
       background: #e0a030;
       color: #161b22;
-      font-size: 8px;
+      font-size: 9px;
       font-weight: 700;
-      line-height: 12px;
+      line-height: 14px;
       text-align: center;
     }
 
@@ -3091,12 +3392,30 @@
       font-weight: 600;
     }
 
+    .ide-body {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex: 1 1 auto;
+      width: 100%;
+      min-width: 0;
+      height: calc(100% - 28px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .browser-window.is-collapsed .ide-body {
+      display: none !important;
+    }
+
     .window-content {
       position: relative;
       z-index: 20;
       display: flex;
-      width: 100%;
-      height: calc(100% - 28px);
+      flex: 1 1 0;
+      width: auto;
+      min-width: 0;
+      height: 100%;
       min-height: 0;
       flex-direction: column;
       overflow: hidden;
@@ -4610,3 +4929,57 @@
         height: 60%;
       }
     }
+
+@media (max-width: 640px) {
+  .explorer-panel { max-width: 70%; }
+}
+
+/* ---- Explorer: menu de contexto, seleção e rótulo de origem ---- */
+.file-tool-menu-sep { height: 1px; margin: 4px 6px; background: #30363d; }
+.file-tool-menu-item:disabled { opacity: .45; cursor: default; }
+.file-tool-menu-shortcut { margin-left: auto; padding-left: 16px; color: #8b949e; font: inherit; font-size: 11px; }
+.explorer-node-row.is-selecionado { background: rgba(74, 181, 247, .14); outline: 1px solid rgba(74, 181, 247, .35); outline-offset: -1px; }
+/* Só aparece quando há arquivo do projeto aberto junto com o exercício,
+   para o aluno saber de qual lado é cada aba. */
+.mistura-contextos .code-tab[data-origem="exercicio"] .tab-text::after,
+.mistura-contextos .file-toolbar-name[data-origem="exercicio"]::after {
+  content: ' · exercício'; font-weight: 400; font-size: 10.5px; opacity: .65;
+}
+
+/* ---- Explorer: barra de ações (2 linhas), nome do projeto e pesquisa ---- */
+.explorer-header { flex-wrap: wrap; row-gap: 4px; }
+.explorer-header-actions { flex-wrap: wrap; justify-content: flex-start; width: 100%; gap: 2px; }
+.explorer-title-btn { max-width: 100%; padding: 2px 4px; border: 0; border-radius: 4px; background: transparent; color: #8b949e; font-family: inherit; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.explorer-title-btn:hover, .explorer-title-btn:focus-visible { background: rgba(255,255,255,.08); color: #e6edf3; }
+.explorer-search { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; padding: 4px 8px 8px; gap: 4px; }
+.explorer-search[hidden] { display: none; }
+.explorer-panel.is-pesquisando .explorer-tree { display: none; }
+.explorer-search-row { display: flex; align-items: center; gap: 4px; }
+.explorer-search-row[hidden] { display: none; }
+.explorer-search input { flex: 1 1 auto; min-width: 0; height: 26px; padding: 0 8px; border: 1px solid #30363d; border-radius: 4px; background: #0b0f14; color: #e6edf3; font: inherit; font-size: 12px; }
+.explorer-search input:focus { outline: 1px solid #4ab5f7; border-color: #4ab5f7; }
+.explorer-search-toggle, .explorer-search-action { height: 26px; padding: 0 6px; border: 1px solid #30363d; border-radius: 4px; background: #161b22; color: #c9d1d9; font: inherit; font-size: 11px; cursor: pointer; white-space: nowrap; }
+.explorer-search-toggle[aria-pressed="true"] { border-color: #4ab5f7; color: #4ab5f7; background: rgba(74,181,247,.12); }
+.explorer-search-action:hover, .explorer-search-toggle:hover { background: #21262d; }
+.explorer-search-summary { margin: 0; font-size: 11px; color: #8b949e; min-height: 14px; }
+.explorer-search-summary.is-error { color: #f85149; }
+.explorer-search-results { flex: 1 1 auto; min-height: 0; margin: 0; padding: 0; overflow: auto; list-style: none; font-size: 12px; }
+.explorer-search-file { display: flex; align-items: center; gap: 6px; padding: 4px 6px; font-weight: 600; color: #c9d1d9; cursor: pointer; }
+.explorer-search-file:hover { background: rgba(255,255,255,.06); }
+.explorer-search-file .explorer-search-count { margin-left: auto; padding: 0 6px; border-radius: 8px; background: #30363d; font-size: 10px; font-weight: 400; }
+.explorer-search-line { display: flex; align-items: center; gap: 6px; padding: 2px 6px 2px 22px; color: #8b949e; cursor: pointer; }
+.explorer-search-line:hover { background: rgba(74,181,247,.12); }
+.explorer-search-line-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: pre; }
+.explorer-search-line mark { background: rgba(255,200,0,.3); color: #e6edf3; border-radius: 2px; }
+.explorer-search-line .explorer-search-replace-one { display: none; flex: 0 0 auto; height: 20px; padding: 0 6px; border: 1px solid #30363d; border-radius: 3px; background: #161b22; color: #c9d1d9; font: inherit; font-size: 10px; cursor: pointer; }
+.explorer-search.is-substituir .explorer-search-line:hover .explorer-search-replace-one { display: inline-block; }
+.explorer-node-row.is-drop-alvo, .explorer-tree.is-drop-alvo { outline: 1px dashed #4ab5f7; outline-offset: -1px; background: rgba(74,181,247,.1); }
+/* Abrir arquivo (Ctrl+P) */
+.quick-open { position: absolute; z-index: 10030; top: 40px; left: 50%; width: min(520px, calc(100% - 24px)); transform: translateX(-50%); border: 1px solid #30363d; border-radius: 8px; background: #21262d; box-shadow: 0 10px 26px rgba(0,0,0,.45); overflow: hidden; }
+.quick-open[hidden] { display: none; }
+.quick-open input { box-sizing: border-box; width: 100%; height: 34px; padding: 0 12px; border: 0; border-bottom: 1px solid #30363d; background: #0d1117; color: #e6edf3; font: inherit; font-size: 13px; outline: none; }
+.quick-open ul { max-height: 260px; margin: 0; padding: 4px; overflow: auto; list-style: none; }
+.quick-open li { display: flex; gap: 8px; padding: 5px 8px; border-radius: 4px; color: #c9d1d9; font-size: 12.5px; cursor: pointer; }
+.quick-open li small { margin-left: auto; color: #8b949e; }
+.quick-open li.is-ativo, .quick-open li:hover { background: rgba(74,181,247,.18); }
+.quick-open p { margin: 0; padding: 10px 12px; color: #8b949e; font-size: 12px; }

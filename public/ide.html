@@ -141,7 +141,7 @@
                     </svg></span>
                   <div>
                     <h2 id="backup-settings-title">Configurar backup</h2>
-                    <p>Escolha onde, quando e como proteger seu progresso.</p>
+                    <p>Escolha onde, quando e como proteger seu progresso. O projeto do Explorer usa estas mesmas configurações, mas é salvo em um arquivo separado (coding-loop-projeto.json).</p>
                   </div>
                 </div>
                 <button aria-label="Fechar" class="backup-dialog-close" value="cancel" type="submit"><svg
@@ -336,9 +336,12 @@
           <div class="save-toast" id="save-toast" aria-live="polite" role="status"></div>
           <div class="browser-tabs">
             <div class="browser-tabs-left">
-              <button aria-label="Recolher ou expandir IDE" aria-pressed="false" class="collapse-btn"
-                id="btn-ide-collapse" title="Recolher/Expandir IDE" type="button">
-                ⌨
+              <button aria-controls="explorer-panel" aria-expanded="false" aria-label="Explorer do projeto"
+                aria-pressed="false" class="collapse-btn" id="btn-explorer-toggle" title="Explorer do projeto"
+                type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" />
+                </svg>
               </button>
 
               <button aria-label="Alternar tela cheia do IDE" aria-pressed="false" class="maximize-btn"
@@ -619,62 +622,138 @@
             </div>
 
             <div class="browser-tabs-fixed-right">
-              <label class="tab-btn live-toggle-btn" draggable="false" id="btn-run" for="chk-toggle-preview"
-                title="Habilitar Preview">
-                <input checked="checked" class="editor-toggle-checkbox" id="chk-toggle-preview" type="checkbox" />
-                <svg viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                <span class="tab-text">Live</span>
-              </label>
+              <!-- O toggle visível de preview foi para dentro de cada aba
+                   de arquivo (ao lado do ×) — este checkbox continua
+                   existindo só como estado compartilhado entre elas. -->
+              <input checked="checked" hidden id="chk-toggle-preview" type="checkbox" />
+
+              <button aria-label="Recolher ou expandir IDE" aria-pressed="false" class="collapse-btn"
+                id="btn-ide-collapse" title="Recolher/Expandir IDE" type="button">
+                ⌨
+              </button>
             </div>
           </div>
 
-          <div class="window-content" id="window-content-wrapper">
-            <div class="editors-area" id="editors-container"></div>
-            <div aria-hidden="true" class="legacy-editor-state">
-              <div id="html-editor"></div>
-              <div id="css-editor"></div>
-              <div id="js-editor"></div>
-            </div>
-
-            <div aria-label="Redimensionar editores e Preview" aria-orientation="horizontal" aria-valuemin="0"
-              aria-valuemax="100" aria-valuenow="50" class="preview-split-resizer" id="preview-split-resizer"
-              role="separator" tabindex="-1"></div>
-            <div class="preview-area" id="preview-container">
-              <div class="preview-controls-left">
-                <button aria-label="Maximizar preview" aria-pressed="false" class="preview-btn preview-btn-max"
-                  id="btn-preview-maximize" title="Maximizar Preview" type="button">
-                  <svg id="icon-preview-max" viewBox="0 0 24 24">
-                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+          <div class="ide-body" id="ide-body">
+          <aside aria-label="Explorer do projeto" class="explorer-panel" hidden id="explorer-panel">
+            <div class="explorer-header">
+              <button class="explorer-title explorer-title-btn" id="explorer-nome-projeto" title="Clique para renomear o projeto" type="button">Meu projeto</button>
+              <div class="explorer-header-actions">
+                <button aria-label="Novo arquivo" class="explorer-icon-btn" id="explorer-novo-arquivo" title="Novo arquivo" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                    <path d="M14 3v5h5" />
+                    <path d="M12 11v6M9 14h6" />
                   </svg>
-                  <svg id="icon-preview-restore" style="display:none;" viewBox="0 0 24 24">
-                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                </button>
+                <button aria-label="Nova pasta" class="explorer-icon-btn" id="explorer-nova-pasta" title="Nova pasta" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" />
+                    <path d="M12 11v5M9.5 13.5h5" />
+                  </svg>
+                </button>
+                <button aria-label="Pesquisar no projeto" class="explorer-icon-btn" id="explorer-pesquisar" title="Pesquisar no projeto" type="button" aria-haspopup="menu" aria-expanded="false">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z" />
+                    <path d="M21 21l-5-5" />
+                  </svg>
+                </button>
+                <button aria-label="Abrir pasta do computador" class="explorer-icon-btn" id="explorer-abrir-pasta" title="Abrir pasta do computador" type="button" aria-pressed="false">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" />
+                    <path d="M9 14h6" />
+                  </svg>
+                </button>
+                <button aria-label="Importar projeto do computador" class="explorer-icon-btn" id="explorer-importar-projeto" title="Importar projeto do computador" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M12 4v11M8 11l4 4 4-4M5 20h14" />
+                  </svg>
+                </button>
+                <button aria-label="Exportar projeto (.zip)" class="explorer-icon-btn" id="explorer-exportar" title="Exportar projeto (.zip)" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M12 15V4M8 8l4-4 4 4M5 20h14" />
+                  </svg>
+                </button>
+                <button aria-label="Salvar projeto na nuvem" class="explorer-icon-btn" id="explorer-nuvem" title="Salvar projeto na nuvem" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M6 19h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 9.5 4.5 4.5 0 0 0 6 19Z" />
+                    <path d="M12 10v7m0-7-3 3m3-3 3 3" />
+                  </svg>
+                </button>
+                <button aria-label="Backup do projeto" class="explorer-icon-btn" id="explorer-backup" title="Backup do projeto" type="button" aria-haspopup="menu" aria-expanded="false">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
                   </svg>
                 </button>
               </div>
-              <div aria-label="Páginas do preview" class="preview-tabs" hidden id="preview-tabs" role="tablist"></div>
-              <div class="preview-controls">
-                <button aria-label="Alternar tema claro e escuro do preview" aria-pressed="false"
-                  class="preview-btn preview-btn-theme" id="btn-preview-theme" title="Tema Escuro do Preview"
-                  type="button">
-                  <svg id="icon-preview-theme-light" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" aria-hidden="true">
-                    <path
-                      d="M12 4V2m0 20v-2m5.66-13.66 1.42-1.42m-14.16 14.16 1.42-1.42M20 12h2M2 12h2m14.16 5.66 1.42 1.42M4.76 4.76l1.42 1.42M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
-                  </svg>
-                  <svg id="icon-preview-theme-dark" style="display:none" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z" />
-                  </svg>
-                </button>
-                <button aria-label="Alternar preview vertical" aria-pressed="false"
-                  class="preview-btn preview-btn-layout" id="btn-preview-layout" title="Alternar Preview Vertical"
-                  type="button">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M4 5h7v14H4V5zm9 0h7v14h-7V5zM6 7v10h3V7H6zm9 0v10h3V7h-3z" />
-                  </svg>
-                </button>
+            </div>
+            <p class="explorer-status" hidden id="explorer-status"></p>
+            <div class="explorer-search" hidden id="explorer-search">
+              <div class="explorer-search-row">
+                <input aria-label="Pesquisar no projeto" autocomplete="off" id="explorer-busca-termo" placeholder="Pesquisar no projeto" spellcheck="false" type="text" />
+                <button aria-label="Diferenciar maiúsculas de minúsculas" aria-pressed="false" class="explorer-search-toggle" id="explorer-busca-caso" title="Diferenciar maiúsculas de minúsculas" type="button">Aa</button>
+                <button aria-label="Usar expressão regular" aria-pressed="false" class="explorer-search-toggle" id="explorer-busca-regex" title="Usar expressão regular" type="button">.*</button>
+                <button aria-label="Fechar pesquisa" class="explorer-icon-btn" id="explorer-busca-fechar" title="Fechar pesquisa (Esc)" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+              </div>
+              <div class="explorer-search-row" hidden id="explorer-substituir-linha">
+                <input aria-label="Substituir por" autocomplete="off" id="explorer-busca-substituto" placeholder="Substituir por" spellcheck="false" type="text" />
+                <button class="explorer-search-action" id="explorer-substituir-tudo" title="Substituir todas as ocorrências no projeto" type="button">Substituir tudo</button>
+              </div>
+              <p aria-live="polite" class="explorer-search-summary" id="explorer-busca-resumo"></p>
+              <ul class="explorer-search-results" id="explorer-busca-resultados"></ul>
+            </div>
+            <ul class="explorer-tree" id="explorer-tree" role="tree"></ul>
+            <input hidden id="explorer-input-importar" type="file" webkitdirectory />
+          </aside>
+            <div aria-label="Redimensionar Explorer" aria-orientation="vertical" class="editor-split-resizer explorer-resizer is-visible"
+              hidden id="explorer-resizer" role="separator" tabindex="0"></div>
+            <div class="window-content" id="window-content-wrapper">
+              <div class="editors-area" id="editors-container"></div>
+              <div aria-hidden="true" class="legacy-editor-state">
+                <div id="html-editor"></div>
+                <div id="css-editor"></div>
+                <div id="js-editor"></div>
+              </div>
+
+              <div aria-label="Redimensionar editores e Preview" aria-orientation="horizontal" aria-valuemin="0"
+                aria-valuemax="100" aria-valuenow="50" class="preview-split-resizer" id="preview-split-resizer"
+                role="separator" tabindex="-1"></div>
+              <div class="preview-area" id="preview-container">
+                <div class="preview-controls-left">
+                  <button aria-label="Maximizar preview" aria-pressed="false" class="preview-btn preview-btn-max"
+                    id="btn-preview-maximize" title="Maximizar Preview" type="button">
+                    <svg id="icon-preview-max" viewBox="0 0 24 24">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                    <svg id="icon-preview-restore" style="display:none;" viewBox="0 0 24 24">
+                      <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                    </svg>
+                  </button>
+                </div>
+                <div aria-label="Páginas do preview" class="preview-tabs" hidden id="preview-tabs" role="tablist"></div>
+                <div class="preview-controls">
+                  <button aria-label="Alternar tema claro e escuro do preview" aria-pressed="false"
+                    class="preview-btn preview-btn-theme" id="btn-preview-theme" title="Tema Escuro do Preview"
+                    type="button">
+                    <svg id="icon-preview-theme-light" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" aria-hidden="true">
+                      <path
+                        d="M12 4V2m0 20v-2m5.66-13.66 1.42-1.42m-14.16 14.16 1.42-1.42M20 12h2M2 12h2m14.16 5.66 1.42 1.42M4.76 4.76l1.42 1.42M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
+                    </svg>
+                    <svg id="icon-preview-theme-dark" style="display:none" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z" />
+                    </svg>
+                  </button>
+                  <button aria-label="Alternar preview vertical" aria-pressed="false"
+                    class="preview-btn preview-btn-layout" id="btn-preview-layout" title="Alternar Preview Vertical"
+                    type="button">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M4 5h7v14H4V5zm9 0h7v14h-7V5zM6 7v10h3V7H6zm9 0v10h3V7h-3z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

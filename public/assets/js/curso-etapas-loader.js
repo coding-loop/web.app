@@ -4,6 +4,7 @@
   window.CL = window.CL || {};
   window.CL.curso = window.CL.curso || {};
   window.CL.curso.etapasPorArquivo = window.CL.curso.etapasPorArquivo || [];
+  window.CL.curso.recursosDeEtapas = window.CL.curso.recursosDeEtapas || [];
 
   var modo = window.CL_CONTEUDO_MODO || 'automatico';
   var arquivos = modo === 'manual'
@@ -25,6 +26,8 @@
   CL.curso.conteudoPronto = arquivos.reduce(function (corrente, src) {
     return corrente.then(function () { return carregarArquivo(src); });
   }, Promise.resolve()).then(function () {
+    return Promise.all(CL.curso.recursosDeEtapas);
+  }).then(function () {
     if (CL.curso.aplicarEtapasPorArquivo) CL.curso.aplicarEtapasPorArquivo();
   });
 })();

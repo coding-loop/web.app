@@ -35,7 +35,7 @@ O **Coding Loop** é uma plataforma interativa de ensino de programação web (H
 graph TD
     User([Usuário / Aluno]) --> Pages[Páginas HTML: index, dashboard, ide]
     Pages --> Namespace[Global window.CL]
-    
+
     subgraph "Core Client (window.CL)"
         Namespace --> Auth[CL.auth: Sessão e Provedores]
         Namespace --> API[CL.api: LocalStorage + Firestore]
@@ -44,14 +44,14 @@ graph TD
         Namespace --> Trilha[CL.trilha: Motor SVG 7H:3V]
         Namespace --> Curso[CL.curso: Cursos, Módulos, Etapas]
     end
-    
+
     subgraph "Camada de Conteúdo (public/assets/content/)"
         Loader[curso-etapas-loader.js] --> Modo[modo.js: auto / manual]
         Modo --> Manifest[catalogo-automatico.js / catalogo-manual.js]
-        Manifest --> Courses[Pastas: html/, css/, js/, programming-logic/]
+        Manifest --> Courses[Pastas: html/, css/, js/, logprog/, cyber-security/]
         Courses --> Curso
     end
-    
+
     subgraph "Serviços Externos"
         Auth --> FBAuth[(Firebase Auth)]
         API --> LocalStore[(LocalStorage: study-index)]
@@ -185,26 +185,20 @@ A pasta `content/` é o coração do conteúdo didático. Cada curso, módulo e 
 
 #### Conteúdos Atuais
 - **HTML (`content/html/`)**:
-  - `modulos-planejamento.js`: Planejamento dos módulos do curso.
-  - `posicoes-trilha.js`: Coordenadas dos nós na trilha.
-  - `modulo-01/etapa-01.js` a `etapa-06.js`: Aulas do primeiro módulo de HTML (Estrutura, parágrafos, listas, links, etc.).
+  - `html-modulos-planejamento.js` e `html-posicoes-trilha.js`: Planejamento e coordenadas da trilha.
+  - `modulo-01/html-modulo-01-etapa-01.js` a `etapa-05.js` e `modulo-02/html-modulo-02-etapa-01.js` a `etapa-05.js`: Dois módulos com cinco etapas cada.
 - **CSS (`content/css/`)**:
-  - `curso.js`: Registro do curso de CSS.
-  - `modulos-planejamento.js`: Planejamento dos módulos de CSS.
-  - `posicoes-trilha.js`: Coordenadas da trilha.
-  - `modulo-01/00-modulo-01.js`: Registro do Módulo 1 de CSS.
-  - `modulo-01/etapa-01.js`: Aula prática inicial de CSS.
+  - Metadados do curso ficam centralizados em `assets/js/curso-data.js`; `css-modulos-planejamento.js` e `css-posicoes-trilha.js` mantêm os dados específicos da trilha.
+  - Arquivos `css-modulo-01-etapa-01.js` a `etapa-05.js` e equivalentes do módulo 2, além dos registros `css-00-modulo-01.js` e `css-00-modulo-02.js`.
 - **JavaScript (`content/js/`)**:
-  - `curso.js`: Registro do curso de JavaScript.
-  - `modulos-planejamento.js`: Planejamento dos módulos.
-  - `posicoes-trilha.js`: Coordenadas da trilha de JS.
-  - `modulo-01/00-modulo.js`: Registro do Módulo 1 de JS.
-  - `modulo-01/etapa-01.js`: Aula inicial de JS.
-- **Lógica de Programação (`content/programming-logic/`)**:
-  - `curso.js`: Registro do curso de Lógica de Programação.
-  - `modulos-planejamento.js`: Planejamento dos módulos.
-  - `modulo-01/00-modulo-01.js`: Registro do Módulo 1 de Lógica.
-  - `modulo-01/etapa-01.js`: Aula inicial com missões e desafios de lógica.
+  - Metadados do curso ficam centralizados em `assets/js/curso-data.js`; `js-modulos-planejamento.js` e `js-posicoes-trilha.js` mantêm os dados específicos da trilha.
+  - Arquivos `js-modulo-01-etapa-01.js` a `etapa-05.js` e equivalentes do módulo 2, além dos registros `js-00-modulo-01.js` e `js-00-modulo-02.js`.
+- **Lógica de Programação (`content/logprog/`)**:
+  - Metadados e ordem ficam em `assets/js/curso-data.js`; `logprog-modulos-planejamento.js` mantém o planejamento. O ID interno `programming-logic` permanece estável para preservar o progresso salvo.
+  - Arquivos `logprog-modulo-01-etapa-01.js` a `etapa-05.js` e equivalentes do módulo 2, além dos registros de módulo com prefixo `logprog-`.
+- **Cyber Security (`content/cyber-security/`)**:
+  - Planejamento, posições, registros de módulo e etapas usam o prefixo `cyber-security-`.
+  - Os recursos da primeira etapa são `cyber-security-modulo-01-etapa-01.html` e `cyber-security-modulo-01-etapa-01.css`.
 
 ---
 
@@ -270,7 +264,7 @@ A pasta `content/` é o coração do conteúdo didático. Cada curso, módulo e 
   'use strict';
   window.CL = window.CL || {};
   window.CL.curso = window.CL.curso || {};
-  
+
   window.CL.curso.registrarEtapa('html-modulo-01', 2, {
     titulo: 'Título da Aula',
     texto: '<p>Explicação teórica em HTML.</p>',
@@ -311,7 +305,7 @@ A pasta `content/` é o coração do conteúdo didático. Cada curso, módulo e 
 })();
 ```
 3. Se for uma nova linguagem, adicione o ícone correspondente em `public/assets/js/trilha.js` no mapa `CL.trilha.LOGOS`.
-4. Crie os submódulos (`modulo-01/00-modulo.js`, `modulo-01/etapa-01.js`).
+4. Crie os submódulos com o prefixo do curso, por exemplo `modulo-01/python-00-modulo-01.js` e `modulo-01/python-modulo-01-etapa-01.js`.
 5. Execute `.\scripts\gerar-manifest-conteudo.ps1`.
 
 ### 4.3 Como Adicionar uma Nova Tela ou Seção no Dashboard

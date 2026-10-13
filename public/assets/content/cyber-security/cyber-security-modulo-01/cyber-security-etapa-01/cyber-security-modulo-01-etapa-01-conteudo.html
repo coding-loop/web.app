@@ -1,0 +1,610 @@
+<article class="cs-etapa">
+  <header class="cs-hero">
+    <img class="logo-harvard" src="/public/assets/images/icons.svg/logo-harvard-university.svg"
+      alt="Logo Harvard University">
+
+    <span class="cs-kicker">CS50</span>
+
+    <h2 class="step-content-title">Introducão à Cybersecurity</h2>
+    <p>Uma introdução à segurança cibernética voltada tanto para públicos técnicos quanto não técnicos. Aprenda a
+      proteger suas contas, dados, sistemas e softwares contra as ameaças atuais e a reconhecer e avaliar também as
+      ameaças futuras, tanto em casa quanto no trabalho. Aprenda a preservar sua própria privacidade. Aprenda a encarar
+      a segurança cibernética não em termos absolutos, mas relativos — como uma função de riscos e recompensas (para um
+      adversário) e de custos e benefícios (para você). Aprenda a reconhecer a segurança cibernética como uma questão de
+      equilíbrio (*trade-off*) em relação à própria usabilidade. O curso apresenta exemplos de ameaças em níveis tanto
+      macro quanto detalhados, fornecendo aos alunos todo o conhecimento técnico necessário para compreender ambos. As
+      atividades práticas são inspiradas em eventos do mundo real.</p>
+
+    <div class="cs-meta">
+      <span>Leitura: 8 min</span>
+      <span>Interativo</span>
+      <span>Nível iniciante</span>
+      <span>
+        David J. Malan/CS50: Introduction to Cybersecurity —
+        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC
+          BY-NC-SA 4.0</a>
+      </span>
+    </div>
+  </header>
+
+  <section class="cs-bloco">
+    <h3>Vídeo: Introdução à Cyber Security</h3>
+    <p class="cs-muted">Assista ao vídeo abaixo para uma visão geral dos conceitos fundamentais.</p>
+    <div class="cs-video">
+      <!-- O YouTube disponibiliza a capa na máxima qualidade pela URL 'maxresdefault.jpg' -->
+      <iframe width="1280" height="720"
+        src="https://www.youtube-nocookie.com/embed/kmJlnUfMd7I?rel=0&autoplay=0&loop=0&cc_load_policy=1&cc"
+        title="Introdução à Cyber Security" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen> asdfadfagadfasdv
+      </iframe>
+    </div>
+
+    <header class="cs-transcricao-header">
+      <h3>Transcrição do Vídeo: Introdução à Cyber Security</h3>
+      <p class="cs-muted">Acompanhe o conteúdo do vídeo em texto (tradução com termos técnicos em inglês).</p>
+    </header>
+
+    <div class="cs-transcricao-conteudo">
+      <p>
+        <span class="cs-timestamp">[00:00:16]</span>
+        Olá, mundo!
+        Meu nome é David Malan e este é o CS50's Introduction to Cybersecurity, voltado tanto para públicos
+        técnicos quanto não técnicos.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:00:25]</span>
+        Neste curso, você aprenderá como proteger suas
+        <em data-termo="accounts • contas • cuentas"
+          data-classificacao="Segurança › Gestão de Identidade e Acesso (IAM)"
+          data-significado="Registro que representa uma identidade em um sistema, com credenciais (autenticação) e permissões (autorização)."
+          data-contexto="As senhas surgiram nos anos 1960 (CTSS, MIT). Hoje envolve Active Directory, OAuth e MFA, sendo o roubo por phishing um dos principais caminhos de ataque.">accounts</em>,
+        <em data-termo="data • dados • datos"
+          data-classificacao="Computação › Fundamentos / Segurança › Ativo de informação"
+          data-significado="Informação representada de forma que possa ser armazenada, transmitida e processada por um computador."
+          data-contexto="O modelo relacional de Codd (IBM, 1970) e o SQL deram base aos bancos de dados. Em segurança, protege-se em repouso, trânsito e uso.">data</em>,
+        <em data-termo="systems • sistemas • sistemas"
+          data-classificacao="Computação › Sistemas Operacionais / Arquitetura"
+          data-significado="Conjunto integrado de hardware, software e rede, incluindo sistemas operacionais e servidores."
+          data-contexto="O Multics (anos 1960) introduziu proteção por anéis de privilégio, e o Unix (1969) moldou o SO moderno. Cada componente aumenta a superfície de ataque.">systems</em>
+        e
+        <em data-termo="software • software (programa) • software"
+          data-classificacao="Programação › Conceito fundamental"
+          data-significado="Instruções e dados que o computador executa, em oposição ao hardware."
+          data-contexto="Termo popularizado por John Tukey (1958). É onde ficam as vulnerabilidades catalogadas no CVE (MITRE, 1999) e incidentes de supply chain (SolarWinds, Log4Shell).">software</em>
+        contra as
+        <em data-termo="threat • ameaça • amenaza" data-classificacao="Segurança › Modelagem de Ameaças"
+          data-significado="Circunstância ou evento com potencial de causar dano a um ativo. É diferente de vulnerabilidade (a falha) e de vetor de ataque (o caminho)."
+          data-contexto="O método STRIDE foi criado na Microsoft no fim dos anos 1990. A OWASP (Top 10, 2003) e o MITRE ATT&CK (2013) catalogam ameaças até hoje.">threats</em>
+        de
+        hoje e como reconhecer e avaliar as de amanhã, tanto em casa quanto no trabalho.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:00:36]</span>
+        Você aprenderá a preservar sua própria
+        <em data-termo="privacy • privacidade • privacidad"
+          data-classificacao="Segurança › Privacidade e Proteção de Dados"
+          data-significado="Capacidade de controlar quem coleta, acessa e usa suas informações pessoais."
+          data-contexto="O conceito de privacy by design (anos 1990) levou a privacidade para o dev. Regulação por GDPR/LGPD e suporte via criptografia e anonimização.">privacy</em>.
+        Aprenderá a ver a
+        <em data-termo="cybersecurity • cibersegurança • ciberseguridad"
+          data-classificacao="Segurança › Área de conhecimento"
+          data-significado="Disciplina que protege sistemas, redes, software e dados contra ataques digitais e acesso não autorizado."
+          data-contexto="Difundiu-se nos anos 1990. O Morris Worm (1988) levou à criação do CERT/CC na CMU, e o NIST CSF (2014) virou referência de gestão.">cybersecurity</em>
+        não em termos
+        absolutos, mas de forma relativa: uma função de
+        <em data-termo="risk • risco • riesgo" data-classificacao="Segurança › Gestão de Riscos"
+          data-significado="Probabilidade de um evento indesejado combinada com o impacto que ele causaria."
+          data-contexto="Tratado em normas como NIST SP 800-30, ISO 27005 e FAIR. O CVSS (FIRST) pontua a gravidade de vulnerabilidades para priorização.">risks</em>
+        e
+        recompensas para um
+        <em data-termo="adversary • adversário • adversario"
+          data-classificacao="Segurança › Modelagem de Ameaças / Criptografia"
+          data-significado="Agente que tenta comprometer um sistema, descrito por motivação, capacidade e recursos."
+          data-contexto="O modelo Dolev-Yao (1983) define o atacante na rede. O MITRE ATT&CK usa 'adversary' como termo central e o mercado cataloga grupos APT.">adversary</em>,
+        e de
+        custos e benefícios para você.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:00:49]</span>
+        E você aprenderá a reconhecer a
+        <em data-termo="cybersecurity • cibersegurança • ciberseguridad"
+          data-classificacao="Segurança › Área de conhecimento"
+          data-significado="Disciplina que protege sistemas, redes, software e dados contra ataques digitais e acesso não autorizado."
+          data-contexto="Difundiu-se nos anos 1990. O Morris Worm (1988) levou à criação do CERT/CC na CMU, e o NIST CSF (2014) virou referência de gestão.">cybersecurity</em>
+        como um
+        <em data-termo="trade-off • compromisso / troca • compromiso / equilibrio"
+          data-classificacao="Engenharia de Software › Princípio de projeto"
+          data-significado="Escolha em que ganhar em uma propriedade implica perder em outra."
+          data-contexto="Saltzer e Schroeder (1975) já tratavam de segurança vs. facilidade de uso. Visível hoje em MFA, políticas de senha e CAPTCHAs.">trade-off</em>
+        com a própria
+        usabilidade.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:00:51]</span>
+        No mundo da
+        <em data-termo="cybersecurity • cibersegurança • ciberseguridad"
+          data-classificacao="Segurança › Área de conhecimento"
+          data-significado="Disciplina que protege sistemas, redes, software e dados contra ataques digitais e acesso não autorizado."
+          data-contexto="Difundiu-se nos anos 1990. O Morris Worm (1988) levou à criação do CERT/CC na CMU, e o NIST CSF (2014) virou referência de gestão.">cybersecurity</em>,
+        me atrevo a dizer que você e
+        eu temos que ser perfeitos. Todas as nossas
+        portas, todas as nossas janelas — virtualmente falando — precisam estar trancadas. Mas um
+        <em data-termo="adversary • adversário • adversario"
+          data-classificacao="Segurança › Modelagem de Ameaças / Criptografia"
+          data-significado="Agente que tenta comprometer um sistema, descrito por motivação, capacidade e recursos."
+          data-contexto="O modelo Dolev-Yao (1983) define o atacante na rede. O MITRE ATT&CK usa 'adversary' como termo central e o mercado cataloga grupos APT.">adversary</em>
+        só
+        precisa encontrar um único erro que cometemos: uma única porta ou janela entreaberta.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:01:05]</span>
+        Portanto, talvez devêssemos nos concentrar não apenas na
+        <em data-termo="prevention • prevenção • prevención" data-classificacao="Segurança › Controle preventivo"
+          data-significado="Medidas que impedem o ataque antes do dano (firewall, autenticação forte, atualizações, IPS)."
+          data-contexto="Firewalls surgiram nos anos 1980 e IPS nos anos 2000. Hoje inclui WAF, MFA e gestão de patches.">prevention</em>,
+        mas especialmente na
+        <em data-termo="detection • detecção • detección" data-classificacao="Segurança › Controle detectivo"
+          data-significado="Identificar um ataque em andamento ou já ocorrido (IDS, alertas de anomalia)."
+          data-contexto="Anderson (1980) e Denning (1987) fundaram a detecção de intrusões. Snort (1998) popularizou o IDS e hoje há EDR/XDR.">detection</em>
+        — por
+        meio de
+        <em data-termo="auditing • auditoria • auditoría"
+          data-classificacao="Segurança › Rastreabilidade / Conformidade"
+          data-significado="Registrar e analisar logs e ações para verificar conformidade, atribuir responsabilidade e reconstruir incidentes."
+          data-contexto="O Orange Book (1983) exigia trilhas de auditoria. Syslog padronizou logs no Unix e normas como PCI DSS/ISO 27001 exigem auditoria.">auditing</em>
+        e
+        <em data-termo="monitoring • monitoramento • monitoreo" data-classificacao="Segurança › Operações (SOC)"
+          data-significado="Observação contínua de sistemas, redes e aplicações para achar comportamento suspeito ou falhas."
+          data-contexto="Nagios (1999) e Splunk (2003) marcaram a área. O termo SIEM surgiu em 2005 e hoje é feito em SOCs e com Prometheus/Grafana.">monitoring</em>
+        —, para que, mesmo que um
+        <em data-termo="adversary • adversário • adversario"
+          data-classificacao="Segurança › Modelagem de Ameaças / Criptografia"
+          data-significado="Agente que tenta comprometer um sistema, descrito por motivação, capacidade e recursos."
+          data-contexto="O modelo Dolev-Yao (1983) define o atacante na rede. O MITRE ATT&CK usa 'adversary' como termo central e o mercado cataloga grupos APT.">adversary</em>
+        consiga entrar, possamos
+        pelo menos detectá-lo rapidamente e minimizar os impactos para nós e, consequentemente, os benefícios para ele.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:01:19]</span>
+        Talvez hoje em dia, ferramentas como Inteligência Artificial (AI) possam até ajudar nisso, detectando padrões e
+        comportamentos de potenciais
+        <em data-termo="adversary • adversário • adversario"
+          data-classificacao="Segurança › Modelagem de Ameaças / Criptografia"
+          data-significado="Agente que tenta comprometer um sistema, descrito por motivação, capacidade e recursos."
+          data-contexto="O modelo Dolev-Yao (1983) define o atacante na rede. O MITRE ATT&CK usa 'adversary' como termo central e o mercado cataloga grupos APT.">adversaries</em>
+        que nós mesmos poderíamos nem notar.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:01:29]</span>
+        E talvez, se elevarmos o nível de exigência o suficiente para o
+        <em data-termo="adversary • adversário • adversario"
+          data-classificacao="Segurança › Modelagem de Ameaças / Criptografia"
+          data-significado="Agente que tenta comprometer um sistema, descrito por motivação, capacidade e recursos."
+          data-contexto="O modelo Dolev-Yao (1983) define o atacante na rede. O MITRE ATT&CK usa 'adversary' como termo central e o mercado cataloga grupos APT.">adversary</em>
+        — aumentando seu
+        custo e
+        <em data-termo="risk • risco • riesgo" data-classificacao="Segurança › Gestão de Riscos"
+          data-significado="Probabilidade de um evento indesejado combinada com o impacto que ele causaria."
+          data-contexto="Tratado em normas como NIST SP 800-30, ISO 27005 e FAIR. O CVSS (FIRST) pontua a gravidade de vulnerabilidades para priorização.">risk</em>,
+        e diminuindo sua potencial
+        recompensa —, ele simplesmente perca o interesse em
+        nós como alvo.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:01:39]</span>
+        Claro que, se eles tiverem mais recursos do que nós, podem muito bem vencer de qualquer maneira. Mas será que
+        eles estariam interessados em nós? Com quais dessas
+        <em data-termo="threat • ameaça • amenaza" data-classificacao="Segurança › Modelagem de Ameaças"
+          data-significado="Circunstância ou evento com potencial de causar dano a um ativo. É diferente de vulnerabilidade e de vetor de ataque."
+          data-contexto="O método STRIDE foi criado na Microsoft no fim dos anos 1990. A OWASP (Top 10, 2003) e o MITRE ATT&CK (2013) catalogam ameaças até hoje.">threats</em>
+        deveríamos realmente nos preocupar?
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:01:49]</span>
+        Ao longo deste curso, apresentaremos exemplos de
+        <em data-termo="threat • ameaça • amenaza" data-classificacao="Segurança › Modelagem de Ameaças"
+          data-significado="Circunstância ou evento com potencial de causar dano a um ativo. É diferente de vulnerabilidade e de vetor de ataque."
+          data-contexto="O método STRIDE foi criado na Microsoft no fim dos anos 1990. A OWASP (Top 10, 2003) e o MITRE ATT&CK (2013) catalogam ameaças até hoje.">threats</em>
+        em
+        <em data-termo="high-level • alto nível • alto nivel" data-classificacao="Programação › Nível de abstração"
+          data-significado="Linguagens e conceitos que escondem detalhes do hardware, como memória e registradores."
+          data-contexto="FORTRAN (1957) foi a primeira de uso amplo. Seguiram Python (1991) e JS (1995). Rust e Go vêm sendo adotadas para reduzir falhas de memória.">high-level</em>
+        e
+        <em data-termo="low-level • baixo nível • bajo nivel" data-classificacao="Programação › Nível de abstração"
+          data-significado="Linguagens e conceitos próximos do hardware, com controle manual de memória."
+          data-contexto="O C (1972) é a referência. O Morris Worm (1988), o artigo 'Smashing the Stack' (1996) e o Heartbleed (2014) mostram riscos de baixa abstração.">low-level</em>,
+        fornecendo
+        tudo o que você precisa tecnicamente para entender ambos, mesmo que não seja um programador ou uma pessoa da
+        área de computação.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:02:01]</span>
+        Por meio desses exemplos, introduziremos você a certos primeiros princípios sobre como os próprios computadores
+        funcionam, para que você possa entender e deduzir — mesmo após o término do curso — como funcionam outras
+        <em data-termo="threat • ameaça • amenaza" data-classificacao="Segurança › Modelagem de Ameaças"
+          data-significado="Circunstância ou evento com potencial de causar dano a um ativo. É diferente de vulnerabilidade e de vetor de ataque."
+          data-contexto="O método STRIDE foi criado na Microsoft no fim dos anos 1990. A OWASP (Top 10, 2003) e o MITRE ATT&CK (2013) catalogam ameaças até hoje.">threats</em>
+        que o mundo talvez ainda nem tenha visto.
+      </p>
+
+      <p>
+        <span class="cs-timestamp">[00:02:15]</span>
+        Este é o CS50's Introduction to Cybersecurity.
+      </p>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>O que estamos protegendo?</h3>
+    <p>Informações pessoais, contas, dispositivos e serviços. Segurança não é só instalar uma ferramenta: é entender
+      ameaças, reduzir exposição e saber como reagir.</p>
+    <div class="cs-grid">
+      <div class="cs-conceito"><span class="cs-simbolo">◉</span>
+        <h4>Confidencialidade</h4>
+        <p>Só pessoas autorizadas podem acessar um dado.</p><small>Exemplo: senha e autenticação em dois
+          fatores.</small>
+      </div>
+      <div class="cs-conceito"><span class="cs-simbolo">✓</span>
+        <h4>Integridade</h4>
+        <p>O dado permanece correto e não é alterado sem autorização.</p><small>Exemplo: conferir a origem de um
+          arquivo.</small>
+      </div>
+      <div class="cs-conceito"><span class="cs-simbolo">↗</span>
+        <h4>Disponibilidade</h4>
+        <p>O serviço está acessível quando é necessário.</p><small>Exemplo: backups e atualizações planejadas.</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Vocabulário essencial</h3>
+    <dl class="cs-definicoes">
+      <div>
+        <dt>Ameaça</dt>
+        <dd>Algo com potencial de causar dano, como um golpe, malware ou acesso indevido.</dd>
+      </div>
+      <div>
+        <dt>Vulnerabilidade</dt>
+        <dd>Uma fraqueza que pode ser explorada, como software desatualizado ou senha reutilizada.</dd>
+      </div>
+      <div>
+        <dt>Risco</dt>
+        <dd>A combinação entre a chance de uma ameaça explorar uma vulnerabilidade e o impacto disso.</dd>
+      </div>
+    </dl>
+    <aside class="cs-callout"><strong>Ideia-chave:</strong>
+      <p>Não existe proteção perfeita. O objetivo é tornar um ataque mais difícil, detectar sinais cedo e diminuir o
+        impacto.</p>
+    </aside>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Flashcards rápidos</h3>
+    <p class="cs-muted">Clique ou use Enter/Espaço para revelar cada resposta.</p>
+    <div class="cs-flashcards">
+      <button type="button" class="cs-flashcard" aria-pressed="false">
+        <div class="cs-flashcard-inner">
+          <div class="cs-flashcard-frente"><b>Phishing</b><small>O que é?</small><span class="cs-flashcard-hint">👆
+              Clique para ver a resposta</span></div>
+          <div class="cs-flashcard-verso"><b>Definição</b><span>Mensagem enganosa criada para roubar dados ou induzir
+              uma ação.</span><span class="cs-flashcard-hint">🔄 Clique para voltar</span></div>
+        </div>
+      </button>
+      <button type="button" class="cs-flashcard" aria-pressed="false">
+        <div class="cs-flashcard-inner">
+          <div class="cs-flashcard-frente"><b>MFA</b><small>Por que usar?</small><span class="cs-flashcard-hint">👆
+              Clique para ver a resposta</span></div>
+          <div class="cs-flashcard-verso"><b>Benefício</b><span>Acrescenta uma segunda prova de identidade, reduzindo
+              o impacto de uma senha vazada.</span><span class="cs-flashcard-hint">🔄 Clique para voltar</span></div>
+        </div>
+      </button>
+      <button type="button" class="cs-flashcard" aria-pressed="false">
+        <div class="cs-flashcard-inner">
+          <div class="cs-flashcard-frente"><b>Backup</b><small>Qual a função?</small><span class="cs-flashcard-hint">👆
+              Clique para ver a resposta</span></div>
+          <div class="cs-flashcard-verso"><b>Propósito</b><span>Mantém uma cópia recuperável dos dados em caso de
+              perda, erro ou ataque.</span><span class="cs-flashcard-hint">🔄 Clique para voltar</span></div>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Vídeo complementar</h3>
+    <p class="cs-muted">Conteúdo complementar sobre Cyber Security.</p>
+    <div class="cs-video">
+      <iframe src="https://www.youtube-nocookie.com/embed/kUMe1FH4CHE" title="Vídeo complementar sobre Cyber Security"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen></iframe>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Cenário: pedido urgente</h3>
+    <div class="cs-cenario">
+      <p>Você recebe um e-mail "urgente" pedindo para redefinir a senha por um link. O endereço do remetente parece
+        parecido com o da empresa, mas possui uma letra diferente. O que fazer?</p>
+      <div class="cs-opcoes">
+        <button type="button" data-correta="false" data-rc="cenario">Clicar no link para não perder o prazo.</button>
+        <button type="button" data-correta="true" data-rc="cenario">Não usar o link e confirmar o pedido pelo site ou
+          canal oficial.</button>
+        <button type="button" data-correta="false" data-rc="cenario">Responder ao e-mail enviando a senha
+          atual.</button>
+      </div>
+      <p class="cs-feedback" hidden role="status"></p>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Áudio: ouvir a explicação</h3>
+    <p class="cs-muted">Lê o texto em voz alta usando a voz do próprio navegador.</p>
+    <div class="cs-ouvir">
+      <button type="button" class="cs-btn" data-rc="ouvir"
+        data-texto="Cyber Security é o conjunto de práticas que protege informações, pessoas e sistemas contra ameaças digitais. Os três pilares são: confidencialidade, integridade e disponibilidade.">🔊
+        Ouvir explicação</button>
+      <p>Cyber Security é o conjunto de práticas que protege informações, pessoas e sistemas contra ameaças digitais.
+        Os três pilares são: confidencialidade, integridade e disponibilidade.</p>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Deck de flashcards</h3>
+    <p class="cs-muted">Várias cartas em sequência. Clique na carta para virar e use os botões para navegar.</p>
+    <div class="cs-deck">
+      <div class="cs-deck-item">
+        <button type="button" class="cs-flashcard" aria-pressed="false"
+          aria-label="Flashcard: clique ou aperte Enter para virar">
+          <div class="cs-flashcard-inner">
+            <div class="cs-flashcard-frente"><b>❓ O que é phishing?</b><small>Definição</small><span
+                class="cs-flashcard-hint">👆 Clique para ver a resposta</span></div>
+            <div class="cs-flashcard-verso"><b>✅ Resposta</b><span>Técnica de engenharia social que usa mensagens
+                falsas para roubar dados.</span><span class="cs-flashcard-hint">🔄 Clique para voltar</span></div>
+          </div>
+        </button>
+      </div>
+      <div class="cs-deck-item" hidden>
+        <button type="button" class="cs-flashcard" aria-pressed="false"
+          aria-label="Flashcard: clique ou aperte Enter para virar">
+          <div class="cs-flashcard-inner">
+            <div class="cs-flashcard-frente"><b>❓ Por que usar MFA?</b><small>Benefício</small><span
+                class="cs-flashcard-hint">👆 Clique para ver a resposta</span></div>
+            <div class="cs-flashcard-verso"><b>✅ Resposta</b><span>Adiciona uma camada extra de segurança além da
+                senha.</span><span class="cs-flashcard-hint">🔄 Clique para voltar</span></div>
+          </div>
+        </button>
+      </div>
+      <div class="cs-deck-item" hidden>
+        <button type="button" class="cs-flashcard" aria-pressed="false"
+          aria-label="Flashcard: clique ou aperte Enter para virar">
+          <div class="cs-flashcard-inner">
+            <div class="cs-flashcard-frente"><b>❓ O que é backup?</b><small>Conceito</small><span
+                class="cs-flashcard-hint">👆 Clique para ver a resposta</span></div>
+            <div class="cs-flashcard-verso"><b>✅ Resposta</b><span>Cópia de segurança dos dados para recuperação em
+                caso de perda.</span><span class="cs-flashcard-hint">🔄 Clique para voltar</span></div>
+          </div>
+        </button>
+      </div>
+      <div class="cs-deck-nav">
+        <button type="button" class="cs-btn" data-rc="deck-ant">Anterior</button>
+        <span class="cs-deck-contagem" aria-live="polite">1 / 3</span>
+        <button type="button" class="cs-btn" data-rc="deck-prox">Próximo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Abas: respondendo a um incidente</h3>
+    <p class="cs-muted">Um processo pode ser escrito em português, desenhado ou programado. Use o mouse ou as setas do
+      teclado.</p>
+    <div class="cs-abas">
+      <div role="tablist" aria-label="Formas de representar um processo">
+        <button type="button" role="tab" id="cs-aba-1" aria-controls="cs-painel-1" aria-selected="true" data-rc="aba">Em
+          português</button>
+        <button type="button" role="tab" id="cs-aba-2" aria-controls="cs-painel-2" aria-selected="false" tabindex="-1"
+          data-rc="aba">Fluxograma</button>
+        <button type="button" role="tab" id="cs-aba-3" aria-controls="cs-painel-3" aria-selected="false" tabindex="-1"
+          data-rc="aba">Pseudocódigo</button>
+      </div>
+      <div role="tabpanel" id="cs-painel-1" aria-labelledby="cs-aba-1">
+        <ol>
+          <li>Identificar o tipo de ameaça.</li>
+          <li>Verificar a fonte da mensagem.</li>
+          <li>Não clicar em links suspeitos.</li>
+          <li>Confirmar por canal oficial.</li>
+          <li>Reportar o incidente à equipe de segurança.</li>
+        </ol>
+      </div>
+      <div role="tabpanel" id="cs-painel-2" aria-labelledby="cs-aba-2" hidden>
+        <svg class="cs-fluxo" viewBox="0 0 280 456" role="img"
+          aria-label="Fluxograma com os passos: Identificar ameaça, Verificar fonte, Não clicar, Confirmar, Reportar">
+          <defs>
+            <marker id="cs-seta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0L10 5L0 10z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="10" y="10" width="260" height="40" rx="20" class="cs-no-term" /><text x="140" y="35"
+            text-anchor="middle">Início</text>
+          <line x1="140" y1="50" x2="140" y2="74" marker-end="url(#cs-seta)" />
+          <rect x="10" y="76" width="260" height="40" rx="6" class="cs-no" /><text x="140" y="101"
+            text-anchor="middle">Identificar ameaça</text>
+          <line x1="140" y1="116" x2="140" y2="140" marker-end="url(#cs-seta)" />
+          <rect x="10" y="142" width="260" height="40" rx="6" class="cs-no" /><text x="140" y="167"
+            text-anchor="middle">Verificar fonte</text>
+          <line x1="140" y1="182" x2="140" y2="206" marker-end="url(#cs-seta)" />
+          <rect x="10" y="208" width="260" height="40" rx="6" class="cs-no" /><text x="140" y="233"
+            text-anchor="middle">Não clicar</text>
+          <line x1="140" y1="248" x2="140" y2="272" marker-end="url(#cs-seta)" />
+          <rect x="10" y="274" width="260" height="40" rx="6" class="cs-no" /><text x="140" y="299"
+            text-anchor="middle">Confirmar</text>
+          <line x1="140" y1="314" x2="140" y2="338" marker-end="url(#cs-seta)" />
+          <rect x="10" y="340" width="260" height="40" rx="6" class="cs-no" /><text x="140" y="365"
+            text-anchor="middle">Reportar</text>
+          <line x1="140" y1="380" x2="140" y2="404" marker-end="url(#cs-seta)" />
+          <rect x="10" y="406" width="260" height="40" rx="20" class="cs-no-term" /><text x="140" y="431"
+            text-anchor="middle">Fim</text>
+        </svg>
+      </div>
+      <div role="tabpanel" id="cs-painel-3" aria-labelledby="cs-aba-3" hidden>
+        <pre><code>1. identificarAmeaca(mensagem)
+2. se (fonteConfiavel(mensagem)) {
+3.   analisarConteudo(mensagem)
+4. } senao {
+5.   reportarSuspeita(mensagem)
+6. }</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Acordeão: saiba mais</h3>
+    <p class="cs-muted">Conteúdo opcional que fica recolhido até você querer abrir.</p>
+    <div class="cs-acordeao">
+      <details>
+        <summary>O que é engenharia social?</summary>
+        <p>É a manipulação psicológica de pessoas para que realizem ações ou divulguem informações confidenciais.
+          Phishing é um exemplo comum.</p>
+      </details>
+      <details>
+        <summary>Por que senhas longas são melhores?</summary>
+        <p>Senhas mais longas têm mais combinações possíveis, tornando ataques de força bruta muito mais difíceis e
+          demorados.</p>
+      </details>
+      <details>
+        <summary>O que fazer se suspeitar de um ataque?</summary>
+        <p>Não clique em nada, não responda, capture evidências (prints), e reporte imediatamente à equipe de
+          segurança ou ao provedor do serviço.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Ordenar passos</h3>
+    <p class="cs-muted">Os passos para responder a um incidente estão embaralhados. Use as setas para colocá-los na
+      ordem certa.</p>
+    <div class="cs-ordem">
+      <ol>
+        <li data-pos="4"><span>Confirmar por canal oficial.</span><span class="cs-ordem-ctrl"><button type="button"
+              class="cs-btn cs-btn-ico" data-rc="ordem-sobe" aria-label="Mover para cima">↑</button><button
+              type="button" class="cs-btn cs-btn-ico" data-rc="ordem-desce"
+              aria-label="Mover para baixo">↓</button></span></li>
+        <li data-pos="1"><span>Identificar o tipo de ameaça.</span><span class="cs-ordem-ctrl"><button type="button"
+              class="cs-btn cs-btn-ico" data-rc="ordem-sobe" aria-label="Mover para cima">↑</button><button
+              type="button" class="cs-btn cs-btn-ico" data-rc="ordem-desce"
+              aria-label="Mover para baixo">↓</button></span></li>
+        <li data-pos="5"><span>Reportar o incidente à equipe de segurança.</span><span class="cs-ordem-ctrl"><button
+              type="button" class="cs-btn cs-btn-ico" data-rc="ordem-sobe"
+              aria-label="Mover para cima">↑</button><button type="button" class="cs-btn cs-btn-ico"
+              data-rc="ordem-desce" aria-label="Mover para baixo">↓</button></span></li>
+        <li data-pos="2"><span>Verificar a fonte da mensagem.</span><span class="cs-ordem-ctrl"><button type="button"
+              class="cs-btn cs-btn-ico" data-rc="ordem-sobe" aria-label="Mover para cima">↑</button><button
+              type="button" class="cs-btn cs-btn-ico" data-rc="ordem-desce"
+              aria-label="Mover para baixo">↓</button></span></li>
+        <li data-pos="3"><span>Não clicar em links suspeitos.</span><span class="cs-ordem-ctrl"><button type="button"
+              class="cs-btn cs-btn-ico" data-rc="ordem-sobe" aria-label="Mover para cima">↑</button><button
+              type="button" class="cs-btn cs-btn-ico" data-rc="ordem-desce"
+              aria-label="Mover para baixo">↓</button></span></li>
+      </ol>
+      <div class="cs-acoes">
+        <button type="button" class="cs-btn cs-btn-primario" data-rc="ordem-verificar">Verificar ordem</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Verdadeiro ou falso</h3>
+    <p class="cs-muted">Resposta imediata, com explicação logo após cada escolha.</p>
+    <div class="cs-vf-item" data-gabarito="v" data-explica="Cada instrução é executada na ordem em que aparece.">
+      <p>Em um processo de segurança, a ordem das ações importa.</p>
+      <div class="cs-acoes">
+        <button type="button" class="cs-btn" data-rc="vf" data-resp="v">Verdadeiro</button>
+        <button type="button" class="cs-btn" data-rc="vf" data-resp="f">Falso</button>
+      </div>
+    </div>
+    <div class="cs-vf-item" data-gabarito="f"
+      data-explica="Ataques de engenharia social exploram emoções humanas, não falhas técnicas.">
+      <p>Engenharia social é um ataque puramente técnico.</p>
+      <div class="cs-acoes">
+        <button type="button" class="cs-btn" data-rc="vf" data-resp="v">Verdadeiro</button>
+        <button type="button" class="cs-btn" data-rc="vf" data-resp="f">Falso</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Completar lacunas</h3>
+    <p class="cs-muted">Escolha a palavra certa em cada lacuna.</p>
+    <div class="cs-lacuna">
+      <p>
+        Cyber Security protege a
+        <select aria-label="Primeira lacuna" data-certa="confidencialidade">
+          <option value="">escolha</option>
+          <option value="confidencialidade">confidencialidade</option>
+          <option value="velocidade">velocidade</option>
+          <option value="estética">estética</option>
+        </select>
+        , a integridade e a
+        <select aria-label="Segunda lacuna" data-certa="disponibilidade">
+          <option value="">escolha</option>
+          <option value="beleza">beleza</option>
+          <option value="disponibilidade">disponibilidade</option>
+          <option value="complexidade">complexidade</option>
+        </select>
+        dos dados.
+      </p>
+      <div class="cs-acoes">
+        <button type="button" class="cs-btn cs-btn-primario" data-rc="lacuna-verificar">Verificar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Editor de código com resultado</h3>
+    <p class="cs-muted">Edite o código e clique em Executar. O que você escrever em <code>console.log()</code> aparece
+      na saída.</p>
+    <div class="cs-editor">
+      <textarea spellcheck="false" aria-label="Código de exemplo">console.log("🔒 Sistema seguro iniciado.");
+console.log("Verificando integridade dos dados...");</textarea>
+      <div class="cs-acoes">
+        <button type="button" class="cs-btn cs-btn-primario" data-rc="exec-rodar">▶ Executar</button>
+        <button type="button" class="cs-btn" data-rc="exec-copiar">Copiar código</button>
+      </div>
+      <pre aria-live="polite" aria-label="Saída do código"></pre>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Checklist de proteção</h3>
+    <p class="cs-muted">Marque o que você já entendeu. A barra de progresso acompanha.</p>
+    <div class="cs-checklist">
+      <label><input type="checkbox"> Entendi os três pilares: confidencialidade, integridade e
+        disponibilidade.</label>
+      <label><input type="checkbox"> Sei identificar um possível ataque de phishing.</label>
+      <label><input type="checkbox"> Entendi por que a autenticação em dois fatores é importante.</label>
+      <label><input type="checkbox"> Sei como reagir a uma mensagem suspeita.</label>
+      <progress class="cs-progresso" max="4" value="0" aria-label="Progresso da revisão"></progress>
+      <p class="cs-progresso-texto" aria-live="polite">0 de 4 boas práticas revisadas.</p>
+    </div>
+  </section>
+
+  <section class="cs-bloco">
+    <h3>Reflexão</h3>
+    <label class="cs-reflexao-label" for="cs-reflexao">Qual prática de segurança você pode melhorar hoje?</label>
+    <textarea class="cs-reflexao-textarea" id="cs-reflexao" rows="4"
+      placeholder="Ex.: ativar a autenticação em dois fatores na minha conta principal."></textarea>
+    <aside class="cs-callout cs-callout-atencao"><strong>Lembrete:</strong>
+      <p>Nunca compartilhe senhas, códigos de verificação ou dados sensíveis nesta atividade.</p>
+    </aside>
+  </section>
+</article>

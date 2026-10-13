@@ -15,7 +15,7 @@ O ID deve ser simples, minúsculo e sem espaços. Exemplos: `python`, `react`, `
 
 ## 2. Registre o curso
 
-Copie `templates/curso.js` para `python/curso.js` e ajuste os dados:
+Copie `templates/curso.js` para `python/python-curso.js` e ajuste os dados:
 
 ```js
 (function () {
@@ -36,7 +36,7 @@ O `id` será usado em todos os arquivos seguintes e também na rota do curso:
 
 ## 3. Crie o primeiro módulo
 
-Crie a pasta `python/modulo-01/` e, dentro dela, o arquivo `00-modulo.js`:
+Crie a pasta `python/modulo-01/` e, dentro dela, o arquivo `python-00-modulo-01.js`:
 
 ```js
 (function () {
@@ -57,7 +57,7 @@ Regras importantes:
 
 ## 4. Crie uma etapa/aula
 
-Na mesma pasta do módulo, crie `etapa-01.js`:
+Na mesma pasta do módulo, crie `python-modulo-01-etapa-01.js`:
 
 ```js
 (function () {
@@ -168,13 +168,14 @@ Isso atualiza `public/assets/content/catalogo-automatico.js`, que é responsáve
 
 ```text
 public/assets/content/python/
-├── curso.js
-├── modulos-planejamento.js
-├── posicoes-trilha.js
+├── python-curso.js
+├── python-modulos-planejamento.js
+├── python-posicoes-trilha.js
 └── modulo-01/
-    ├── 00-modulo.js
-    ├── etapa-01.js
-    └── etapa-02.js
+  ├── python-00-modulo-01.js
+  ├── python-modulo-01-etapa-01.js
+  ├── python-modulo-01-etapa-01.html
+  └── python-modulo-01-etapa-01.css
 ```
 
 ## Checklist antes de publicar

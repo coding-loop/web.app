@@ -154,6 +154,7 @@
       );
   */
 
+  /* Cadastro canônico dos cursos publicados; assets/content mantém módulos, etapas e posições. */
   CL.curso.CURSOS = {
     html: {
       id: 'html',

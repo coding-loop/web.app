@@ -16,5 +16,6 @@
   },
   "[markdown]": {
     "editor.wordWrap": "on"
-  }
+  },
+  "liveServer.settings.port": 5502
 }

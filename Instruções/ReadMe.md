@@ -66,20 +66,23 @@ O curso aparecerá automaticamente no menu do dashboard e em `#course/<id>`.
 
 ## Criar um módulo
 
-1. Crie `public/assets/content/<curso>/modulo-01/modulo.js` a partir de `templates/modulo.js.example`.
-2. Use um id permanente como `<curso>-modulo-01`.
+1. Crie `public/assets/content/<curso>/<prefixo>-modulo-01/`.
+2. Crie o registro `<prefixo>-00-modulo-01.js` com um id permanente como `<curso>-modulo-01`.
 3. Defina `numero`, `nome` e deixe `etapas: []`.
-4. Crie as etapas na mesma pasta.
+4. Crie cada etapa em sua propria subpasta, conforme [Padrao-Conteudo-Etapas.md](Padrao-Conteudo-Etapas.md).
 5. Atualize o catálogo escolhido.
 
-Os módulos são ordenados pela ordem em que seus arquivos são carregados. Mantenha nomes com zero à esquerda (`modulo-01`, `modulo-02`) para a ordem ficar previsível.
+Os modulos sao ordenados pela ordem em que seus arquivos sao carregados. Mantenha numeros com zero a esquerda (`modulo-01`, `modulo-02`) para a ordem ficar previsivel. Os prefixos dos cursos existentes sao `html`, `css`, `js`, `logprog` e `cyber-security`.
 
 ## Criar uma etapa
 
-1. Crie `public/assets/content/<curso>/modulo-01/etapa-01.js` a partir de `templates/etapa.js.example`.
-2. Informe `moduloId`, número da etapa, `titulo`, `texto`, `missao` e `codigoInicial`.
-3. Faça `verificar(codigo)` retornar de 0 a 100. `codigo` possui `html`, `css` e `js`.
-4. Atualize o catálogo escolhido.
+1. Crie `public/assets/content/<curso>/<prefixo>-modulo-01/<prefixo>-etapa-01/`.
+2. Crie o JS principal da etapa com `titulo`, `codigoInicial` e `verificar(codigo)`.
+3. Crie um arquivo HTML, CSS e JS para cada aba: `conteudo`, `exercicio`, `questoes` e `desafio`.
+4. Mantenha textos e marcacao nos HTMLs, estilos nos CSSs e interacoes/dados de questoes nos JSs da aba correspondente.
+5. Atualize o catálogo escolhido.
+
+Consulte [Padrao-Conteudo-Etapas.md](Padrao-Conteudo-Etapas.md) para a estrutura dos arquivos, semantica HTML, acessibilidade, temas e limites de SEO.
 
 Exemplo de validação simples:
 
@@ -95,7 +98,7 @@ Nunca mude o `id` de um curso ou módulo depois de publicar. O progresso salvo l
 
 ## Conteúdo existente
 
-O catálogo anterior foi mantido em `public/assets/js/curso-data.js` para preservar os cursos atuais. As novas etapas de HTML do módulo 1 já foram extraídas para `public/assets/content/html/modulo-01/` como referência real de implementação. Os próximos conteúdos devem ser adicionados na nova estrutura, não no catálogo legado.
+O catálogo anterior foi mantido em `public/assets/js/curso-data.js` para preservar os cursos atuais. As etapas de HTML do modulo 1 ficam em `public/assets/content/html/html-modulo-01/html-etapa-01/` e servem como referencia de implementacao da estrutura atual. Os proximos conteudos devem ser adicionados nessa estrutura, nao no catalogo legado.
 
 ## Segurança
 
