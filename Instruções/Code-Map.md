@@ -177,30 +177,43 @@ A pasta `content/` é o coração do conteúdo didático. Cada curso, módulo e 
 - `catalogo-manual.js`: Lista editável manualmente de arquivos de cursos ativos.
 
 #### Modelos e Templates (`templates/`)
-- `templates/curso.js`: Template para registrar um novo curso via `window.CL.curso.registrarCurso()`.
-- `templates/modulo.js`: Template para registrar um novo módulo via `window.CL.curso.registrarModulo()`.
-- `templates/etapa.js`: Template para registrar uma aula prática com teoria, missão, código inicial e validador.
-- `templates/posicoes-trilha.js`: Template para mapear coordenadas da trilha no curso.
-- `templates/Para-Novos-Cursos.md`: Guia de boas práticas para criar novas trilhas de aprendizado.
+- `templates/Para-Novos-Cursos.md`: **guia oficial** de criação de curso, módulo e etapa na convenção final (leia-o antes de criar qualquer coisa).
+- `templates/curso.js`, `templates/modulo.js`, `templates/etapa.js`, `templates/posicoes-trilha.js`: modelos do formato antigo, com `texto`/`missao` escritos dentro do `.js`. Esse formato ainda é aceito por `registrarEtapa()`, mas **só vale para cursos que não estão em `PASTAS_DE_CONTEUDO` (`ide.js`)**. Os cinco cursos publicados usam arquivos separados por aba; para eles, o modelo é uma etapa existente (por exemplo `css/css-modulo-01/css-etapa-01/`).
+- `templates/curso.js` não é necessário: os cursos são cadastrados em `assets/js/curso-data.js`, e `registrarCurso()` não faz nada para um curso que já existe.
 
-#### Conteúdos Atuais
-- **HTML (`content/html/`)**:
-  - `html-modulos-planejamento.js` e `html-posicoes-trilha.js`: Planejamento e coordenadas da trilha.
-  - `modulo-01/html-modulo-01-etapa-01.js` a `etapa-05.js` e `modulo-02/html-modulo-02-etapa-01.js` a `etapa-05.js`: Dois módulos com cinco etapas cada.
-- **CSS (`content/css/`)**:
-  - Metadados do curso ficam centralizados em `assets/js/curso-data.js`; `css-modulos-planejamento.js` e `css-posicoes-trilha.js` mantêm os dados específicos da trilha.
-  - Arquivos `css-modulo-01-etapa-01.js` a `etapa-05.js` e equivalentes do módulo 2, além dos registros `css-00-modulo-01.js` e `css-00-modulo-02.js`.
-- **JavaScript (`content/js/`)**:
-  - Metadados do curso ficam centralizados em `assets/js/curso-data.js`; `js-modulos-planejamento.js` e `js-posicoes-trilha.js` mantêm os dados específicos da trilha.
-  - Arquivos `js-modulo-01-etapa-01.js` a `etapa-05.js` e equivalentes do módulo 2, além dos registros `js-00-modulo-01.js` e `js-00-modulo-02.js`.
-- **Lógica de Programação (`content/logprog/`)**:
-  - Metadados e ordem ficam em `assets/js/curso-data.js`; `logprog-modulos-planejamento.js` mantém o planejamento. O ID interno `programming-logic` permanece estável para preservar o progresso salvo.
-  - Arquivos `logprog-modulo-01-etapa-01.js` a `etapa-05.js` e equivalentes do módulo 2, além dos registros de módulo com prefixo `logprog-`.
-- **Cyber Security (`content/cyber-security/`)**:
-  - Planejamento, posições, registros de módulo e etapas usam o prefixo `cyber-security-`.
-  - Os recursos da primeira etapa são `cyber-security-modulo-01-etapa-01.html` e `cyber-security-modulo-01-etapa-01.css`.
+#### Convenção de pastas e nomes (estado final)
+```text
+content/<pasta>/
+├── <prefixo>-modulos-planejamento.js        (módulos futuros; não cria módulos vazios antes dos reais)
+├── <prefixo>-posicoes-trilha.js             (opcional: só onde há geometria personalizada)
+└── <prefixo>-modulo-NN/
+    ├── <prefixo>-00-modulo-NN.js            (registra o módulo)
+    └── <prefixo>-etapa-NN/
+        ├── <prefixo>-modulo-NN-etapa-NN.js            (registro: titulo, codigoInicial, verificar)
+        └── <prefixo>-modulo-NN-etapa-NN-<aba>.{html,css,js}   (aba = conteudo | exercicio | questoes | desafio)
+```
+- Toda etapa tem **13 arquivos**: o registro `.js` e 4 abas × 3 extensões. O `scripts/verify-deploy.cjs` exige todos.
+- Os arquivos de aba (`-conteudo.*`, `-exercicio.*`, `-questoes.*`, `-desafio.*`) **não entram nos catálogos**: o `ide.js` os carrega sob demanda quando a aba é aberta (HTML → CSS → JS), e só uma vez por aba.
+- `-questoes.js` publica as questões em `CL.curso.questoesPorEtapa["<moduloId>:<n>"]`.
+- Metadados do curso e ordem global ficam **somente** em `assets/js/curso-data.js` (`CL.curso.CURSOS` e `CL.curso.ORDEM_CURSOS`). Não existe mais `*-curso.js` por curso.
 
----
+#### Conteúdos atuais (5 cursos × 2 módulos × 5 etapas = 50 etapas)
+| Curso | Pasta / prefixo | ID interno | Temas |
+|---|---|---|---|
+| HTML | `html/` · `html-` | `html` | M1 estrutura, parágrafos, títulos, links e cartão · M2 imagens, semântica, tabelas, formulários e página completa |
+| CSS | `css/` · `css-` | `css` | M1 estilos, classes, cores, tipografia e modelo de caixa · M2 Flexbox, Grid, responsividade, estados e perfil |
+| JavaScript | `js/` · `js-` | `js` | M1 comandos, variáveis, tipos, operações e decisões · M2 funções, arrays, repetição, DOM e eventos |
+| Lógica de Programação | `logprog/` · `logprog-` | **`programming-logic`** (não renomear: preserva o progresso salvo) | M1 algoritmos, variáveis, operadores e decisões · M2 repetição, funções, coleções, percursos e validação de entrada |
+| Cyber Security | `cyber-security/` · `cyber-security-` | `cyber-security` | M1 fundamentos, senhas, MFA, phishing e atualizações · M2 Wi-Fi, privacidade, navegação, backups e resposta a incidentes |
+
+- Pasta, prefixo e ID interno podem diferir (caso do LogProg). A ligação entre eles está em `PASTAS_DE_CONTEUDO`, no `ide.js`.
+- IDs de módulo: `<idDoCurso>-modulo-NN` com dois dígitos. Exceção histórica: o módulo 1 do HTML é `html-modulo-1`, definido em `curso-data.js`. **Não normalize esse ID**: o progresso salvo usa a chave `<moduloId>:<etapa>`.
+- Arquivos de posição da trilha existem em `css`, `html`, `js` e `cyber-security`; o LogProg usa o padrão de `CICLOS_TRILHA`.
+
+#### Isolamento entre cursos
+- CSS de etapa fica restrito à raiz da etapa: Cyber Security usa `.cs-*` e variáveis `--cs-*` definidas em `.cs-etapa`; LogProg usa `@scope (.logprog-etapa)` e variáveis em `.logprog-etapa`. Nada de seletor global (`.logo`, `.card`, `:root`).
+- JS de etapa registra listeners no `.theory-pane` e ignora eventos fora da raiz da própria etapa (`closest('.cs-etapa')`, `closest('.logprog-etapa')`). Não exponha funções em `window` e não use `onclick` inline.
+- Imagens e links dentro dos fragmentos usam caminho **relativo** (`assets/images/...`). Caminho absoluto (`/public/...`) quebra no GitHub Pages.
 
 ### 2.9 Imagens e Recursos Visuais (`public/assets/images/`)
 
@@ -236,10 +249,11 @@ A pasta `content/` é o coração do conteúdo didático. Cada curso, módulo e 
 
 ### 3.2 Fluxo de Conteúdo Dinâmico
 1. A página inclui `modo.js`, `catalogo-automatico.js` (ou manual) e `curso-etapas-loader.js`.
-2. O `curso-etapas-loader.js` carrega em série todos os scripts do catálogo.
-3. Cada script chama `CL.curso.registrarCurso()`, `CL.curso.registrarModulo()` ou `CL.curso.registrarEtapa()`.
-4. É resolvida a Promise `CL.curso.conteudoPronto`.
-5. Os controladores das páginas (`pagina-dashboard.js`, `pagina-curso.js`, `ide.js`) aguardam `CL.curso.conteudoPronto` antes de montar a interface, eliminando qualquer condição de corrida (*race condition*).
+2. O `curso-etapas-loader.js` carrega em série todos os scripts do catálogo (cursos já cadastrados em `curso-data.js`; módulos em `*-00-modulo-NN.js`; registros de etapa `*-modulo-NN-etapa-NN.js`).
+3. Cada script chama `CL.curso.registrarModulo()` ou `CL.curso.registrarEtapa()`. `registrarCurso()` só age para um curso que ainda não existe.
+4. O loader aguarda as Promises de `CL.curso.recursosDeEtapas` (recursos auxiliares HTML/CSS que algum script tenha registrado) e só então aplica `CL.curso.aplicarEtapasPorArquivo()`; em seguida resolve `CL.curso.conteudoPronto`.
+5. Os controladores (`pagina-dashboard.js`, `pagina-curso.js`, `ide.js`) aguardam `CL.curso.conteudoPronto` antes de montar a interface.
+6. Já na IDE, o conteúdo de cada aba (`-conteudo`, `-exercicio`, `-desafio`, `-questoes`) é buscado sob demanda por `carregarConteudoDaAba()` e fica em cache. A Learn Platform sempre abre no índice do módulo atual; a etapa só aparece quando o aluno a escolhe.
 
 ### 3.3 Fluxo da IDE e Validação de Código
 1. O aluno abre `ide.html?modulo=<id>&etapa=<num>`.
@@ -256,24 +270,15 @@ A pasta `content/` é o coração do conteúdo didático. Cada curso, módulo e 
 ## 4. Guia de Orientação para Futuros Desenvolvimentos
 
 ### 4.1 Como Adicionar uma Nova Etapa / Aula a um Módulo Existente
-1. Localize a pasta do módulo correspondente em `public/assets/content/<curso>/<modulo>/`.
-2. Crie um novo arquivo, ex.: `etapa-02.js`.
-3. Use o modelo abaixo:
+1. Vá à pasta do módulo: `public/assets/content/<pasta>/<prefixo>-modulo-NN/`.
+2. Copie uma etapa existente do mesmo curso (por exemplo `<prefixo>-etapa-05/`) para `<prefixo>-etapa-06/` e renomeie **todos os 13 arquivos** para `<prefixo>-modulo-NN-etapa-06*`.
+3. No registro `<prefixo>-modulo-NN-etapa-06.js`, ajuste o número da etapa (2º argumento) e o ID do módulo:
 ```javascript
 (function () {
   'use strict';
-  window.CL = window.CL || {};
-  window.CL.curso = window.CL.curso || {};
-
-  window.CL.curso.registrarEtapa('html-modulo-01', 2, {
+  window.CL.curso.registrarEtapa('html-modulo-02', 6, {
     titulo: 'Título da Aula',
-    texto: '<p>Explicação teórica em HTML.</p>',
-    missao: '<p>O que o aluno precisa programar no editor.</p>',
-    codigoInicial: {
-      html: '<h1>Meu Título</h1>',
-      css: '',
-      js: ''
-    },
+    codigoInicial: { html: '<h1>Meu Título</h1>', css: '', js: '' },
     verificar: function (codigo) {
       // Retorna de 0 a 100 com base no código do aluno
       return /<h1>.*<\/h1>/i.test(codigo.html || '') ? 100 : 0;
@@ -281,32 +286,23 @@ A pasta `content/` é o coração do conteúdo didático. Cada curso, módulo e 
   });
 })();
 ```
-4. Se estiver no **modo automático**, gere novamente o catálogo executando no terminal:
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File .\scripts\gerar-manifest-conteudo.ps1
-   ```
-5. Se estiver no **modo manual**, adicione `'assets/content/<curso>/<modulo>/etapa-02.js'` em `public/assets/content/catalogo-manual.js`.
+4. Escreva o conteúdo nos arquivos de aba: teoria em `-conteudo.html`, missão em `-exercicio.html`, enunciado em `-desafio.html` e questões em `-questoes.js`. O segundo argumento de `registrarEtapa` e o número no nome do arquivo devem coincidir (o sistema não valida isso).
+5. Atualize o catálogo (modo automático): `powershell -ExecutionPolicy Bypass -File .\scripts\gerar-manifest-conteudo.ps1`. No modo manual, acrescente **apenas o registro** (`.../<prefixo>-modulo-NN-etapa-06.js`) em `catalogo-manual.js`: os arquivos de aba não entram no catálogo.
+6. Rode `node scripts/verify-deploy.cjs`.
 
 > [!IMPORTANT]
 > **Nunca altere o ID de cursos ou módulos já publicados.** O progresso do usuário no navegador é indexado pela chave `<moduloId>:<numeroDaEtapa>`. Mudar o ID fará o aluno perder o histórico concluído.
 
 ### 4.2 Como Criar um Curso Completamente Novo
-1. Crie uma pasta em `public/assets/content/<novo-curso>/`.
-2. Crie `public/assets/content/<novo-curso>/curso.js`:
-```javascript
-(function () {
-  'use strict';
-  window.CL.curso.registrarCurso({
-    id: 'python',
-    nome: 'Python',
-    linguagem: 'python',
-    descricao: 'Fundamentos de Python para desenvolvimento de software.'
-  });
-})();
-```
-3. Se for uma nova linguagem, adicione o ícone correspondente em `public/assets/js/trilha.js` no mapa `CL.trilha.LOGOS`.
-4. Crie os submódulos com o prefixo do curso, por exemplo `modulo-01/python-00-modulo-01.js` e `modulo-01/python-modulo-01-etapa-01.js`.
-5. Execute `.\scripts\gerar-manifest-conteudo.ps1`.
+Siga `templates/Para-Novos-Cursos.md`. Em resumo, um curso só aparece completo se estiver em **todos** estes pontos:
+1. `assets/js/curso-data.js`: chave em `CL.curso.CURSOS` (com `modulos: []`) e o ID em `CL.curso.ORDEM_CURSOS`. **Não crie `curso.js`.**
+2. `assets/content/<pasta>/`: módulos e etapas na convenção da seção 2.8.
+3. `assets/js/trilha.js`: `CICLOS_TRILHA[<id>]`, `CL.trilha.LOGOS[<id>]` e `imagensTitulo[<id>]`.
+4. `assets/css/trilha.css`: as duas regras de fundo `.trilha-container[data-curso="<id>"]`.
+5. `assets/js/pagina-curso.js`: `logoCursoSvg()` e `layoutPorCurso`.
+6. `assets/js/ide.js`: entrada em `PASTAS_DE_CONTEUDO` (sem ela a IDE não carrega os arquivos de aba).
+7. `scripts/verify-deploy.cjs`: entrada em `cursosComEtapas`.
+8. Catálogo regenerado com `gerar-manifest-conteudo.ps1`.
 
 ### 4.3 Como Adicionar uma Nova Tela ou Seção no Dashboard
 1. No arquivo `public/dashboard.html`, adicione a marcação HTML da sua nova seção (geralmente uma `<section id="cl-page-minha-secao" class="cl-page">`).

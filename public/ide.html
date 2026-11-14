@@ -7,7 +7,7 @@
   <title>IDE — Coding Loop</title>
 
   <link rel="stylesheet" href="assets/css/global.css?v=toast-types-20260901-1">
-  <link rel="stylesheet" href="assets/css/ide.css?v=step-tabs-20260829-1">
+  <link rel="stylesheet" href="assets/css/ide.css?v=explorer-projeto-20261009-1">
   <link rel="stylesheet" href="assets/css/trilha.css?v=trilha-opacidade-indice-20260829-1">
 
   <!-- Preconnect: economiza o tempo de DNS/TLS antes dos downloads
@@ -290,6 +290,31 @@
                     <path d="M6 18h12a4 4 0 0 0 .7-7.94A7 7 0 0 0 5.08 8.5 4.5 4.5 0 0 0 6 18Z" />
                     <path d="M12 9v6m0-6-3 3m3-3 3 3" />
                   </svg><span>Configurar Backup</span></button>
+              </div>
+            </form>
+          </dialog>
+
+          <dialog aria-describedby="ide-confirm-message" aria-labelledby="ide-confirm-title" class="ide-compact-dialog" id="ide-confirm-dialog">
+            <form method="dialog">
+              <h2 id="ide-confirm-title">Confirmar ação</h2>
+              <p id="ide-confirm-message"></p>
+              <div class="ide-compact-dialog-actions">
+                <button class="cl-btn" value="cancel" type="submit">Cancelar</button>
+                <button class="cl-btn ide-compact-dialog-confirm" value="confirm" type="submit">Confirmar</button>
+              </div>
+            </form>
+          </dialog>
+
+          <dialog aria-describedby="ide-prompt-message" aria-labelledby="ide-prompt-title" class="ide-compact-dialog" id="ide-prompt-dialog">
+            <form method="dialog">
+              <h2 id="ide-prompt-title">Nomear</h2>
+              <p id="ide-prompt-message"></p>
+              <label class="ide-compact-dialog-field" for="ide-prompt-input">Nome
+                <input autocomplete="off" id="ide-prompt-input" type="text">
+              </label>
+              <div class="ide-compact-dialog-actions">
+                <button class="cl-btn" value="cancel" type="submit">Cancelar</button>
+                <button class="cl-btn ide-compact-dialog-confirm" value="confirm" type="submit">Continuar</button>
               </div>
             </form>
           </dialog>
@@ -886,7 +911,7 @@
 
   <script defer src="assets/js/firebase-init.js"></script>
   <script defer src="assets/js/auth.js?v=local-study-20260901-1"></script>
-  <script defer src="assets/js/api.js?v=local-study-20260901-1"></script>
+  <script defer src="assets/js/api.js?v=projeto-backup-20261009-1"></script>
 
   <!-- Dados do curso (módulos/etapas) e motor de renderização da
        trilha — os mesmos usados na trilha de módulos da Dashboard. -->
@@ -918,7 +943,7 @@
        ide.js checa `window.emmetMonaco` antes de usar. -->
   <script defer src="https://cdn.jsdelivr.net/npm/emmet-monaco-es/dist/emmet-monaco.min.js"></script>
 
-  <script defer src="assets/js/ide.js?v=ide-buttons-20260902-1"></script>
+  <script defer src="assets/js/ide.js?v=explorer-projeto-20261009-1"></script>
 
 </body>
 

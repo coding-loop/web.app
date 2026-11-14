@@ -25,7 +25,8 @@
       /* A cor do curso é definida por data-curso em ide.js. */
       --course-accent: #e44d26;
       --ide-splitter-size: 2px;
-      --ide-splitter-handle: color-mix(in srgb, var(--ide-control-contrast) 28%, transparent);
+      --ide-splitter-handle: #d9481f;
+      --ide-splitter-handle-hover: #ff6a24;
     }
 
     .learning-platform-root[data-curso="html"] {
@@ -48,7 +49,8 @@
     .theory-pane {
       width: 33.3333%;
       min-width: 300px;
-      max-width: 720px;
+      max-width: none;
+      flex: 0 0 33.3333%;
       background: #ffffff;
       border-right: 1px solid #e1e4e8;
       display: flex;
@@ -928,10 +930,11 @@
     }
 
     .cloud-permission-dialog {
-      width: min(560px, calc(100vw - 32px));
-      max-height: calc(100vh - 32px);
+      width: min(400px, calc(100vw - 32px));
+      max-height: min(60dvh, calc(100vh - 32px));
       margin: auto;
       padding: 0;
+      overflow: auto;
       border: 1px solid var(--cl-border);
       border-radius: 14px;
       background: var(--cl-surface);
@@ -944,7 +947,7 @@
     }
 
     .cloud-permission-dialog form {
-      padding: 22px;
+      padding: 16px;
     }
 
     .cloud-permission-dialog h2 {
@@ -1024,12 +1027,12 @@
 
     /* Painel visual de configuração de backup. */
     #backup-settings-dialog {
-      width: 509px;
-      min-width: min(509px, calc(100vw - 32px));
+      width: 390px;
+      min-width: min(390px, calc(100vw - 32px));
       max-width: calc(100vw - 32px);
       box-sizing: border-box;
       height: auto;
-      max-height: calc(100vh - 32px);
+      max-height: min(60dvh, calc(100vh - 32px));
       padding: 0;
       overflow: auto;
     }
@@ -1041,10 +1044,97 @@
     /* Painel de restauração: usa a mesma linguagem visual do painel de
        configuração, sem alterar o dropdown que o abre no cabeçalho. */
     #restore-backup-dialog {
-      width: min(420px, calc(100vw - 32px));
+      width: min(360px, calc(100vw - 32px));
       max-width: calc(100vw - 32px);
       padding: 0;
       overflow: hidden;
+    }
+
+    /* Diálogos de nomeação e confirmação da IDE. Eles substituem os
+       prompt/confirm nativos, que não acompanham a escala da interface. */
+    .ide-compact-dialog {
+      width: min(340px, calc(100vw - 32px));
+      max-height: min(50dvh, calc(100vh - 32px));
+      box-sizing: border-box;
+      padding: 0;
+      overflow: auto;
+      border: 1px solid var(--cl-border);
+      border-radius: 10px;
+      background: var(--cl-surface);
+      color: var(--cl-text);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, .36);
+    }
+
+    .ide-compact-dialog::backdrop {
+      background: rgba(0, 43, 54, .58);
+    }
+
+    .ide-compact-dialog form {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .ide-compact-dialog h2,
+    .ide-compact-dialog p {
+      margin: 0;
+    }
+
+    .ide-compact-dialog h2 {
+      font-size: 1rem;
+    }
+
+    .ide-compact-dialog p {
+      color: var(--cl-text-muted);
+      font-size: .86rem;
+      line-height: 1.45;
+    }
+
+    .ide-compact-dialog-field {
+      display: grid;
+      gap: 5px;
+      color: var(--cl-text);
+      font-size: .82rem;
+      font-weight: 650;
+    }
+
+    .ide-compact-dialog-field input {
+      min-width: 0;
+      padding: 8px 9px;
+      border: 1px solid var(--cl-border);
+      border-radius: 6px;
+      background: var(--cl-bg);
+      color: var(--cl-text);
+      font: inherit;
+    }
+
+    .ide-compact-dialog-field input:focus-visible {
+      border-color: var(--cl-primary);
+      outline: 2px solid color-mix(in srgb, var(--cl-primary) 35%, transparent);
+      outline-offset: 1px;
+    }
+
+    .ide-compact-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .ide-compact-dialog-actions .cl-btn {
+      min-height: 32px;
+      padding: 6px 11px;
+      font-size: .82rem;
+    }
+
+    .ide-compact-dialog-confirm {
+      border-color: var(--cl-primary) !important;
+      background: var(--cl-primary) !important;
+      color: #fff !important;
+    }
+
+    .ide-compact-dialog-confirm.is-destructive {
+      border-color: var(--cl-danger) !important;
+      background: var(--cl-danger) !important;
     }
 
     #restore-backup-form {
@@ -1557,8 +1647,10 @@
     }
 
     .backup-reminder-dialog {
-      width: min(440px, calc(100vw - 32px));
+      width: min(360px, calc(100vw - 32px));
+      max-height: min(50dvh, calc(100vh - 32px));
       padding: 0;
+      overflow: auto;
       border: 1px solid var(--cl-border);
       border-radius: 12px;
       background: var(--cl-surface);
@@ -1571,7 +1663,7 @@
     }
 
     .backup-reminder-dialog form {
-      padding: 20px;
+      padding: 16px;
     }
 
     .backup-reminder-header {
@@ -1694,6 +1786,7 @@
     @media (max-width: 480px) {
       .backup-reminder-dialog {
         width: calc(100vw - 16px);
+        max-height: 50dvh;
       }
 
       .backup-reminder-actions {
@@ -1709,8 +1802,7 @@
     @media (max-width: 560px) {
       #backup-settings-dialog {
         width: calc(100vw - 16px);
-        max-height: calc(100vh - 16px);
-        max-height: calc(100dvh - 16px);
+        max-height: 60dvh;
       }
 
       #backup-settings-form {
@@ -2189,23 +2281,37 @@
     }
 
     .theory-content {
+      display: flex;
       flex: 1;
-      padding: 16px 0 16px 20px;
-      overflow-y: auto;
-      /* Reserva a faixa do scroll vertical para que controles laterais não
-         fiquem por baixo dele quando a etapa for extensa. */
-      scrollbar-gutter: stable;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+      /* A rolagem fica em cada painel (.step-panels > .step-section), não no
+         contêiner comum, para que controles laterais nunca fiquem por baixo
+         da barra de rolagem de uma etapa extensa. */
+    }
+
+    /* O índice e o conteúdo de uma etapa são modos mutuamente exclusivos
+       da Learn Platform. A regra explícita preserva o atributo hidden,
+       que teria sua prioridade vencida pelo display:flex acima. */
+    .theory-content[hidden] {
+      display: none;
     }
 
     .step-card {
       display: none;
       position: relative;
+      min-height: 0;
       /* O retorno e as abas compartilham a mesma faixa horizontal. */
       padding-top: 0;
     }
 
     .step-card.active {
-      display: block;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
     }
 
     .step-tabs-scroll-wrapper {
@@ -2251,6 +2357,26 @@
       min-width: 100%;
     }
 
+    .step-tab-control {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .step-tab-pin {
+      width: 14px;
+      height: 14px;
+      margin: 0 0 0 3px;
+      accent-color: var(--cl-primary, #268bd2);
+      cursor: pointer;
+    }
+
+    .step-tab-pin:disabled {
+      cursor: not-allowed;
+    }
+
+
     .step-tab {
       flex: 0 0 auto;
       position: relative;
@@ -2284,6 +2410,74 @@
 
     .step-section[hidden] {
       display: none;
+    }
+
+    .step-panels {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      align-items: stretch;
+      width: 100%;
+      height: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+    }
+
+    .step-panels>.step-section {
+      height: 100%;
+      max-height: 100%;
+      min-width: 120px;
+      min-height: 0;
+      padding-right: 12px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overflow-wrap: anywhere;
+      overscroll-behavior-y: contain;
+      scrollbar-gutter: stable;
+    }
+
+    .step-section .step-content-title {
+      margin: 0 0 12px;
+      color: var(--cl-primary, #268bd2);
+      font-size: 1.1rem;
+    }
+
+    .step-panel-resizer {
+      position: relative;
+      z-index: 1;
+      width: 8px;
+      height: 100%;
+      min-height: 0;
+      border-radius: 4px;
+      background: var(--cl-border, #586e75);
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .step-panel-resizer::after {
+      position: absolute;
+      top: 50%;
+      left: 2px;
+      width: 4px;
+      height: 28px;
+      border-radius: 4px;
+      background: var(--cl-text-muted, #93a1a1);
+      content: '';
+      transform: translateY(-50%);
+    }
+
+    .step-panel-resizer:hover,
+    .step-panel-resizer.is-dragging,
+    .step-panel-resizer:focus-visible {
+      background: var(--cl-primary, #268bd2);
+      outline: none;
+    }
+
+    .step-panel-resizer:focus-visible {
+      box-shadow: 0 0 0 2px var(--cl-bg, #002b36), 0 0 0 4px var(--cl-primary, #268bd2);
     }
 
     .step-section h3 {
@@ -2405,7 +2599,9 @@
     .step-nav-footer {
       display: flex;
       justify-content: flex-end;
-      margin-top: 20px;
+      width: 100%;
+      margin: 16px 0 0;
+      padding: 0;
     }
 
     .step-nav-btn--next {
@@ -2624,7 +2820,7 @@
 
     /* Painel Direito: onde o IDE é encaixado */
     .ide-container-pane {
-      flex: 1;
+      flex: 0 0 66.6667%;
       height: 100%;
       min-width: 0;
       background: #161b22;
@@ -2696,23 +2892,21 @@
       transition: background-color 0.15s ease;
     }
 
+    /* Alça de três pontos, oculta em repouso. Vertical: pontos empilhados.
+       Sem ::after: a área de interação é a própria faixa de 2px e não invade
+       os painéis vizinhos. */
     .pane-resizer::before {
       content: '';
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 5px;
-      height: 24px;
+      width: 4px;
+      height: 18px;
       transform: translate(-50%, -50%);
-      border-radius: 2px;
-      background: var(--ide-splitter-handle);
-      transition: background-color 0.15s ease;
-    }
-
-    .pane-resizer::after {
-      content: '';
-      position: absolute;
-      inset: 0 -7px;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 4px 6px repeat-y;
+      transition: opacity 0.15s ease;
     }
 
     .pane-resizer:hover,
@@ -2720,10 +2914,23 @@
       background: #161b22;
     }
 
+    /* Ao interagir, a alça aparece e fica #ff6a24 (repouso: #d9481f). */
+    .pane-resizer:hover,
+    .pane-resizer:focus-visible,
+    .pane-resizer.is-dragging,
+    .editor-split-resizer:hover,
+    .editor-split-resizer:focus-visible,
+    .editor-split-resizer.is-dragging,
+    .preview-split-resizer:hover,
+    .preview-split-resizer:focus-visible,
+    .preview-split-resizer.is-dragging {
+      --ide-splitter-handle: var(--ide-splitter-handle-hover);
+    }
+
     .pane-resizer:hover::before,
     .pane-resizer:focus-visible::before,
     .pane-resizer.is-dragging::before {
-      background: #4ab5f7;
+      opacity: 1;
     }
 
     .pane-resizer:focus-visible {
@@ -3504,16 +3711,9 @@
       cursor: row-resize;
     }
 
-    /* Mesmo padrão da divisória Plataforma/IDE: barra discreta e um
-       pequeno pegador central, com área de clique maior que a linha. */
-    .editor-split-resizer::after,
-    .preview-split-resizer::after {
-      content: '';
-      position: absolute;
-      inset: 0 -6px;
-      background: transparent;
-    }
-
+    /* Mesmo padrão da divisória Plataforma/IDE: faixa de 2px e alça de três
+       pontos oculta em repouso. Sem ::after — a área de interação é a própria
+       faixa e não invade os painéis vizinhos. */
     .editor-split-resizer::before,
     .preview-split-resizer::before {
       content: '';
@@ -3521,17 +3721,20 @@
       top: 50%;
       left: 50%;
       z-index: 1;
-      width: 5px;
-      height: 24px;
+      width: 4px;
+      height: 18px;
       transform: translate(-50%, -50%);
-      border-radius: 2px;
-      background: var(--ide-splitter-handle);
-      transition: background-color .15s ease;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 4px 6px repeat-y;
+      transition: opacity .15s ease;
     }
 
+    /* Horizontal (Preview abaixo dos editores): pontos lado a lado. */
     .preview-split-resizer::before {
-      width: 24px;
-      height: 5px;
+      width: 18px;
+      height: 4px;
+      background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 6px 4px repeat-x;
     }
 
     .editor-split-resizer:hover,
@@ -3549,7 +3752,7 @@
     .preview-split-resizer:hover::before,
     .preview-split-resizer:focus-visible::before,
     .preview-split-resizer.is-dragging::before {
-      background: #4ab5f7;
+      opacity: 1;
     }
 
     .editor-split-resizer:focus-visible,
@@ -3891,7 +4094,10 @@
       background: #002b36;
     }
 
-    @media (max-width: 900px) {
+    /* Retrato: Learn Platform em cima (1/3 da altura) e IDE embaixo (2/3).
+       Paisagem: lado a lado, inclusive em janelas estreitas (ex.: 982x539).
+       A decisão é pela orientação, não por um breakpoint de largura. */
+    @media (orientation: portrait) {
       .learning-platform-root {
         flex-direction: column;
       }
@@ -3900,7 +4106,7 @@
         width: auto;
         max-width: 100%;
         min-width: 0;
-        flex: 0 0 40vh;
+        flex: 0 0 33.3333%;
       }
 
       .indice-panel[data-curso] {
@@ -3912,17 +4118,12 @@
       }
 
       .ide-container-pane {
-        flex: 1 1 auto;
+        flex: 0 0 66.6667%;
         height: auto;
         min-height: 0;
-        /* sem isso o item flex não encolhe abaixo do
-        conteúdo (Monaco/preview) e extrapola os ~60vh disponíveis;
-        o excesso fica cortado pelo overflow:hidden do .learning-platform-root — visualmente "some" na borda */
-      }
-
-      .ide-container-pane {
-        flex: 1 1 auto;
-        height: auto;
+        /* sem isso o item flex não encolhe abaixo do conteúdo
+        (Monaco/preview) e extrapola o espaço disponível; o excesso ficaria
+        cortado pelo overflow:hidden do .learning-platform-root */
       }
 
       .browser-window:not(.is-fullscreen) {
@@ -3939,13 +4140,11 @@
         touch-action: none;
       }
 
+      /* Eixo horizontal: três pontos lado a lado. */
       .pane-resizer::before {
-        width: 24px;
-        height: 5px;
-      }
-
-      .pane-resizer::after {
-        inset: -14px 0;
+        width: 18px;
+        height: 4px;
+        background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 6px 4px repeat-x;
       }
     }
 
@@ -4090,7 +4289,7 @@
     .pane-resizer::before,
     .editor-split-resizer::before,
     .preview-split-resizer::before {
-      background: var(--ide-splitter-handle);
+      color: var(--ide-control-contrast);
     }
 
     .back-to-dashboard-btn,
@@ -4983,3 +5182,101 @@
 .quick-open li small { margin-left: auto; color: #8b949e; }
 .quick-open li.is-ativo, .quick-open li:hover { background: rgba(74,181,247,.18); }
 .quick-open p { margin: 0; padding: 10px 12px; color: #8b949e; font-size: 12px; }
+
+/* ==========================================================================
+   Correção: IDE em tela cheia (movida para o <body>, fora de .learning-platform-root)
+   ========================================================================== */
+
+/* Variáveis dos divisores disponíveis também fora de .learning-platform-root */
+:root {
+  --ide-splitter-size: 2px;
+  --ide-splitter-handle: #d9481f;
+  --ide-splitter-handle-hover: #ff6a24;
+}
+
+/* Ícones de traço: mesmo fill/stroke em qualquer tamanho/modo da IDE */
+#main-window-container button.explorer-icon-btn svg,
+#main-window-container button.explorer-icon-btn:hover svg,
+#main-window-container button.explorer-icon-btn:focus svg,
+#main-window-container button.explorer-icon-btn:focus-visible svg,
+#main-window-container .file-preview-toggle svg,
+#main-window-container .file-toolbar-close-btn svg,
+#main-window-container .file-tool-menu-item svg,
+#main-window-container .bottom-panel-close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#main-window-container button.explorer-icon-btn { color: #8b949e; }
+#main-window-container button.explorer-icon-btn:hover,
+#main-window-container button.explorer-icon-btn:focus-visible,
+#main-window-container button.explorer-icon-btn.is-active { color: #4ab5f7; }
+#main-window-container .file-favicon-btn svg { stroke: none; }
+#main-window-container .file-preview-toggle svg circle { fill: currentColor; stroke: none; }
+
+/* Explorer, nome do projeto e menus (dropdown): cores iguais nos temas dark e light */
+html .explorer-title-btn,
+html .explorer-panel button.explorer-icon-btn,
+html .file-tools-menu button.file-tool-menu-item,
+html .file-tools-menu button.file-tool-menu-item .file-tool-menu-shortcut {
+  color: #fdf6e3;
+}
+html .file-tools-menu button.file-tool-menu-item svg {
+  fill: none;
+  stroke: #fdf6e3;
+}
+
+/* hover / foco (igual nos dois temas) */
+html .explorer-title-btn:hover,
+html .explorer-title-btn:focus-visible,
+html .explorer-panel button.explorer-icon-btn:hover,
+html .explorer-panel button.explorer-icon-btn:focus-visible,
+html .file-tools-menu button.file-tool-menu-item:hover,
+html .file-tools-menu button.file-tool-menu-item:focus-visible,
+html .file-tools-menu button.file-tool-menu-item.is-active {
+  color: #4ab5f7;
+}
+html .file-tools-menu button.file-tool-menu-item:hover svg,
+html .file-tools-menu button.file-tool-menu-item:focus-visible svg,
+html .file-tools-menu button.file-tool-menu-item.is-active svg {
+  fill: none;
+  stroke: #4ab5f7;
+}
+
+/* Explorer inteiro em cor padrão (igual nos temas dark e light).
+   O nome do projeto não muda de cor ao clicar/focar (renomear) nem ao trocar o tema. */
+html .explorer-panel button:not(.explorer-icon-btn):not([aria-pressed="true"]),
+html .explorer-panel button.explorer-title-btn,
+html .explorer-panel button.explorer-title-btn:hover,
+html .explorer-panel button.explorer-title-btn:focus,
+html .explorer-panel button.explorer-title-btn:focus-visible,
+html .explorer-panel button.explorer-title-btn:active {
+  color: #fdf6e3;
+}
+html .explorer-panel button.explorer-icon-btn:focus:not(:hover):not(:focus-visible):not(.is-active) {
+  color: #fdf6e3;
+}
+
+/* Ícones de arquivo do VS Code (Material Icon Theme): mantêm as cores originais
+   em qualquer tema — anulam o fill/stroke único dos botões da IDE. */
+html .file-favicon-btn svg,
+html .file-favicon-btn:hover svg,
+html .file-favicon-btn:focus svg,
+html .file-favicon-btn:focus-visible svg,
+html .file-favicon-btn[aria-expanded="true"] svg,
+html .explorer-node-favicon {
+  fill: initial;
+  stroke: none;
+}
+html .explorer-node-favicon { width: 16px; height: 16px; }
+
+/* Dropdown "novo arquivo": ícones de arquivo (VS Code) com as cores originais */
+html .file-tools-menu button.file-tool-menu-item:not(#x) svg.icone-arquivo {
+  width: 16px;
+  height: 16px;
+  fill: initial;
+  stroke: none;
+}
+html .file-tools-menu button.file-tool-menu-item .file-tool-menu-shortcut { opacity: .6; }

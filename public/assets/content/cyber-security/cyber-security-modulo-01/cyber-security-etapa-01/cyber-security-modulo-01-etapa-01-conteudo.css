@@ -81,7 +81,7 @@
   text-transform: uppercase;
 }
 
-.logo-harvard {
+.cs-logo-harvard {
   position: absolute;
   top: clamp(18px, 4vw, 32px);
   /* Distância do topo alinhada ao padding */

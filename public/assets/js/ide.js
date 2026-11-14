@@ -20,6 +20,63 @@
   window.CL = window.CL || {};
   var CL = window.CL;
 
+  // Diálogos compactos compartilhados pela plataforma de aprendizado e pelo
+  // editor. As duas áreas têm inicialização independente, portanto estes
+  // helpers não podem pertencer a apenas uma delas.
+  var ideConfirmDialog = document.getElementById('ide-confirm-dialog');
+  var ideConfirmTitle = document.getElementById('ide-confirm-title');
+  var ideConfirmMessage = document.getElementById('ide-confirm-message');
+  var ideConfirmButton = ideConfirmDialog && ideConfirmDialog.querySelector('.ide-compact-dialog-confirm');
+  var ideConfirmCancelButton = ideConfirmDialog && ideConfirmDialog.querySelector('[value="cancel"]');
+  var idePromptDialog = document.getElementById('ide-prompt-dialog');
+  var idePromptTitle = document.getElementById('ide-prompt-title');
+  var idePromptMessage = document.getElementById('ide-prompt-message');
+  var idePromptInput = document.getElementById('ide-prompt-input');
+  var idePromptButton = idePromptDialog && idePromptDialog.querySelector('.ide-compact-dialog-confirm');
+
+  function confirmarAcao(mensagem, opcoes) {
+    opcoes = opcoes || {};
+    if (!ideConfirmDialog || typeof ideConfirmDialog.showModal !== 'function') return Promise.resolve(window.confirm(mensagem));
+    ideConfirmTitle.textContent = opcoes.titulo || 'Confirmar ação';
+    ideConfirmMessage.textContent = mensagem;
+    ideConfirmButton.textContent = opcoes.confirmar || 'Confirmar';
+    ideConfirmButton.classList.toggle('is-destructive', Boolean(opcoes.destrutiva));
+    ideConfirmCancelButton.hidden = Boolean(opcoes.somenteConfirmar);
+    return new Promise(function (resolve) {
+      function aoFechar() {
+        ideConfirmDialog.removeEventListener('close', aoFechar);
+        resolve(ideConfirmDialog.returnValue === 'confirm');
+      }
+      ideConfirmDialog.addEventListener('close', aoFechar);
+      ideConfirmDialog.showModal();
+    });
+  }
+
+  function informarAcao(mensagem, titulo) {
+    return confirmarAcao(mensagem, { titulo: titulo || 'Aviso', confirmar: 'Entendi', somenteConfirmar: true });
+  }
+
+  function solicitarTexto(mensagem, valorInicial, opcoes) {
+    opcoes = opcoes || {};
+    if (!idePromptDialog || typeof idePromptDialog.showModal !== 'function') return Promise.resolve(window.prompt(mensagem, valorInicial));
+    idePromptTitle.textContent = opcoes.titulo || 'Informar nome';
+    idePromptMessage.textContent = mensagem;
+    idePromptButton.textContent = opcoes.confirmar || 'Continuar';
+    idePromptInput.value = valorInicial || '';
+    return new Promise(function (resolve) {
+      function aoFechar() {
+        idePromptDialog.removeEventListener('close', aoFechar);
+        resolve(idePromptDialog.returnValue === 'confirm' ? idePromptInput.value : null);
+      }
+      idePromptDialog.addEventListener('close', aoFechar);
+      idePromptDialog.showModal();
+      requestAnimationFrame(function () {
+        idePromptInput.focus();
+        idePromptInput.select();
+      });
+    });
+  }
+
   // Chamada pelo bootIde() (no rodapé deste arquivo) depois que o
   // guard de autenticação passou e os dados locais já foram carregados.
   // progressoCarregado/exerciciosCarregado/posicaoCarregada
@@ -253,10 +310,6 @@
     // Não deixamos um parâmetro antigo da URL substituir essa escolha.
     const layoutAprendizagem = window.localStorage.getItem('cl-layout-aprendizagem') || 'mapa';
     let indiceLayoutAtual = layoutAprendizagem === 'indice' ? 'lista' : 'trilha';
-    // A URL decide apenas se o índice deve iniciar aberto. O formato visual
-    // continua obedecendo exclusivamente à preferência das Configurações.
-    const indiceSolicitadoNaUrl = new URLSearchParams(window.location.search).get('indice');
-
     function escaparTextoIndice(valor) {
       return String(valor == null ? '' : valor)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -293,9 +346,12 @@
           var refazer = evento.target.closest('[data-indice-refazer]');
           if (!refazer) return;
           var numero = parseInt(refazer.getAttribute('data-indice-refazer'), 10);
-          if (!numero || !window.confirm('Refazer esta etapa? O progresso e o código salvo dela serão apagados.')) return;
-          resetarProgressoEtapa(getModuloAtual().id, numero);
-          renderIndice();
+          if (!numero) return;
+          confirmarAcao('O progresso e o código salvo desta etapa serão apagados.', { titulo: 'Refazer etapa', confirmar: 'Refazer', destrutiva: true }).then(function (confirmado) {
+            if (!confirmado) return;
+            resetarProgressoEtapa(getModuloAtual().id, numero);
+            renderIndice();
+          });
         });
         indiceListaEl._indiceLinearBound = true;
       }
@@ -353,10 +409,11 @@
           onReset: function (nodeId) {
             const numero = parseInt(nodeId.split(':').pop(), 10);
             if (!numero) return;
-            const confirmado = window.confirm('Refazer esta etapa? O progresso e o código salvo dela serão apagados.');
-            if (!confirmado) return;
-            resetarProgressoEtapa(modulo.id, numero);
-            renderIndice();
+            confirmarAcao('O progresso e o código salvo desta etapa serão apagados.', { titulo: 'Refazer etapa', confirmar: 'Refazer', destrutiva: true }).then(function (confirmado) {
+              if (!confirmado) return;
+              resetarProgressoEtapa(modulo.id, numero);
+              renderIndice();
+            });
           }
         });
       } catch (erroTrilha) {
@@ -384,7 +441,11 @@
       indicePanelEl.hidden = false;
       if (moduleNavTitleEl) {
         var modulo = getModuloAtual();
-        moduleNavTitleEl.textContent = 'Módulo ' + modulo.numero + ': ' + modulo.nome;
+        // criarModulo/registrarModulo (curso-data.js) não gravam `numero` no
+        // módulo, então "modulo.numero" era undefined. O número vem do ID
+        // (css-modulo-02 → 2); na falta dele, da posição do módulo no curso.
+        var numeroDoModulo = modulo.numero || Number((String(modulo.id).match(/modulo-(\d+)$/) || [])[1]) || (currentModuleIndex + 1);
+        moduleNavTitleEl.textContent = 'Módulo ' + numeroDoModulo + ': ' + modulo.nome;
         moduleNavTitleEl.classList.add('is-visible');
       }
       if (headerStepTabsWrapperEl) headerStepTabsWrapperEl.hidden = true;
@@ -405,7 +466,6 @@
 
     toggleIndiceBtn.addEventListener('click', function () {
       if (indicePanelEl.hidden) abrirIndice();
-      else fecharIndice();
     });
 
     // Permite que outros scripts leiam a etapa atual sem depender da ordem
@@ -414,9 +474,11 @@
       return getEtapasDoModulo()[currentStep - 1];
     };
 
-    const ABAS_DA_ETAPA = ['conteudo', 'questoes', 'exercicio', 'desafio'];
+    const ABAS_DA_ETAPA = ['conteudo', 'exercicio', 'desafio', 'questoes'];
     let abaAtualDaEtapa = 'conteudo';
     const desbloqueioDasAbas = {};
+    const abasFixadasPorEtapa = {};
+    const proporcoesDosPaineisPorEtapa = {};
     const ICONE_ABA_BLOQUEADA = '<svg class="step-tab-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h6V8a3 3 0 0 0-6 0v2Zm3 3a2 2 0 0 0-1 3.73V18h2v-1.27A2 2 0 0 0 12 13Z"/></svg>';
 
     function chaveDesbloqueioDaEtapa() {
@@ -436,10 +498,160 @@
       desbloqueioDasAbas[chave] = Math.max(desbloqueioDasAbas[chave] || 0, indiceAtual + 1);
     }
 
+    function obterAbasFixadas() {
+      const chave = chaveDesbloqueioDaEtapa();
+      if (!abasFixadasPorEtapa[chave]) abasFixadasPorEtapa[chave] = {};
+      return abasFixadasPorEtapa[chave];
+    }
+
+    function obterAbasVisiveis() {
+      const fixadas = obterAbasFixadas();
+      return ABAS_DA_ETAPA.filter(function (nome) {
+        return Boolean(fixadas[nome]) || nome === abaAtualDaEtapa;
+      });
+    }
+
     function renderBotaoAba(nome, rotulo) {
-      return '<button type="button" class="step-tab" data-step-tab="' + nome + '" role="tab">' +
-        '<span>' + rotulo + '</span>' + ICONE_ABA_BLOQUEADA +
-        '</button>';
+      const rotuloEscapado = escaparHtml(rotulo);
+      return '<span class="step-tab-control" role="presentation">' +
+        '<input class="step-tab-pin" type="checkbox" data-step-pin="' + nome + '" aria-label="Fixar painel: ' + rotuloEscapado + '" title="Fixar painel: ' + rotuloEscapado + '">' +
+        '<button type="button" class="step-tab" data-step-tab="' + nome + '" role="tab">' +
+        '<span>' + rotuloEscapado + '</span>' + ICONE_ABA_BLOQUEADA +
+        '</button>' +
+        '</span>';
+    }
+
+    function pesosPainelParaEtapa(abasVisiveis) {
+      const chave = chaveDesbloqueioDaEtapa() + ':' + abasVisiveis.join(',');
+      if (!proporcoesDosPaineisPorEtapa[chave] || proporcoesDosPaineisPorEtapa[chave].length !== abasVisiveis.length) {
+        proporcoesDosPaineisPorEtapa[chave] = abasVisiveis.map(function () { return 1; });
+      }
+      return proporcoesDosPaineisPorEtapa[chave];
+    }
+
+    function atualizarColunasDosPaineis(wrapper, abasVisiveis, pesos) {
+      const colunas = [];
+      abasVisiveis.forEach(function (_, indice) {
+        colunas.push('minmax(120px, ' + Math.max(0.1, pesos[indice] || 1) + 'fr)');
+        if (indice < abasVisiveis.length - 1) colunas.push('8px');
+      });
+      wrapper.style.gridTemplateColumns = colunas.join(' ');
+    }
+
+    function redimensionarParDeAbas(divisor, delta) {
+      const wrapper = divisor.parentElement;
+      const nomes = wrapper._abasVisiveis || [];
+      const indice = Number(divisor.getAttribute('data-divider-index'));
+      const abasVisiveis = nomes;
+      if (!abasVisiveis[indice] || !abasVisiveis[indice + 1]) return;
+      const pesos = pesosPainelParaEtapa(abasVisiveis);
+      const antes = wrapper.querySelector('[data-step-section="' + abasVisiveis[indice] + '"]');
+      const depois = wrapper.querySelector('[data-step-section="' + abasVisiveis[indice + 1] + '"]');
+      if (!antes || !depois) return;
+      const larguraAntes = antes.getBoundingClientRect().width;
+      const larguraDepois = depois.getBoundingClientRect().width;
+      const total = larguraAntes + larguraDepois;
+      const minimo = Math.min(120, total / 2);
+      const novaLarguraAntes = Math.max(minimo, Math.min(total - minimo, larguraAntes + delta));
+      const pesoTotal = pesos[indice] + pesos[indice + 1];
+      pesos[indice] = pesoTotal * (novaLarguraAntes / total);
+      pesos[indice + 1] = pesoTotal - pesos[indice];
+      atualizarColunasDosPaineis(wrapper, abasVisiveis, pesos);
+      divisor.setAttribute('aria-valuenow', String(Math.round((novaLarguraAntes / total) * 100)));
+    }
+
+    function iniciarRedimensionamentoDasAbas(divisor, evento) {
+      const inicio = evento.clientX;
+      const indice = Number(divisor.getAttribute('data-divider-index'));
+      const wrapper = divisor.parentElement;
+      const nomes = wrapper._abasVisiveis || [];
+      const anterior = wrapper.querySelector('[data-step-section="' + nomes[indice] + '"]');
+      if (!anterior) return;
+      const larguraInicial = anterior.getBoundingClientRect().width;
+      divisor.classList.add('is-dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+      if (divisor.setPointerCapture) divisor.setPointerCapture(evento.pointerId);
+
+      function mover(movimento) {
+        redimensionarParDeAbas(divisor, (movimento.clientX - inicio) - (anterior.getBoundingClientRect().width - larguraInicial));
+      }
+
+      function finalizar() {
+        divisor.classList.remove('is-dragging');
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        window.removeEventListener('pointermove', mover);
+        window.removeEventListener('pointerup', finalizar);
+        window.removeEventListener('pointercancel', finalizar);
+      }
+
+      window.addEventListener('pointermove', mover);
+      window.addEventListener('pointerup', finalizar);
+      window.addEventListener('pointercancel', finalizar);
+      evento.preventDefault();
+    }
+
+    function controlarRedimensionamentoDasAbas(divisor, evento) {
+      const passo = evento.shiftKey ? 64 : 24;
+      if (evento.key === 'ArrowLeft') redimensionarParDeAbas(divisor, -passo);
+      else if (evento.key === 'ArrowRight') redimensionarParDeAbas(divisor, passo);
+      else if (evento.key === 'Home' || evento.key === 'End') {
+        const wrapper = divisor.parentElement;
+        const indice = Number(divisor.getAttribute('data-divider-index'));
+        const nomes = wrapper._abasVisiveis || [];
+        const antes = wrapper.querySelector('[data-step-section="' + nomes[indice] + '"]');
+        const depois = wrapper.querySelector('[data-step-section="' + nomes[indice + 1] + '"]');
+        if (!antes || !depois) return;
+        const alvo = evento.key === 'Home' ? 120 - antes.getBoundingClientRect().width : depois.getBoundingClientRect().width - 120;
+        redimensionarParDeAbas(divisor, alvo);
+      } else return;
+      evento.preventDefault();
+    }
+
+    function restaurarTamanhoIgualDasAbas(divisor) {
+      const wrapper = divisor.parentElement;
+      const nomes = wrapper._abasVisiveis || [];
+      const pesos = pesosPainelParaEtapa(nomes);
+      const indice = Number(divisor.getAttribute('data-divider-index'));
+      const total = pesos[indice] + pesos[indice + 1];
+      pesos[indice] = total / 2;
+      pesos[indice + 1] = total / 2;
+      atualizarColunasDosPaineis(wrapper, nomes, pesos);
+    }
+
+    function configurarPainelDasAbas(card) {
+      const wrapper = card.querySelector('[data-step-panels]');
+      if (!wrapper) return [];
+      const abasVisiveis = obterAbasVisiveis();
+      const pesos = pesosPainelParaEtapa(abasVisiveis);
+      wrapper._abasVisiveis = abasVisiveis;
+      atualizarColunasDosPaineis(wrapper, abasVisiveis, pesos);
+      wrapper.querySelectorAll('.step-panel-resizer').forEach(function (divisor) { divisor.remove(); });
+
+      card.querySelectorAll('[data-step-section]').forEach(function (section) {
+        section.hidden = abasVisiveis.indexOf(section.getAttribute('data-step-section')) < 0;
+      });
+
+      abasVisiveis.slice(0, -1).forEach(function (nome, indice) {
+        const secao = wrapper.querySelector('[data-step-section="' + nome + '"]');
+        const seguinte = abasVisiveis[indice + 1];
+        const divisor = document.createElement('div');
+        divisor.className = 'step-panel-resizer';
+        divisor.setAttribute('role', 'separator');
+        divisor.setAttribute('aria-orientation', 'vertical');
+        divisor.setAttribute('aria-label', 'Redimensionar ' + nome + ' e ' + seguinte);
+        divisor.setAttribute('aria-valuemin', '0');
+        divisor.setAttribute('aria-valuemax', '100');
+        divisor.setAttribute('aria-valuenow', '50');
+        divisor.setAttribute('data-divider-index', String(indice));
+        divisor.tabIndex = 0;
+        divisor.addEventListener('pointerdown', function (evento) { iniciarRedimensionamentoDasAbas(divisor, evento); });
+        divisor.addEventListener('keydown', function (evento) { controlarRedimensionamentoDasAbas(divisor, evento); });
+        divisor.addEventListener('dblclick', function () { restaurarTamanhoIgualDasAbas(divisor); });
+        secao.after(divisor);
+      });
+      return abasVisiveis;
     }
 
     function desafioPadraoDaEtapa(etapa) {
@@ -464,7 +676,7 @@
       });
 
       if (!questoesValidas.length) {
-        return '<p class="step-questions-empty">Esta etapa não tem perguntas de revisão. Você pode seguir direto para o exercício.</p>';
+        return '<p class="step-questions-empty">Este quiz não tem perguntas. Você pode seguir para a próxima etapa.</p>';
       }
 
       return questoesValidas.map(function (item, indice) {
@@ -482,7 +694,103 @@
       }).join('');
     }
 
-    // Barra de abas (Conteúdo/Questões/Exercício/Desafio) do header. É
+    const PASTAS_DE_CONTEUDO = {
+      'programming-logic': { pasta: 'logprog', prefixo: 'logprog' },
+      'cyber-security': { pasta: 'cyber-security', prefixo: 'cyber-security' },
+      html: { pasta: 'html', prefixo: 'html' },
+      css: { pasta: 'css', prefixo: 'css' },
+      js: { pasta: 'js', prefixo: 'js' }
+    };
+    const configuracaoConteudoAtual = PASTAS_DE_CONTEUDO[cursoAtualId];
+    const abasDoCursoEmArquivos = Boolean(configuracaoConteudoAtual);
+    const htmlDasAbasCarregado = {};
+    const cssDasAbasCarregado = {};
+    const jsDasAbasCarregado = {};
+    const carregamentosDasAbas = {};
+
+    function urlArquivoDaAba(numeroEtapa, nomeAba, extensao) {
+      const moduloAtual = getModuloAtual();
+      const numeroModulo = String(Number(moduloAtual.id.match(/modulo-(\d+)$/)[1])).padStart(2, '0');
+      const etapa = String(numeroEtapa).padStart(2, '0');
+      const prefixo = configuracaoConteudoAtual.prefixo;
+      const nome = 'assets/content/' + configuracaoConteudoAtual.pasta + '/' + prefixo + '-modulo-' + numeroModulo +
+        '/' + prefixo + '-etapa-' + etapa + '/' + prefixo + '-modulo-' + numeroModulo +
+        '-etapa-' + etapa + '-' + nomeAba + '.' + extensao;
+      return new URL(nome, document.baseURI).href;
+    }
+
+    function carregarHtmlDaAba(url) {
+      if (!htmlDasAbasCarregado[url]) {
+        htmlDasAbasCarregado[url] = fetch(url).then(function (resposta) {
+          if (!resposta.ok) throw new Error('Não foi possível carregar ' + url);
+          return resposta.text();
+        }).catch(function (erro) {
+          delete htmlDasAbasCarregado[url];
+          throw erro;
+        });
+      }
+      return htmlDasAbasCarregado[url];
+    }
+
+    function carregarRecursoDaAba(url, tipo) {
+      const cache = tipo === 'css' ? cssDasAbasCarregado : jsDasAbasCarregado;
+      if (cache[url]) return cache[url];
+      cache[url] = new Promise(function (resolve, reject) {
+        const recurso = document.createElement(tipo === 'css' ? 'link' : 'script');
+        recurso.onload = resolve;
+        recurso.onerror = function () {
+          delete cache[url];
+          reject(new Error('Não foi possível carregar ' + url));
+        };
+        if (tipo === 'css') {
+          recurso.rel = 'stylesheet';
+          recurso.href = url;
+        } else {
+          recurso.src = url;
+          recurso.async = true;
+        }
+        document.head.appendChild(recurso);
+      });
+      return cache[url];
+    }
+
+    function carregarConteudoDaAba(etapa, numeroEtapa, nomeAba, secao) {
+      if (!abasDoCursoEmArquivos || !secao) return;
+      const chave = getModuloAtual().id + ':' + numeroEtapa + ':' + nomeAba;
+      if (carregamentosDasAbas[chave]) return carregamentosDasAbas[chave];
+
+      const alvo = secao.querySelector('[data-step-content]');
+      if (!alvo) return;
+      secao.setAttribute('aria-busy', 'true');
+
+      const htmlUrl = urlArquivoDaAba(numeroEtapa, nomeAba, 'html');
+      const cssUrl = urlArquivoDaAba(numeroEtapa, nomeAba, 'css');
+      const jsUrl = urlArquivoDaAba(numeroEtapa, nomeAba, 'js');
+      carregamentosDasAbas[chave] = carregarHtmlDaAba(htmlUrl).then(function (markup) {
+        alvo.innerHTML = markup;
+        return carregarRecursoDaAba(cssUrl, 'css');
+      }).then(function () {
+        return carregarRecursoDaAba(jsUrl, 'js');
+      }).then(function () {
+        if (nomeAba === 'questoes') {
+          const chaveQuestoes = getModuloAtual().id + ':' + numeroEtapa;
+          const questoesPorEtapa = CL.curso.questoesPorEtapa || {};
+          etapa.questoes = questoesPorEtapa[chaveQuestoes] || [];
+          const listaQuestoes = alvo.querySelector('[data-step-questions]');
+          if (listaQuestoes) listaQuestoes.innerHTML = renderSecaoQuestoes(etapa);
+        }
+        secao.setAttribute('data-assets-loaded', 'true');
+      }).catch(function (erro) {
+        delete carregamentosDasAbas[chave];
+        alvo.textContent = 'Não foi possível carregar o conteúdo desta aba. Tente novamente.';
+        console.error('[ide] falha ao carregar arquivos da aba:', erro);
+      }).finally(function () {
+        secao.removeAttribute('aria-busy');
+      });
+      return carregamentosDasAbas[chave];
+    }
+
+    // Barra de abas (Conteúdo/Exercício/Questões/Desafio) do header. É
     // renderizada uma única vez — os rótulos não mudam entre módulos/
     // etapas, só o estado (bloqueada/ativa), tratado por
     // atualizarAbasDaEtapa(). Antes, esse bloco era gerado dentro de
@@ -493,30 +801,42 @@
       if (!headerStepTabsEl) return;
       headerStepTabsEl.innerHTML =
         renderBotaoAba('conteudo', 'Conteúdo') +
-        renderBotaoAba('questoes', 'Questões') +
         renderBotaoAba('exercicio', 'Exercício') +
-        renderBotaoAba('desafio', 'Desafio');
+        renderBotaoAba('desafio', 'Desafio') +
+        renderBotaoAba('questoes', 'Quiz');
       if (window.CLScrollableControls) window.CLScrollableControls.refresh(headerStepTabsWrapperEl);
     }
 
     function renderEtapas() {
       theoryContentEl.innerHTML = getEtapasDoModulo().map(function (etapa, i) {
         const numero = i + 1;
-        const btnAvancar =
+        const conteudo = abasDoCursoEmArquivos ? '<div data-step-content></div>' : etapa.texto;
+        const questoes = abasDoCursoEmArquivos ? '<div data-step-content></div>' : renderSecaoQuestoes(etapa);
+        const exercicio = abasDoCursoEmArquivos
+          ? '<div data-step-content></div>'
+          : '<div class="task-box"><strong>Missão:</strong> ' + etapa.missao + '</div>';
+        const desafio = abasDoCursoEmArquivos
+          ? '<div data-step-content></div>'
+          : (etapa.desafio || desafioPadraoDaEtapa(etapa));
+        function botaoAvancarDaAba(nomeAba) {
+          return (
           '<div class="step-nav-footer">' +
-          '<button type="button" class="step-nav-btn step-nav-btn--next" data-step-action="next" title="Avançar" aria-label="Avançar">' +
+          '<button type="button" class="step-nav-btn step-nav-btn--next" data-step-action="next" data-step-next-from="' + nomeAba + '" title="Avançar" aria-label="Avançar">' +
           '<span></span>' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>' +
           '</button>' +
-          '</div>';
+          '</div>'
+          );
+        }
 
         return (
           '<section class="step-card' + (i === 0 ? ' active' : '') + '" data-step="' + numero + '">' +
-          '<div class="step-section" data-step-section="conteudo" role="tabpanel"><h3>' + etapa.titulo + '</h3>' + etapa.texto + '</div>' +
-          '<div class="step-section" data-step-section="questoes" role="tabpanel" hidden><h3>Questões</h3>' + renderSecaoQuestoes(etapa) + '</div>' +
-          '<div class="step-section" data-step-section="exercicio" role="tabpanel" hidden><h3>Exercício</h3><div class="task-box"><strong>Missão:</strong> ' + etapa.missao + '</div></div>' +
-          '<div class="step-section" data-step-section="desafio" role="tabpanel" hidden><h3>Desafio</h3>' + (etapa.desafio || desafioPadraoDaEtapa(etapa)) + '</div>' +
-          btnAvancar +
+          '<div class="step-panels" data-step-panels>' +
+          '<div class="step-section" id="step-' + numero + '-panel-conteudo" data-step-section="conteudo" role="tabpanel">' + conteudo + botaoAvancarDaAba('conteudo') + '</div>' +
+          '<div class="step-section" id="step-' + numero + '-panel-exercicio" data-step-section="exercicio" role="tabpanel" hidden><h3>Exercício</h3>' + exercicio + botaoAvancarDaAba('exercicio') + '</div>' +
+          '<div class="step-section" id="step-' + numero + '-panel-desafio" data-step-section="desafio" role="tabpanel" hidden><h3>Desafio</h3>' + desafio + botaoAvancarDaAba('desafio') + '</div>' +
+          '<div class="step-section" id="step-' + numero + '-panel-questoes" data-step-section="questoes" role="tabpanel" hidden><h3>Quiz</h3>' + questoes + botaoAvancarDaAba('questoes') + '</div>' +
+          '</div>' +
           '</section>'
         );
       }).join('');
@@ -526,29 +846,46 @@
       const card = theoryContentEl.querySelector('.step-card.active');
       if (!card) return;
       const maximoDesbloqueado = indiceMaximoDesbloqueado();
+      const abasVisiveis = configurarPainelDasAbas(card);
+      const abasFixadas = obterAbasFixadas();
       // As abas agora vivem uma única vez no header (fora de theoryContentEl),
       // então o estado (ativa/bloqueada) é aplicado ali, não dentro do card.
       if (headerStepTabsEl) {
         headerStepTabsEl.querySelectorAll('[data-step-tab]').forEach(function (tab) {
-          const indice = ABAS_DA_ETAPA.indexOf(tab.getAttribute('data-step-tab'));
+          const nome = tab.getAttribute('data-step-tab');
+          const indice = ABAS_DA_ETAPA.indexOf(nome);
           const desbloqueada = indice <= maximoDesbloqueado;
-          const ativa = desbloqueada && tab.getAttribute('data-step-tab') === abaAtualDaEtapa;
+          const ativa = desbloqueada && nome === abaAtualDaEtapa;
           tab.classList.toggle('is-active', ativa);
           tab.classList.toggle('is-locked', !desbloqueada);
           tab.disabled = !desbloqueada;
           tab.setAttribute('aria-selected', String(ativa));
           tab.setAttribute('aria-disabled', String(!desbloqueada));
+          tab.setAttribute('aria-controls', 'step-' + currentStep + '-panel-' + nome);
           tab.tabIndex = ativa ? 0 : -1;
           tab.title = desbloqueada ? '' : 'Conclua “' + (ABAS_DA_ETAPA[indice - 1] || 'Conteúdo') + '” para liberar esta aba.';
+          const pin = headerStepTabsEl.querySelector('[data-step-pin="' + nome + '"]');
+          if (pin) {
+            pin.checked = Boolean(abasFixadas[nome]);
+            pin.disabled = !desbloqueada;
+            pin.setAttribute('aria-disabled', String(!desbloqueada));
+          }
         });
       }
-      card.querySelectorAll('[data-step-section]').forEach(function (section) {
-        section.hidden = section.getAttribute('data-step-section') !== abaAtualDaEtapa;
+      if (abasDoCursoEmArquivos) {
+        const etapa = getEtapasDoModulo()[currentStep - 1];
+        abasVisiveis.forEach(function (nomeAba) {
+          const secao = card.querySelector('[data-step-section="' + nomeAba + '"]');
+          carregarConteudoDaAba(etapa, currentStep, nomeAba, secao);
+        });
+      }
+      card.querySelectorAll('[data-step-action="next"]').forEach(function (avancar) {
+        const nomeAba = avancar.getAttribute('data-step-next-from');
+        const avancarTexto = nomeAba === 'conteudo' ? 'Ir para exercício' : (nomeAba === 'exercicio' ? 'Ir para desafio' : (nomeAba === 'desafio' ? 'Ir para Quiz' : (currentStep === getTotalEtapas() ? 'Concluir módulo' : 'Próxima etapa')));
+        avancar.title = avancarTexto;
+        avancar.setAttribute('aria-label', avancarTexto);
+        avancar.querySelector('span').textContent = avancarTexto;
       });
-      const avancar = card.querySelector('[data-step-action="next"]');
-      const avancarTexto = abaAtualDaEtapa === 'conteudo' ? 'Ir para questões' : (abaAtualDaEtapa === 'questoes' ? 'Ir para exercício' : (abaAtualDaEtapa === 'exercicio' ? 'Ir para desafio' : (currentStep === getTotalEtapas() ? 'Concluir módulo' : 'Próxima etapa')));
-      avancar.title = avancarTexto; avancar.setAttribute('aria-label', avancarTexto);
-      avancar.querySelector('span').textContent = avancarTexto;
       theoryContentEl.scrollTop = 0;
     }
 
@@ -654,6 +991,8 @@
       }
       const btnAvancarEtapa = e.target.closest('[data-step-action="next"]');
       if (btnAvancarEtapa) {
+        const abaDeOrigem = btnAvancarEtapa.getAttribute('data-step-next-from');
+        if (ABAS_DA_ETAPA.indexOf(abaDeOrigem) !== -1) abaAtualDaEtapa = abaDeOrigem;
         avancarNaEtapa();
       }
     });
@@ -663,6 +1002,26 @@
     // .step-card — por isso clique e navegação por teclado são
     // delegados em headerStepTabsEl, não em theoryContentEl.
     if (headerStepTabsEl) {
+      headerStepTabsEl.addEventListener('change', function (e) {
+        const pin = e.target.closest('[data-step-pin]');
+        if (!pin || pin.disabled) return;
+        const nome = pin.getAttribute('data-step-pin');
+        const fixadas = obterAbasFixadas();
+        if (pin.checked) {
+          fixadas[nome] = true;
+        } else {
+          delete fixadas[nome];
+          if (abaAtualDaEtapa === nome) {
+            const proximaFixada = ABAS_DA_ETAPA.find(function (aba) { return Boolean(fixadas[aba]); });
+            const proximaDisponivel = ABAS_DA_ETAPA.find(function (aba, indice) {
+              return aba !== nome && indice <= indiceMaximoDesbloqueado();
+            });
+            abaAtualDaEtapa = proximaFixada || proximaDisponivel || 'conteudo';
+          }
+        }
+        atualizarAbasDaEtapa();
+      });
+
       headerStepTabsEl.addEventListener('click', function (e) {
         const aba = e.target.closest('[data-step-tab]');
         if (aba && !aba.disabled) {
@@ -1272,7 +1631,7 @@
         atualizarBotaoDestino(btnSyncGoogleDrive, 'Desativar sincronização', true);
         atualizarEstadoSincronizacao();
       } catch (error) {
-        window.alert('Não foi possível entrar na conta do Google Drive. Verifique as permissões e tente novamente.');
+        informarAcao('Não foi possível entrar na conta do Google Drive. Verifique as permissões e tente novamente.', 'Google Drive');
       }
     });
 
@@ -1296,7 +1655,7 @@
         atualizarBotaoDestino(btnSyncOneDrive, 'Desativar sincronização', true);
         atualizarEstadoSincronizacao();
       } catch (error) {
-        window.alert(mensagemErroOneDrive(error));
+        informarAcao(mensagemErroOneDrive(error), 'OneDrive');
       }
     });
 
@@ -1310,7 +1669,7 @@
         return;
       }
       if (!window.showDirectoryPicker) {
-        window.alert('A escolha de pasta é compatível com navegadores baseados em Chromium, como Chrome e Edge.');
+        informarAcao('A escolha de pasta é compatível com navegadores baseados em Chromium, como Chrome e Edge.', 'Pasta de backup');
         return;
       }
       try {
@@ -1327,7 +1686,7 @@
         atualizarStatusBackup();
       } catch (error) {
         if (error && error.name === 'AbortError') return;
-        window.alert(error.message || 'Não foi possível configurar a pasta de backup.');
+        informarAcao(error.message || 'Não foi possível configurar a pasta de backup.', 'Pasta de backup');
       }
     });
 
@@ -1341,10 +1700,14 @@
         campo.addEventListener('change', function () {
           if (!campo.checked && (campo.value === 'drive' || campo.value === 'onedrive')) {
             const nome = campo.value === 'drive' ? 'Google Drive' : 'OneDrive';
-            if (!window.confirm('Tem certeza que deseja desabilitar a sincronização com ' + nome + '? Os backups existentes não serão apagados.')) {
-              campo.checked = true;
-              return;
-            }
+            campo.checked = true;
+            confirmarAcao('Os backups existentes não serão apagados.', { titulo: 'Desabilitar sincronização com ' + nome, confirmar: 'Desabilitar', destrutiva: true }).then(function (confirmado) {
+              if (!confirmado) return;
+              campo.checked = false;
+              atualizarEstadoSincronizacao();
+              atualizarEstadoAparelho();
+            });
+            return;
           }
           atualizarEstadoSincronizacao();
           atualizarEstadoAparelho();
@@ -1353,21 +1716,21 @@
       backupSettingsForm.addEventListener('change', atualizarEstadoBotaoSalvarBackup);
     }
 
-    function confirmarERestaurar(backup, origem, criarCopia, conflito) {
-      if (!backup) return window.alert('Nenhum backup foi encontrado em ' + origem + '.');
-      if (!CL.api.validateStudyData(backup)) return window.alert('Arquivo de progresso inválido. Seus dados não foram alterados.');
+    async function confirmarERestaurar(backup, origem, criarCopia, conflito) {
+      if (!backup) return informarAcao('Nenhum backup foi encontrado em ' + origem + '.', 'Restaurar backup');
+      if (!CL.api.validateStudyData(backup)) return informarAcao('Arquivo de progresso inválido. Seus dados não foram alterados.', 'Restaurar backup');
       if (conflito === 'newest') {
         const atual = CL.api._studyIndex && CL.api._studyIndex();
         const dataAtual = atual && atual.updatedAt ? new Date(atual.updatedAt).getTime() : 0;
         const dataBackup = backup.index && backup.index.updatedAt ? new Date(backup.index.updatedAt).getTime() : 0;
-        if (dataAtual && dataBackup && dataAtual >= dataBackup) return window.alert('O progresso atual é o mais recente; nenhuma restauração foi feita.');
+        if (dataAtual && dataBackup && dataAtual >= dataBackup) return informarAcao('O progresso atual é o mais recente; nenhuma restauração foi feita.', 'Restaurar backup');
       }
       const dataBackup = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString('pt-BR') : 'data não informada';
-      if (!window.confirm('Restaurar o backup de ' + origem + ' (' + dataBackup + ') substituirá o progresso atual. Continuar?')) return;
+      if (!await confirmarAcao('O progresso atual será substituído pelo backup de ' + origem + ' (' + dataBackup + ').', { titulo: 'Restaurar backup', confirmar: 'Restaurar', destrutiva: true })) return;
       try {
         if (criarCopia) CL.api.saveLocalBackup();
         CL.api.importStudyData(backup);
-      } catch (error) { window.alert(error.message); return; }
+      } catch (error) { informarAcao(error.message, 'Restaurar backup'); return; }
       window.location.reload();
     }
 
@@ -1402,7 +1765,7 @@
       const settings = CL.api.getBackupSettings();
       const destinations = settings.destinations || [];
       fecharMenuBackup();
-      if (!destinations.length) return window.alert('Escolha ao menos um local de backup nas configurações.');
+      if (!destinations.length) return informarAcao('Escolha ao menos um local de backup nas configurações.', 'Restaurar backup');
       const nomes = { local: 'LocalStorage', device: 'Aparelho (pasta escolhida)', drive: 'Google Drive (privado do app)', onedrive: 'OneDrive' };
       restoreBackupSource.innerHTML = destinations.map(function (destino) { return '<option value="' + destino + '">' + nomes[destino] + '</option>'; }).join('');
       atualizarVersoesDeRestauracao();
@@ -1474,8 +1837,11 @@
 
     if (backupSettingsForm) backupSettingsForm.addEventListener('submit', function (event) {
       const fecharSemSalvar = event.submitter && event.submitter.classList.contains('backup-dialog-close');
-      if (fecharSemSalvar && !window.confirm('Tem certeza que deseja sair sem configurar o backup?')) {
+      if (fecharSemSalvar) {
         event.preventDefault();
+        confirmarAcao('As alterações desta configuração não serão salvas.', { titulo: 'Sair sem salvar', confirmar: 'Sair', destrutiva: true }).then(function (confirmado) {
+          if (confirmado && backupSettingsDialog && backupSettingsDialog.open) backupSettingsDialog.close('cancel');
+        });
         return;
       }
       const desejaSalvar = event.submitter && event.submitter.value === 'save';
@@ -1548,7 +1914,7 @@
       }
       const leitura = origem === 'device' ? restaurarBackupDoAparelho() : (origem === 'drive' ? restaurarBackupGoogleDrive() : restaurarBackupOneDrive());
       const nome = origem === 'device' ? 'Aparelho' : (origem === 'drive' ? 'Google Drive' : 'OneDrive');
-      leitura.then(function (backup) { confirmarERestaurar(backup, nome, criarCopiaAntesRestaurar, conflito); }).catch(function (error) { window.alert(error.message); });
+      leitura.then(function (backup) { confirmarERestaurar(backup, nome, criarCopiaAntesRestaurar, conflito); }).catch(function (error) { informarAcao(error.message, 'Restaurar backup'); });
     });
     if (restoreBackupSource) restoreBackupSource.addEventListener('change', atualizarVersoesDeRestauracao);
     window.addEventListener('pagehide', function () {
@@ -1630,9 +1996,9 @@
     renderEtapas();
     renderAbasDoHeader();
     updateStepsUI();
-    if (indiceSolicitadoNaUrl === 'trilha' || indiceSolicitadoNaUrl === 'lista') {
-      abrirIndice();
-    }
+    // A Learn Platform sempre começa no índice. O conteúdo de uma etapa
+    // só é exibido quando o aluno a seleciona na trilha/lista.
+    abrirIndice();
     iniciarSincronizacaoNuvem();
     setTimeout(abrirAvisoBackupSeNecessario, 350);
   } // fim de iniciarTeoria
@@ -2529,6 +2895,18 @@
         xml: svgFavicon('#E37933', '#fff', '</>', 6),
         plaintext: svgFavicon('#6b7280', '#fff', 'TXT', 6)
       };
+
+      // Ícones de arquivo do VS Code (Material Icon Theme, licença MIT — github.com/material-extensions/vscode-material-icon-theme).
+      var ICONES_VSCODE = {"html":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#e65100\" d=\"m4 4 2 22 10 2 10-2 2-22Zm19.72 7H11.28l.29 3h11.86l-.802 9.335L15.99 25l-6.635-1.646L8.93 19h3.02l.19 2 3.86.77 3.84-.77.29-4H8.84L8 8h16Z\"/></svg>","css":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#7e57c2\" d=\"M20 18h-2v-2h-2v2c0 .193 0 .703 1.254 1.033A3.345 3.345 0 0 1 20 22h2v2h2v-2c0-.388-.562-.851-1.254-1.034C20.356 20.34 20 18.84 20 18m-3.254 2.966C14.356 20.34 14 18.84 14 18h-2v-2h-2v8h2v-2h4v2h2v-2c0-.388-.562-.851-1.254-1.034\"/><path fill=\"#7e57c2\" d=\"M24 4H4v20a4 4 0 0 0 4 4h16.16A3.84 3.84 0 0 0 28 24.16V8a4 4 0 0 0-4-4m2 14h-2v-2h-2v2c0 .193 0 .703 1.254 1.033A3.345 3.345 0 0 1 26 22v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1 2-2h2a2 2 0 0 1 2 2Z\"/></svg>","sass":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ec407a\" d=\"M27.837 5.673a4.33 4.33 0 0 0-2.293-2.701c-2.362-1.261-6.11-1.298-9.548-.092a26.3 26.3 0 0 0-8.76 4.966c-2.752 2.542-3.438 4.925-3.189 6.194.523 2.668 3.274 4.539 5.485 6.042.418.284.822.559 1.175.816-1.429.76-4.261 2.444-5.088 4.248a3.88 3.88 0 0 0-.118 3.332A2.37 2.37 0 0 0 6.869 29.8a5.6 5.6 0 0 0 1.49.2 6.35 6.35 0 0 0 5.19-2.856 6.74 6.74 0 0 0 .864-5.382 7.3 7.3 0 0 1 2.044-.03 3.92 3.92 0 0 1 2.816 1.311 1.82 1.82 0 0 1 .423 1.262 1.55 1.55 0 0 1-.772 1.05c-.234.14-.586.355-.504.803.036.194.198.633.894.512a2.93 2.93 0 0 0 2.145-2.651 4 4 0 0 0-1.197-2.904 5.94 5.94 0 0 0-4.396-1.626 10.6 10.6 0 0 0-2.672.304 20 20 0 0 0-2.203-1.846c-1.712-1.3-3.33-2.529-3.235-4.26.125-2.263 2.468-4.532 6.964-6.744 4.016-1.976 7.254-2.037 8.944-1.438a2 2 0 0 1 1.204.883 2.77 2.77 0 0 1-.36 2.47 9.71 9.71 0 0 1-7.425 4.304 3.86 3.86 0 0 1-3.238-.757c-.278-.302-.593-.645-1.074-.383q-.565.31-.225 1.189a3.9 3.9 0 0 0 2.407 1.92 11.7 11.7 0 0 0 7.128-.671c3.527-1.35 6.681-5.202 5.756-8.787M11.895 24.475a4 4 0 0 1-.192.468 4.5 4.5 0 0 1-.753 1.081 2.83 2.83 0 0 1-2.533 1.107c-.056-.032-.078-.146-.085-.193a3.28 3.28 0 0 1 1.076-2.284 11.3 11.3 0 0 1 2.644-1.933 3.85 3.85 0 0 1-.157 1.754\"/></svg>","less":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#0277bd\" d=\"M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3z\"/></svg>","javascript":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path fill=\"#ffca28\" d=\"M2 2v12h12V2zm6 6h1v4a1.003 1.003 0 0 1-1 1H7a1.003 1.003 0 0 1-1-1v-1h1v1h1zm3 0h2v1h-2v1h1a1.003 1.003 0 0 1 1 1v1a1.003 1.003 0 0 1-1 1h-2v-1h2v-1h-1a1.003 1.003 0 0 1-1-1V9a1.003 1.003 0 0 1 1-1\"/></svg>","typescript":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" xml:space=\"preserve\" viewBox=\"0 0 16 16\"><path fill=\"#0288d1\" d=\"M2 2v12h12V2zm4 6h3v1H8v4H7V9H6zm5 0h2v1h-2v1h1a1.003 1.003 0 0 1 1 1v1a1.003 1.003 0 0 1-1 1h-2v-1h2v-1h-1a1.003 1.003 0 0 1-1-1V9a1.003 1.003 0 0 1 1-1\"/></svg>","react":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#00bcd4\" d=\"M16 12c7.444 0 12 2.59 12 4s-4.556 4-12 4-12-2.59-12-4 4.556-4 12-4m0-2c-7.732 0-14 2.686-14 6s6.268 6 14 6 14-2.686 14-6-6.268-6-14-6\"/><path fill=\"#00bcd4\" d=\"M16 14a2 2 0 1 0 2 2 2 2 0 0 0-2-2\"/><path fill=\"#00bcd4\" d=\"M10.458 5.507c2.017 0 5.937 3.177 9.006 8.493 3.722 6.447 3.757 11.687 2.536 12.392a.9.9 0 0 1-.457.1c-2.017 0-5.938-3.176-9.007-8.492C8.814 11.553 8.779 6.313 10 5.608a.9.9 0 0 1 .458-.1m-.001-2A2.87 2.87 0 0 0 9 3.875C6.13 5.532 6.938 12.304 10.804 19c3.284 5.69 7.72 9.493 10.74 9.493A2.87 2.87 0 0 0 23 28.124c2.87-1.656 2.062-8.428-1.804-15.124-3.284-5.69-7.72-9.493-10.74-9.493Z\"/><path fill=\"#00bcd4\" d=\"M21.543 5.507a.9.9 0 0 1 .457.1c1.221.706 1.186 5.946-2.536 12.393-3.07 5.316-6.99 8.493-9.007 8.493a.9.9 0 0 1-.457-.1C8.779 25.686 8.814 20.446 12.536 14c3.07-5.316 6.99-8.493 9.007-8.493m0-2c-3.02 0-7.455 3.804-10.74 9.493C6.939 19.696 6.13 26.468 9 28.124a2.87 2.87 0 0 0 1.457.369c3.02 0 7.455-3.804 10.74-9.493C25.061 12.304 25.87 5.532 23 3.876a2.87 2.87 0 0 0-1.457-.369\"/></svg>","react_ts":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0288d1\" d=\"M16 12c7.444 0 12 2.59 12 4s-4.556 4-12 4-12-2.59-12-4 4.556-4 12-4m0-2c-7.732 0-14 2.686-14 6s6.268 6 14 6 14-2.686 14-6-6.268-6-14-6\"/><path fill=\"#0288d1\" d=\"M16 14a2 2 0 1 0 2 2 2 2 0 0 0-2-2\"/><path fill=\"#0288d1\" d=\"M10.458 5.507c2.017 0 5.937 3.177 9.006 8.493 3.722 6.447 3.757 11.687 2.536 12.392a.9.9 0 0 1-.457.1c-2.017 0-5.938-3.176-9.007-8.492C8.814 11.553 8.779 6.313 10 5.608a.9.9 0 0 1 .458-.1m-.001-2A2.87 2.87 0 0 0 9 3.875C6.13 5.532 6.938 12.304 10.804 19c3.284 5.69 7.72 9.493 10.74 9.493A2.87 2.87 0 0 0 23 28.124c2.87-1.656 2.062-8.428-1.804-15.124-3.284-5.69-7.72-9.493-10.74-9.493Z\"/><path fill=\"#0288d1\" d=\"M21.543 5.507a.9.9 0 0 1 .457.1c1.221.706 1.186 5.946-2.536 12.393-3.07 5.316-6.99 8.493-9.007 8.493a.9.9 0 0 1-.457-.1C8.779 25.686 8.814 20.446 12.536 14c3.07-5.316 6.99-8.493 9.007-8.493m0-2c-3.02 0-7.455 3.804-10.74 9.493C6.939 19.696 6.13 26.468 9 28.124a2.87 2.87 0 0 0 1.457.369c3.02 0 7.455-3.804 10.74-9.493C25.061 12.304 25.87 5.532 23 3.876a2.87 2.87 0 0 0-1.457-.369\"/></svg>","json":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 -960 960 960\"><path fill=\"#f9a825\" d=\"M560-160v-80h120q17 0 28.5-11.5T720-280v-80q0-38 22-69t58-44v-14q-36-13-58-44t-22-69v-80q0-17-11.5-28.5T680-720H560v-80h120q50 0 85 35t35 85v80q0 17 11.5 28.5T840-560h40v160h-40q-17 0-28.5 11.5T800-360v80q0 50-35 85t-85 35zm-280 0q-50 0-85-35t-35-85v-80q0-17-11.5-28.5T120-400H80v-160h40q17 0 28.5-11.5T160-600v-80q0-50 35-85t85-35h120v80H280q-17 0-28.5 11.5T240-680v80q0 38-22 69t-58 44v14q36 13 58 44t22 69v80q0 17 11.5 28.5T280-240h120v80z\"/></svg>","xml":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#8bc34a\" d=\"M13 9h5.5L13 3.5zM6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.11.89-2 2-2m.12 13.5 3.74 3.74 1.42-1.41-2.33-2.33 2.33-2.33-1.42-1.41zm11.16 0-3.74-3.74-1.42 1.41 2.33 2.33-2.33 2.33 1.42 1.41z\"/></svg>","markdown":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#42a5f5\" d=\"m14 10-4 3.5L6 10H4v12h4v-6l2 2 2-2v6h4V10zm12 6v-6h-4v6h-4l6 8 6-8z\"/></svg>","svg":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ffb300\" d=\"M29.168 14.03a2.7 2.7 0 0 0-1.968-.83 2.51 2.51 0 0 0-1.929.8h-4.443l3.078-3.078a2.835 2.835 0 0 0 2.857-2.842 2.6 2.6 0 0 0-.831-1.969 2.82 2.82 0 0 0-2.014-.788 2.67 2.67 0 0 0-1.968.788 2.36 2.36 0 0 0-.812 1.922L18 11.17V6.726a2.51 2.51 0 0 0 .8-1.929 2.7 2.7 0 0 0-.832-1.968 2.745 2.745 0 0 0-3.936 0 2.7 2.7 0 0 0-.832 1.968 2.51 2.51 0 0 0 .8 1.93v4.443l-3.138-3.138a2.36 2.36 0 0 0-.812-1.922 2.66 2.66 0 0 0-1.968-.788 2.83 2.83 0 0 0-2.014.788 2.6 2.6 0 0 0-.831 1.969 2.74 2.74 0 0 0 .831 2.013 2.8 2.8 0 0 0 2.026.829l3.078 3.078H6.729a2.51 2.51 0 0 0-1.929-.8 2.7 2.7 0 0 0-1.968.831 2.745 2.745 0 0 0 0 3.937 2.7 2.7 0 0 0 1.968.832 2.51 2.51 0 0 0 1.929-.8h4.443l-3.078 3.077a2.835 2.835 0 0 0-2.857 2.842 2.6 2.6 0 0 0 .831 1.969 2.82 2.82 0 0 0 2.014.788 2.67 2.67 0 0 0 1.968-.788 2.36 2.36 0 0 0 .812-1.922L14 20.827v4.444a2.51 2.51 0 0 0-.8 1.929 2.784 2.784 0 0 0 4.768 1.968A2.7 2.7 0 0 0 18.8 27.2a2.51 2.51 0 0 0-.8-1.929v-4.444l3.138 3.138a2.36 2.36 0 0 0 .812 1.922 2.66 2.66 0 0 0 1.968.788 2.83 2.83 0 0 0 2.014-.788 2.6 2.6 0 0 0 .831-1.969 2.74 2.74 0 0 0-.831-2.013 2.8 2.8 0 0 0-2.026-.829L20.828 18h4.443a2.51 2.51 0 0 0 1.93.8 2.784 2.784 0 0 0 1.967-4.769Z\"/></svg>","document":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\"><path d=\"M0 0h24v24H0z\"/><path fill=\"#42a5f5\" d=\"M8 16h8v2H8zm0-4h8v2H8zm6-10H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8zm4 18H6V4h7v5h5z\"/></svg>","python":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#0288d1\" d=\"M9.86 2A2.86 2.86 0 0 0 7 4.86v1.68h4.29c.39 0 .71.57.71.96H4.86A2.86 2.86 0 0 0 2 10.36v3.781a2.86 2.86 0 0 0 2.86 2.86h1.18v-2.68a2.85 2.85 0 0 1 2.85-2.86h5.25c1.58 0 2.86-1.271 2.86-2.851V4.86A2.86 2.86 0 0 0 14.14 2zm-.72 1.61c.4 0 .72.12.72.71s-.32.891-.72.891c-.39 0-.71-.3-.71-.89s.32-.711.71-.711\"/><path fill=\"#fdd835\" d=\"M17.959 7v2.68a2.85 2.85 0 0 1-2.85 2.859H9.86A2.85 2.85 0 0 0 7 15.389v3.75a2.86 2.86 0 0 0 2.86 2.86h4.28A2.86 2.86 0 0 0 17 19.14v-1.68h-4.291c-.39 0-.709-.57-.709-.96h7.14A2.86 2.86 0 0 0 22 13.64V9.86A2.86 2.86 0 0 0 19.14 7zM8.32 11.513l-.004.004.038-.004zm6.54 7.276c.39 0 .71.3.71.89a.71.71 0 0 1-.71.71c-.4 0-.72-.12-.72-.71s.32-.89.72-.89\"/></svg>","java":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#f44336\" d=\"M4 26h24v2H4zM28 4H7a1 1 0 0 0-1 1v13a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4v-4h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 8h-4V6h4Z\"/></svg>","c":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0288d1\" d=\"M19.563 22A5.57 5.57 0 0 1 14 16.437v-2.873A5.57 5.57 0 0 1 19.563 8H24V2h-4.437A11.563 11.563 0 0 0 8 13.563v2.873A11.564 11.564 0 0 0 19.563 28H24v-6Z\"/></svg>","cpp":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0288d1\" d=\"M28 14v-4h-2v4h-6v-4h-2v4h-4v2h4v4h2v-4h6v4h2v-4h4v-2z\"/><path fill=\"#0288d1\" d=\"M13.563 22A5.57 5.57 0 0 1 8 16.437v-2.873A5.57 5.57 0 0 1 13.563 8H18V2h-4.437A11.563 11.563 0 0 0 2 13.563v2.873A11.564 11.564 0 0 0 13.563 28H18v-6Z\"/></svg>","h":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0288d1\" d=\"M18.5 11a5.49 5.49 0 0 0-4.5 2.344V4H8v24h6V17a2 2 0 0 1 4 0v11h6V16.5a5.5 5.5 0 0 0-5.5-5.5\"/></svg>","hpp":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0288d1\" d=\"M28 6V2h-2v4h-6V2h-2v4h-4v2h4v4h2V8h6v4h2V8h4V6zm-15.5 5A5.49 5.49 0 0 0 8 13.344V4H2v24h6V17a2 2 0 0 1 4 0v11h6V16.5a5.5 5.5 0 0 0-5.5-5.5\"/></svg>","csharp":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0288d1\" d=\"M30 14v-2h-2V8h-2v4h-2V8h-2v4h-2v2h2v2h-2v2h2v4h2v-4h2v4h2v-4h2v-2h-2v-2Zm-4 2h-2v-2h2Zm-12.437 6A5.57 5.57 0 0 1 8 16.437v-2.873A5.57 5.57 0 0 1 13.563 8H18V2h-4.437A11.563 11.563 0 0 0 2 13.563v2.873A11.564 11.564 0 0 0 13.563 28H18v-6Z\"/></svg>","php":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#1e88e5\" d=\"M12 18.08c-6.63 0-12-2.72-12-6.08s5.37-6.08 12-6.08S24 8.64 24 12s-5.37 6.08-12 6.08m-5.19-7.95c.54 0 .91.1 1.09.31.18.2.22.56.13 1.03-.1.53-.29.87-.58 1.09q-.42.33-1.29.33h-.87l.53-2.76zm-3.5 5.55h1.44l.34-1.75h1.23c.54 0 .98-.06 1.33-.17.35-.12.67-.31.96-.58.24-.22.43-.46.58-.73.15-.26.26-.56.31-.88.16-.78.05-1.39-.33-1.82-.39-.44-.99-.65-1.82-.65H4.59zm7.25-8.33-1.28 6.58h1.42l.74-3.77h1.14c.36 0 .6.06.71.18s.13.34.07.66l-.57 2.93h1.45l.59-3.07c.13-.62.03-1.07-.27-1.36-.3-.27-.85-.4-1.65-.4h-1.27L12 7.35zM18 10.13c.55 0 .91.1 1.09.31.18.2.22.56.13 1.03-.1.53-.29.87-.57 1.09-.29.22-.72.33-1.3.33h-.85l.5-2.76zm-3.5 5.55h1.44l.34-1.75h1.22c.55 0 1-.06 1.35-.17.35-.12.65-.31.95-.58.24-.22.44-.46.58-.73.15-.26.26-.56.32-.88.15-.78.04-1.39-.34-1.82-.36-.44-.99-.65-1.82-.65h-2.75z\"/></svg>","ruby":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#f44336\" d=\"M18.041 3.177c2.24.382 2.879 1.919 2.843 3.527V6.67l-1.013 13.266-13.132.897h.008c-1.093-.044-3.518-.151-3.634-3.545l1.217-2.222 2.462 5.74 2.097-6.77-.045.009.018-.018 6.85 2.186L13.945 9.3l6.53-.409-5.144-4.212 2.71-1.51v.009M3.113 17.252v.017zM6.916 6.874c2.63-2.622 6.033-4.168 7.34-2.844 1.297 1.306-.072 4.523-2.702 7.135-2.666 2.613-6.015 4.248-7.322 2.933-1.306-1.324.036-4.612 2.675-7.224z\"/></svg>","go":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#00acc1\" d=\"M2 12h4v2H2zm-2 4h6v2H0zm4 4h2v2H4zm16.954-5H14v3h3.239a4.42 4.42 0 0 1-3.531 2 2.65 2.65 0 0 1-2.053-.858 2.86 2.86 0 0 1-.628-2.28A4.515 4.515 0 0 1 15.292 13a2.73 2.73 0 0 1 1.749.584l2.962-1.185A5.6 5.6 0 0 0 15.292 10a7.526 7.526 0 0 0-7.243 6.5 5.614 5.614 0 0 0 5.659 6.5 7.526 7.526 0 0 0 7.243-6.5 6.4 6.4 0 0 0 .003-1.5\"/><path fill=\"#00acc1\" d=\"M26.292 10a7.526 7.526 0 0 0-7.243 6.5 5.614 5.614 0 0 0 5.659 6.5 7.526 7.526 0 0 0 7.243-6.5 5.614 5.614 0 0 0-5.659-6.5m2.681 6.137A4.515 4.515 0 0 1 24.708 20a2.65 2.65 0 0 1-2.053-.858 2.86 2.86 0 0 1-.628-2.28A4.515 4.515 0 0 1 26.292 13a2.65 2.65 0 0 1 2.053.858 2.86 2.86 0 0 1 .628 2.28Z\"/></svg>","rust":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ff7043\" d=\"m30 12-4-2V6h-4l-2-4-4 2-4-2-2 4H6v4l-4 2 2 4-2 4 4 2v4h4l2 4 4-2 4 2 2-4h4v-4l4-2-2-4ZM6 16a9.9 9.9 0 0 1 .842-4H10v8H6.842A9.9 9.9 0 0 1 6 16m10 10a9.98 9.98 0 0 1-7.978-4H16v-2h-2v-2h4c.819.819.297 2.308 1.179 3.37a1.89 1.89 0 0 0 1.46.63h3.34A9.98 9.98 0 0 1 16 26m-2-12v-2h4a1 1 0 0 1 0 2Zm11.158 6H24a2.006 2.006 0 0 1-2-2 2 2 0 0 0-2-2 3 3 0 0 0 3-3q0-.08-.004-.161A3.115 3.115 0 0 0 19.83 10H8.022a9.986 9.986 0 0 1 17.136 10\"/></svg>","swift":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#ff6e40\" d=\"M17.087 19.721c-2.36 1.36-5.59 1.5-8.86.1a13.8 13.8 0 0 1-6.23-5.32c.67.55 1.46 1 2.3 1.4 3.37 1.57 6.73 1.46 9.1 0-3.37-2.59-6.24-5.96-8.37-8.71-.45-.45-.78-1.01-1.12-1.51 8.28 6.05 7.92 7.59 2.41-1.01 4.89 4.94 9.43 7.74 9.43 7.74.16.09.25.16.36.22.1-.25.19-.51.26-.78.79-2.85-.11-6.12-2.08-8.81 4.55 2.75 7.25 7.91 6.12 12.24-.03.11-.06.22-.05.39 2.24 2.83 1.64 5.78 1.35 5.22-1.21-2.39-3.48-1.65-4.62-1.17\"/></svg>","kotlin":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 24 24\"><defs><linearGradient id=\"a\" x1=\"1.725\" x2=\"22.185\" y1=\"22.67\" y2=\"1.982\" gradientTransform=\"translate(1.306 1.129)scale(.89324)\" gradientUnits=\"userSpaceOnUse\"><stop offset=\"0\" stop-color=\"#7c4dff\"/><stop offset=\".5\" stop-color=\"#d500f9\"/><stop offset=\"1\" stop-color=\"#ef5350\"/></linearGradient></defs><path fill=\"url(#a)\" d=\"M2.975 2.976v18.048h18.05v-.03l-4.478-4.511-4.48-4.515 4.48-4.515 4.443-4.477z\"/></svg>","database":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ffca28\" d=\"M16 24c-5.525 0-10-.9-10-2v4c0 1.1 4.475 2 10 2s10-.9 10-2v-4c0 1.1-4.475 2-10 2m0-8c-5.525 0-10-.9-10-2v4c0 1.1 4.475 2 10 2s10-.9 10-2v-4c0 1.1-4.475 2-10 2m0-12C10.477 4 6 4.895 6 6v4c0 1.1 4.475 2 10 2s10-.9 10-2V6c0-1.105-4.477-2-10-2\"/></svg>","console":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path fill=\"#ff7043\" d=\"M2 2a1 1 0 0 0-1 1v10c0 .554.446 1 1 1h12c.554 0 1-.446 1-1V3a1 1 0 0 0-1-1zm0 3h12v8H2zm1 2 2 2-2 2 1 1 3-3-3-3zm5 3.5V12h5v-1.5z\"/></svg>","yaml":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#ff5252\" d=\"M13 9h5.5L13 3.5zM6 2h8l6 6v12c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2m12 16v-2H9v2zm-4-4v-2H6v2z\"/></svg>","toml":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path fill=\"#cfd8dc\" d=\"M4 6V4h8v2H9v7H7V6z\"/><path fill=\"#ef5350\" d=\"M4 1v1H2v12h2v1H1V1zm8 0v1h2v12h-2v1h3V1z\"/></svg>","settings":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\"><path d=\"M0 0h24v24H0z\"/><path fill=\"#42a5f5\" d=\"M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.49.49 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1a.6.6 0 0 0-.18-.03c-.17 0-.34.09-.43.25l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1q.09.03.18.03c.17 0 .34-.09.43-.25l2-3.46c.12-.22.07-.49-.12-.64zm-1.98-1.71c.04.31.05.52.05.73s-.02.43-.05.73l-.14 1.13.89.7 1.08.84-.7 1.21-1.27-.51-1.04-.42-.9.68c-.43.32-.84.56-1.25.73l-1.06.43-.16 1.13-.2 1.35h-1.4l-.19-1.35-.16-1.13-1.06-.43c-.43-.18-.83-.41-1.23-.71l-.91-.7-1.06.43-1.27.51-.7-1.21 1.08-.84.89-.7-.14-1.13c-.03-.31-.05-.54-.05-.74s.02-.43.05-.73l.14-1.13-.89-.7-1.08-.84.7-1.21 1.27.51 1.04.42.9-.68c.43-.32.84-.56 1.25-.73l1.06-.43.16-1.13.2-1.35h1.39l.19 1.35.16 1.13 1.06.43c.43.18.83.41 1.23.71l.91.7 1.06-.43 1.27-.51.7 1.21-1.07.85-.89.7zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2\"/></svg>","tune":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#fbc02d\" d=\"M12 10h10v2H12z\"/><path fill=\"#fbc02d\" d=\"M16 4h2v8h-2zm4 18h10v2H20zm4 2h2v4h-2zm0-20h2v14h-2zM2 18h10v2H2z\"/><path fill=\"#fbc02d\" d=\"M6 18h2v10H6zM6 4h2v10H6zm10 12h2v12h-2z\"/></svg>","table":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#8bc34a\" d=\"M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2m7 1.5V9h5.5zm4 7.5h-4v2h1l-2 1.67L10 13h1v-2H7v2h1l3 2.5L8 18H7v2h4v-2h-1l2-1.67L14 18h-1v2h4v-2h-1l-3-2.5 3-2.5h1z\"/></svg>","vue":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#41b883\" d=\"M1.791 3.851 12 21.471 22.209 3.936V3.85H18.24l-6.18 10.616L5.906 3.851z\"/><path fill=\"#35495e\" d=\"m5.907 3.851 6.152 10.617L18.24 3.851h-3.723L12.084 8.03 9.66 3.85z\"/></svg>","svelte":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 300 300\"><path fill=\"#ff5722\" d=\"M175.94 24.328c-13.037.252-26.009 3.872-37.471 11.174L79.912 72.818a67.13 67.13 0 0 0-30.355 44.906 70.8 70.8 0 0 0 6.959 45.445 67.2 67.2 0 0 0-10.035 25.102 71.54 71.54 0 0 0 12.236 54.156c23.351 33.41 69.468 43.311 102.81 22.07l58.559-37.158a67.36 67.36 0 0 0 30.355-44.906 70.77 70.77 0 0 0-6.982-45.422 67.65 67.65 0 0 0 10.059-25.102 71.63 71.63 0 0 0-12.236-54.156v-.18c-15.324-21.925-40.453-33.727-65.342-33.246zm5.137 28.68a46.5 46.5 0 0 1 36.09 19.969 42.98 42.98 0 0 1 7.365 32.557 45 45 0 0 1-1.393 5.455l-1.123 3.37-2.986-2.247a75.9 75.9 0 0 0-22.902-11.45l-2.244-.651.201-2.246a13.16 13.16 0 0 0-2.379-8.711 13.99 13.99 0 0 0-14.953-5.412 12.8 12.8 0 0 0-3.594 1.572l-58.578 37.25a12.24 12.24 0 0 0-5.502 8.15 13.1 13.1 0 0 0 2.246 9.834 14.03 14.03 0 0 0 14.93 5.569 13.5 13.5 0 0 0 3.594-1.573l22.453-14.234a41.8 41.8 0 0 1 11.898-5.232 46.48 46.48 0 0 1 49.914 18.502 43.02 43.02 0 0 1 7.363 32.557 40.42 40.42 0 0 1-18.254 27.078l-58.58 37.316a43 43 0 0 1-11.898 5.23A46.545 46.545 0 0 1 82.81 227.14a42.98 42.98 0 0 1-7.341-32.557 38 38 0 0 1 1.39-5.41l1.102-3.37 3.008 2.246a75.9 75.9 0 0 0 22.836 11.361l2.244.65-.201 2.247a13.25 13.25 0 0 0 2.447 8.644 14.03 14.03 0 0 0 15.043 5.569 13.1 13.1 0 0 0 3.592-1.573l58.467-37.316a12.17 12.17 0 0 0 5.502-8.173 12.96 12.96 0 0 0-2.246-9.811 14.03 14.03 0 0 0-15.043-5.568 12.8 12.8 0 0 0-3.592 1.57l-22.453 14.258a42.9 42.9 0 0 1-11.877 5.209 46.52 46.52 0 0 1-49.846-18.5 43.02 43.02 0 0 1-7.297-32.557A40.42 40.42 0 0 1 96.798 96.98l58.646-37.316a42.8 42.8 0 0 1 11.811-5.21 46.5 46.5 0 0 1 13.822-1.444z\"/></svg>","lua":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#42a5f5\" d=\"M30 6a3.86 3.86 0 0 1-1.167 2.833 4.024 4.024 0 0 1-5.666 0A3.86 3.86 0 0 1 22 6a3.86 3.86 0 0 1 1.167-2.833 4.024 4.024 0 0 1 5.666 0A3.86 3.86 0 0 1 30 6m-9.208 5.208A10.6 10.6 0 0 0 13 8a10.6 10.6 0 0 0-7.792 3.208A10.6 10.6 0 0 0 2 19a10.6 10.6 0 0 0 3.208 7.792A10.6 10.6 0 0 0 13 30a10.6 10.6 0 0 0 7.792-3.208A10.6 10.6 0 0 0 24 19a10.6 10.6 0 0 0-3.208-7.792m-1.959 7.625a4.024 4.024 0 0 1-5.666 0 4.024 4.024 0 0 1 0-5.666 4.024 4.024 0 0 1 5.666 0 4.024 4.024 0 0 1 0 5.666\"/></svg>","dart":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#4fc3f7\" d=\"M16.83 2a1.3 1.3 0 0 0-.916.377l-.013.01L7.323 7.34l8.556 8.55v.005l10.283 10.277 1.96-3.529-7.068-16.96-3.299-3.297A1.3 1.3 0 0 0 16.828 2Z\"/><path fill=\"#01579b\" d=\"m7.343 7.32-4.955 8.565-.01.013a1.297 1.297 0 0 0 .004 1.835l.005.005 4.106 4.107 16.064 6.314 3.632-2.015-.098-.098-.025.002L15.995 15.97h-.012z\"/><path fill=\"#01579b\" d=\"m7.321 7.324 8.753 8.755h.013L26.16 26.156l3.835-.73L30 14.089l-4.049-3.965a6.5 6.5 0 0 0-3.618-1.612l.002-.043L7.323 7.325Z\"/><path fill=\"#64b5f6\" d=\"m7.332 7.335 8.758 8.75v.013l10.079 10.071L25.436 30H14.09l-3.967-4.048a6.5 6.5 0 0 1-1.611-3.618l-.045.004Z\"/></svg>","r":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#1976d2\" d=\"M11.956 4.05c-5.694 0-10.354 3.106-10.354 6.947 0 3.396 3.686 6.212 8.531 6.813v2.205h3.53V17.82c.88-.093 1.699-.259 2.475-.497l1.43 2.692h3.996l-2.402-4.048c1.936-1.263 3.147-3.034 3.147-4.97 0-3.841-4.659-6.947-10.354-6.947m1.584 2.712c4.349 0 7.558 1.45 7.558 4.753 0 1.77-.952 3.013-2.505 3.779a1 1 0 0 1-.228-.156c-.373-.165-.994-.352-.994-.352s3.085-.227 3.085-3.302-3.23-3.127-3.23-3.127h-7.092v7.413c-2.64-.766-4.462-2.392-4.462-4.255 0-2.63 3.52-4.753 7.868-4.753m.156 4.12h2.143s.983-.05.983.974c0 1.004-.983 1.004-.983 1.004h-2.143v-1.977m-.031 4.566h.952c.186 0 .28.052.445.207.135.103.28.3.404.476-.57.073-1.17.104-1.801.104z\"/></svg>","prolog":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#ef5350\" d=\"M12 15.385a5.1 5.1 0 0 0 1.862 1.693L12 18.94l-1.862-1.862A5.04 5.04 0 0 0 12 15.385m4.232-4.063a1.693 1.693 0 0 0-1.693 1.693 1.693 1.693 0 0 0 1.693 1.693 1.693 1.693 0 0 0 1.693-1.693c0-.94-.762-1.693-1.693-1.693m-8.464 0a1.693 1.693 0 0 0-1.693 1.693 1.693 1.693 0 0 0 1.693 1.693 1.693 1.693 0 0 0 1.693-1.693c0-.94-.762-1.693-1.693-1.693m8.464-2.116a3.385 3.385 0 0 1 3.385 3.386 3.385 3.385 0 0 1-3.385 3.385 3.385 3.385 0 0 1-3.386-3.385 3.385 3.385 0 0 1 3.386-3.386m-8.464 0a3.385 3.385 0 0 1 3.386 3.386 3.385 3.385 0 0 1-3.386 3.385 3.385 3.385 0 0 1-3.385-3.385 3.385 3.385 0 0 1 3.385-3.386M3.74 2.69c1.49 3.132.415 5.468-.584 7.787a5.1 5.1 0 0 0-.465 2.116 5.08 5.08 0 0 0 5.078 5.078 6 6 0 0 0 .533-.042l2.506 2.505L12 21.31l1.194-1.177 2.505-2.505c.178.025.355.034.533.042a5.08 5.08 0 0 0 5.078-5.078 5.1 5.1 0 0 0-.465-2.116c-.999-2.319-2.074-4.655-.584-7.787-2.235 1.744-5.417 3.123-8.26 3.132-2.845-.008-6.027-1.388-8.261-3.132z\"/></svg>","gradle":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0097a7\" d=\"M16 10v2h6c-2 0-3-2-6-2\"/><path fill=\"#0097a7\" d=\"M26 4h-2a4 4 0 0 0-4 4h4a1 1 0 0 1 2 0v4H16v-2h-5.317A2.683 2.683 0 0 0 8 12.683v2.634A2.683 2.683 0 0 0 10.683 18H16v2h-5.98A4.02 4.02 0 0 1 6 16v-2c-2 0-4 4-4 8 0 5 1 6 2 6h4v-4h4v4h4v-4h4v4h4v-6a2 2 0 0 0 2-2v-2a4 4 0 0 0 4-4V8a4 4 0 0 0-4-4m-4 12h-2a2 2 0 0 1-2-2h6a2 2 0 0 1-2 2\"/></svg>","visualstudio":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ab47bc\" d=\"m22 11.8-5.7 4.584L22 20.8zM7.24 23.68 4 21.64v-10.8l3.6-1.2 5.16 3.996L23.2 4 28 7v18.6L22 28l-9.192-8.808zm.36-5.28 2.232-2.064L7.6 14.2Z\"/></svg>","powershell":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#03a9f4\" d=\"M29.07 6H7.677A1.535 1.535 0 0 0 6.24 7.113l-4.2 17.774A.852.852 0 0 0 2.93 26h21.393a1.535 1.535 0 0 0 1.436-1.113L29.96 7.112A.852.852 0 0 0 29.07 6M8.626 23.797a1.4 1.4 0 0 1-1.814-.31l-.007-.009a1.075 1.075 0 0 1 .315-1.599l9.6-6.061-6.102-5.852-.01-.01a1.068 1.068 0 0 1 .084-1.625l.037-.03a1.38 1.38 0 0 1 1.8.07l7.233 6.957a1.1 1.1 0 0 1 .236.739 1.08 1.08 0 0 1-.412.79c-.074.04-.146.119-10.951 6.935ZM24 22.94A1.135 1.135 0 0 1 22.803 24h-5.634a1.061 1.061 0 1 1 .001-2.112h5.633A1.134 1.134 0 0 1 24 22.938Z\"/></svg>","image":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path fill=\"#26a69a\" d=\"M8.5 6h4l-4-4zM3.875 1H9.5l4 4v8.6c0 .773-.616 1.4-1.375 1.4h-8.25c-.76 0-1.375-.627-1.375-1.4V2.4c0-.777.612-1.4 1.375-1.4M4 13.6h8V8l-2.625 2.8L8 9.4zm1.25-7.7c-.76 0-1.375.627-1.375 1.4s.616 1.4 1.375 1.4c.76 0 1.375-.627 1.375-1.4S6.009 5.9 5.25 5.9\"/></svg>","pdf":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#ef5350\" d=\"M13 9h5.5L13 3.5zM6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2m4.93 10.44c.41.9.93 1.64 1.53 2.15l.41.32c-.87.16-2.07.44-3.34.93l-.11.04.5-1.04c.45-.87.78-1.66 1.01-2.4m6.48 3.81c.18-.18.27-.41.28-.66.03-.2-.02-.39-.12-.55-.29-.47-1.04-.69-2.28-.69l-1.29.07-.87-.58c-.63-.52-1.2-1.43-1.6-2.56l.04-.14c.33-1.33.64-2.94-.02-3.6a.85.85 0 0 0-.61-.24h-.24c-.37 0-.7.39-.79.77-.37 1.33-.15 2.06.22 3.27v.01c-.25.88-.57 1.9-1.08 2.93l-.96 1.8-.89.49c-1.2.75-1.77 1.59-1.88 2.12-.04.19-.02.36.05.54l.03.05.48.31.44.11c.81 0 1.73-.95 2.97-3.07l.18-.07c1.03-.33 2.31-.56 4.03-.75 1.03.51 2.24.74 3 .74.44 0 .74-.11.91-.3m-.41-.71.09.11c-.01.1-.04.11-.09.13h-.04l-.19.02c-.46 0-1.17-.19-1.9-.51.09-.1.13-.1.23-.1 1.4 0 1.8.25 1.9.35M7.83 17c-.65 1.19-1.24 1.85-1.69 2 .05-.38.5-1.04 1.21-1.69zm3.02-6.91c-.23-.9-.24-1.63-.07-2.05l.07-.12.15.05c.17.24.19.56.09 1.1l-.03.16-.16.82z\"/></svg>","zip":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#afb42b\" d=\"M14 17h-2v-2h-2v-2h2v2h2m0-6h-2v2h2v2h-2v-2h-2V9h2V7h-2V5h2v2h2m5-4H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2\"/></svg>","lock":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ffd54f\" d=\"M25 12h-3V8a6 6 0 0 0-12 0v4H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V13a1 1 0 0 0-1-1M14 8a2 2 0 0 1 4 0v4h-4Zm2 17a4 4 0 1 1 4-4 4 4 0 0 1-4 4\"/></svg>","log":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\"><path d=\"M0 0h24v24H0z\"/><path fill=\"#afb42b\" d=\"M19 5v9h-5v5H5V5zm0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10l6-6V5c0-1.1-.9-2-2-2m-7 11H7v-2h5zm5-4H7V8h10z\"/></svg>","docker":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#0288d1\" d=\"M21.81 10.25c-.06-.04-.56-.43-1.64-.43-.28 0-.56.03-.84.08-.21-1.4-1.38-2.11-1.43-2.14l-.29-.17-.18.27c-.24.36-.43.77-.51 1.19-.2.8-.08 1.56.33 2.21-.49.28-1.29.35-1.46.35H2.62c-.34 0-.62.28-.62.63 0 1.15.18 2.3.58 3.38.45 1.19 1.13 2.07 2 2.61.98.6 2.59.94 4.42.94.79 0 1.61-.07 2.42-.22 1.12-.2 2.2-.59 3.19-1.16A8.3 8.3 0 0 0 16.78 16c1.05-1.17 1.67-2.5 2.12-3.65h.19c1.14 0 1.85-.46 2.24-.85.26-.24.45-.53.59-.87l.08-.24zm-17.96.99h1.76c.08 0 .16-.07.16-.16V9.5c0-.08-.07-.16-.16-.16H3.85c-.09 0-.16.07-.16.16v1.58c.01.09.07.16.16.16m2.43 0h1.76c.08 0 .16-.07.16-.16V9.5c0-.08-.07-.16-.16-.16H6.28c-.09 0-.16.07-.16.16v1.58c.01.09.07.16.16.16m2.47 0h1.75c.1 0 .17-.07.17-.16V9.5c0-.08-.06-.16-.17-.16H8.75c-.08 0-.15.07-.15.16v1.58c0 .09.06.16.15.16m2.44 0h1.77c.08 0 .15-.07.15-.16V9.5c0-.08-.06-.16-.15-.16h-1.77c-.08 0-.15.07-.15.16v1.58c0 .09.07.16.15.16M6.28 9h1.76c.08 0 .16-.09.16-.18V7.25c0-.09-.07-.16-.16-.16H6.28c-.09 0-.16.06-.16.16v1.57c.01.09.07.18.16.18m2.47 0h1.75c.1 0 .17-.09.17-.18V7.25c0-.09-.06-.16-.17-.16H8.75c-.08 0-.15.06-.15.16v1.57c0 .09.06.18.15.18m2.44 0h1.77c.08 0 .15-.09.15-.18V7.25c0-.09-.07-.16-.15-.16h-1.77c-.08 0-.15.06-.15.16v1.57c0 .09.07.18.15.18m0-2.28h1.77c.08 0 .15-.07.15-.16V5c0-.1-.07-.17-.15-.17h-1.77c-.08 0-.15.06-.15.17v1.56c0 .08.07.16.15.16m2.46 4.52h1.76c.09 0 .16-.07.16-.16V9.5c0-.08-.07-.16-.16-.16h-1.76c-.08 0-.15.07-.15.16v1.58c0 .09.07.16.15.16\"/></svg>","http":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#e53935\" d=\"M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2m11.3 10h-5.64a22.5 22.5 0 0 0-2.705-7.616A12.03 12.03 0 0 1 27.3 12M20 16c0 .693-.037 1.357-.094 2h-7.811A22 22 0 0 1 12 16c0-.693.037-1.357.094-2h7.811c.058.643.095 1.307.095 2m-4 12c-.115 0-.226-.014-.34-.017A20.4 20.4 0 0 1 12.368 20h7.264a20.4 20.4 0 0 1-3.292 7.983c-.114.003-.225.017-.34.017m-3.632-16a20.4 20.4 0 0 1 3.292-7.983c.114-.003.225-.017.34-.017s.226.014.34.017A20.4 20.4 0 0 1 19.632 12Zm.683-7.618A22.4 22.4 0 0 0 10.339 12H4.7a12.03 12.03 0 0 1 8.35-7.618ZM4.18 14h5.91c-.052.647-.091 1.307-.091 2s.039 1.353.091 2H4.18a11.2 11.2 0 0 1 0-4m.52 6h5.638a22.4 22.4 0 0 0 2.712 7.618A12.03 12.03 0 0 1 4.7 20m14.255 7.616A22.5 22.5 0 0 0 21.661 20H27.3a12.03 12.03 0 0 1-8.344 7.616ZM27.819 18h-5.91c.052-.647.091-1.307.091-2s-.039-1.353-.091-2h5.91a11.2 11.2 0 0 1 0 4\"/></svg>","graphql":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ec407a\" d=\"M6 20h20v2H6z\"/><circle cx=\"7\" cy=\"21\" r=\"3\" fill=\"#ec407a\"/><circle cx=\"16\" cy=\"27\" r=\"3\" fill=\"#ec407a\"/><circle cx=\"25\" cy=\"21\" r=\"3\" fill=\"#ec407a\"/><path fill=\"#ec407a\" d=\"M6 10h20v2H6z\"/><circle cx=\"7\" cy=\"11\" r=\"3\" fill=\"#ec407a\"/><circle cx=\"16\" cy=\"5\" r=\"3\" fill=\"#ec407a\"/><circle cx=\"25\" cy=\"11\" r=\"3\" fill=\"#ec407a\"/><path fill=\"#ec407a\" d=\"M6 12h2v10H6zm18-2h2v12h-2z\"/><path fill=\"#ec407a\" d=\"m5.014 19.41 11.674 6.866L15.674 28 4 21.134z\"/><path fill=\"#ec407a\" d=\"M26.688 21.724 15.014 28.59 14 26.866 25.674 20zM5.124 10.382l11.415-7.29 1.077 1.686L6.2 12.068z\"/><path fill=\"#ec407a\" d=\"m25.798 12.067-11.415-7.29 1.077-1.685 11.415 7.29zM6.2 19.932l11.416 7.29-1.077 1.686-11.415-7.29z\"/><path fill=\"#ec407a\" d=\"m26.875 21.619-11.415 7.29-1.077-1.687 11.415-7.289zM5.877 22.6 16.04 3.686l1.762.946L7.638 23.546z\"/><path fill=\"#ec407a\" d=\"M24.361 23.545 14.197 4.633l1.761-.947 10.165 18.913z\"/></svg>","prisma":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#00bfa5\" d=\"m27.777 22.617-.459-.946L18.43 3.26a2.25 2.25 0 0 0-1.914-1.256A2 2 0 0 0 16.379 2a2.23 2.23 0 0 0-1.891 1.042L4.348 19.056a2.2 2.2 0 0 0 .025 2.417l4.957 7.488A2.34 2.34 0 0 0 11.29 30a2.4 2.4 0 0 0 .655-.092l14.387-4.149a2.32 2.32 0 0 0 1.458-1.234 2.21 2.21 0 0 0-.013-1.908m-3.538.604-11.268 3.25 4.075-19.033 7.568 15.671-.376.098Z\"/></svg>","tex":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\"><path fill=\"#2196f3\" d=\"M80 192 64 320h32c16-80 16-96 63.242-96H176c8.837 0 16 7.163 16 16v352c0 8.837 0 16-32 16h-32v32h192v-32h-32c-32 0-32-7.163-32-16V240c0-8.837 7.163-16 16-16h16c48 0 48 16 64 96h32l-16-128zm560 0v32c16 0 45.713 0 52.57 16L776 434.666 708.57 592c-6.857 16-52.57 16-68.57 16v32h128v-32s-34.285 0-27.428-16L792 472l51.428 120c3.103 7.24-1.52 16-11.428 16v32h128v-32c-16 0-45.713 0-52.57-16L824 397.334 891.43 240c6.857-16 52.57-16 68.57-16v-32H832v32s34.285 0 27.428 16L808 360l-51.428-120c-3.103-7.24 1.52-16 11.428-16v-32zM320 384v32h32c32 0 32 7.163 32 16v352c0 8.837 0 16-32 16h-32v32h304l16-128h-32c-16 80-16 96-64 96h-64c-32 0-32-7.163-32-16V624h80c8.837 0 16 0 16 32v16h32V544h-32v16c0 32-7.163 32-16 32h-80V432c0-8.837 0-16 32-16h64c48 0 48 16 64 96h32l-16-128z\"/></svg>","ejs":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\"><path fill=\"#ffca28\" d=\"M8.046 4.862.908 12l7.138 7.138 2.71-2.691L6.308 12l4.446-4.447z\"/><ellipse cx=\"14.543\" cy=\"7.812\" stroke=\"#ffca28\" stroke-width=\"1.455\" rx=\"2.101\" ry=\"2.798\"/><path fill=\"#ffca28\" d=\"m20.616 4.152 1.47.69-7.783 15.005-1.47-.69z\"/><ellipse cx=\"20.35\" cy=\"16.198\" stroke=\"#ffca28\" stroke-width=\"1.455\" rx=\"2.101\" ry=\"2.798\"/></svg>","pug":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><g transform=\"translate(-.25 -1.71)\"><path fill=\"#ffe0b2\" d=\"M107.4 50.9c-.2-4.4.4-8.3-1.6-11.6-4.8-8.2-16.8-13-40.8-13v.7h-.5.5v-.7c-24 0-36.6 4.8-41.4 13.1-1.9 3.4-1.7 7.2-2 11.6-.2 3.5-1.8 7.2-1.1 11.2.8 5.2 1.1 10.4 1.9 15.2.6 3.9 6 7.2 6.5 10.9 1.4 10.2 12 14.9 36 14.9v.8h-.6.7v-.8c24 0 34.2-4.7 35.5-14.9.5-3.8 5.5-7 6.1-10.9.8-4.8 1.1-10 1.9-15.2.7-4-.9-7.8-1.1-11.3\"/><path fill=\"#ffe0b2\" d=\"M64.6 54.5c4.3.1 7.3 2.8 10.1 5.3 3.3 2.9 8.9 4.9 11.2 7.4s5.3 5 6.4 8.9 1.4 8.9 1.4 10.2.7 1 2.7 0c4.7-2.3 9.9-8.5 9.9-8.5-.6 3.9-5.7 7.4-6.2 11.1C98.9 99.1 89 104 64.5 104h-.1.6\"/><path fill=\"#ffe0b2\" d=\"M80.4 46.7c.9 3.1 4.1 13.6-2.1 10.1 0 0 2.6 1.5 4.2 7.2 1.7 5.7 5.8 6.4 5.8 6.4s6.7 1.3 11.7-3c4.2-3.6 4.9-10 3.1-14.9-1.8-4.8-5-6.3-9.7-7.3-4.7-1.1-14.1-2-13 1.5\"/><circle cx=\"92.3\" cy=\"58.1\" r=\"8.8\"/><circle cx=\"90\" cy=\"54.2\" r=\"2.3\" fill=\"#fafafa\"/><path fill=\"#ffe0b2\" d=\"M78.9 57.7s7.9 5.4 12.2 10.7 4.2 6.3 4.2 6.3l-3.1 1.4s-4.4-8.3-9.8-11.4c-5.5-3.1-6.1-5.7-6.1-5.7zm-14-3.2c-4.3.1-7.5 2.8-10.4 5.3-3.3 2.9-9.1 4.9-11.4 7.4s-5.4 5-6.5 8.9-1.5 8.9-1.5 10.2.2 1.4-2.7 0c-4.7-2.2-9.9-8.5-9.9-8.5.6 3.9 5.7 7.4 6.2 11.1C30.1 99.1 40 104 64.5 104h.5\"/><path fill=\"#4e342e\" d=\"M88.1 71.4C83.3 65.5 75.6 60 64.9 60h-.1c-10.7 0-18.4 5.5-23.2 11.4-5 6.1-4.6 8.5-4.6 14.3 0 21 7.4 15 12.3 17.6 5 2.5 10.2 1.7 15.5 1.7h.1c5.4 0 10.5.7 15.5-1.8 4.9-2.5 12.3 3.7 12.3-17.3.1-5.8.4-8.4-4.6-14.5\"/><path fill=\"#3e2723\" d=\"M64.4 65.2s-.7 9.7-2.1 11.6l2.6-.6z\"/><path fill=\"#3e2723\" d=\"M65.1 65.2s.7 9.7 2.1 11.6l-2.6-.6z\"/><path fill=\"#4e342e\" d=\"M56.7 62.9c-1-2.3 2.6-6 8.3-6.1 5.7 0 9.3 3.7 8.3 6.1S68.7 66 65 66.1c-3.6-.1-7.3-.8-8.3-3.2\"/><path d=\"M65 65.2c0-.4 3.4-.5 5.2-1.7 0 0-3.7 1.2-4.5.7-.8-.4-1-1.6-1-1.6s-.3 1.2-.9 1.6c-.7.4-4.9-.7-4.9-.7s5.6 1.4 5.6 1.7-.1 1.3-.1 2c0 2.5 0 8.7.4 9.2.6.9.4-6.7.4-9.2-.1-.8-.1-1.6-.2-2\"/><path fill=\"#795548\" d=\"M65.2 78.6c1.7 0 4.7 1.2 7.4 3.1-2.6-2.9-5.7-4.9-7.4-4.9-1.8 0-5.6 2.2-8.3 5.4 2.8-2.2 6.4-3.6 8.3-3.6\"/><g fill=\"#3e2723\"><path d=\"M64.5 96.3c-3.8 0-7.5-1.2-10.9-2.1-.7-.2-1.4.3-2.1.1-6.3-2-11.4-5.4-14.5-9.7v1c0 21 7.4 15.1 12.3 17.6 5 2.5 10.2 1.7 15.5 1.7h.1c5.4 0 10.5.7 15.5-1.8 4.9-2.5 12.3 3.6 12.3-17.4 0-.8 0-1.6.1-2.3-2.9 4.7-8.2 8.4-14.8 10.6-.6.2-2-.3-2.6-.2-3.6 1.2-6.8 2.5-10.9 2.5\"/><path d=\"M55 85s-2.5 7.5-.8 10.8l-2.3-1s1.7-7.6 3.1-9.8m19.8 0s2.5 7.5.8 10.8l2.3-1s-1.8-7.6-3.1-9.8\"/></g><path fill=\"#ffe0b2\" d=\"M48.6 46.7c-.9 3.1-4.1 13.6 2.1 10.1 0 0-2.6 1.5-4.2 7.2s-5.8 6.4-5.8 6.4-6.7 1.3-11.7-3c-4.2-3.6-4.9-10-3.1-14.9s5-6.3 9.7-7.3c4.7-1.1 14-2 13 1.5\"/><path d=\"M64.9 76.8c2.7 0 11.1 5.8 11.2 12.9v-.4c0-7.4-6.8-13.3-11.2-13.3s-11.2 6-11.2 13.3v.4c.1-7.1 8.5-12.9 11.2-12.9\"/><g fill=\"#3e2723\"><ellipse cx=\"66.7\" cy=\"61.5\" rx=\".8\" ry=\"1.5\" transform=\"rotate(-14.465 66.71 61.469)\"/><ellipse cx=\"62.4\" cy=\"61.5\" rx=\".8\" ry=\"1.5\" transform=\"rotate(17.235 62.372 61.463)\"/></g><circle cx=\"37.2\" cy=\"58.1\" r=\"8.8\"/><circle cx=\"39.5\" cy=\"54.2\" r=\"2.3\" fill=\"#fafafa\"/><path fill=\"#795548\" d=\"M67.5 58.2c0-.1-2.3 1-2.9 1.1-.6-.1-2.9-1.2-2.9-1.1z\"/><path fill=\"#ffe0b2\" d=\"M50 57.7s-7.9 5.4-12.2 10.7-4.2 6.3-4.2 6.3l3.1 1.4s4.4-8.3 9.8-11.4 6.1-5.7 6.1-5.7z\"/><path fill=\"#ffe0b2\" d=\"M32.7 41.7S30 49.1 24 52.2c0 0 9.4-1.1 8.7-10.5m63.1 0s2.7 7.4 8.7 10.5c0 0-9.4-1.1-8.7-10.5M78.7 55.5s-5.9-6.2-13.8-6.4h.2c-8 .2-13.8 6.4-13.8 6.4 6.9-4.8 12.8-4.7 13.8-4.7-.1 0 6.7-.1 13.6 4.7m-6.9-13s-3-4.2-7-4.3h.2c-3 .1-6.9 4.3-6.9 4.3 3.4-3.3 6.9-3.2 6.9-3.2s3.3-.1 6.8 3.2M37.2 73.2s-4.7 2.3-8.1.9H29c-3-1.7-4.5-6.8-4.5-6.8s3 9 12.7 5.9m54.8 0s4.7 2.3 8.1.9c4-1.7 4.6-6.8 4.6-6.8s-3 9-12.7 5.9\"/><path fill=\"#ffe0b2\" d=\"M42.6 41.2c2.6-.5 6.9-.6 10.3.5 4.3 1.5.8 7 1.7 7.3s2.1-3.8 10.1-3.4c8.1.4 9 4 10.1 3.4s-1.1-10 11-7.8c0 0-12.7-3.4-12.1 5.8 0 0-7.3-5.6-17.5-.6.1 0 2.7-8.6-13.6-5.2m44.3 0c.2 0 .3.1.4.1s-.1-.1-.4-.1M39.1 28.9S28.3 42.5 26.7 47.7c-1.6 5.3-2.8 27-4.2 30.1l-5-21.4 9.2-22.3zm50.8 0s10.8 13.6 12.4 18.8c1.6 5.3 2.8 27 4.2 30.1l5-21.4-9.2-22.3z\"/><path fill=\"#4e342e\" d=\"M89.4 28.9s11.6 9.7 15 20.9 2 24.8 4.6 26.5c3.7 2.4 7.9-11.9 9.3-13.4 2.2-2.4 9.5-8.5 10-9.6s-14.8-17.8-21.5-21.1c-8.1-3.8-18.1-4.1-17.4-3.3\"/><path fill=\"#3e2723\" d=\"M99.3 34.9s13.7 17.5 13.5 39.3l5.5-11.2c-.1 0-4.9-14.3-19-28.1\"/><path fill=\"#4e342e\" d=\"M39.1 28.9s-11.6 9.7-15 20.9-2 24.8-4.6 26.5c-3.7 2.4-7.9-11.9-9.3-13.4C8 60.5.7 54.4.2 53.3S15 35.5 21.7 32.2c8.1-3.8 18.1-4.1 17.4-3.3\"/><path fill=\"#3e2723\" d=\"M29.2 34.9S15.5 52.4 15.7 74.2L10.3 63s4.8-14.3 18.9-28.1\"/><path fill=\"#ffe0b2\" d=\"M21.8 74.6s1 5.4 2.6 7.1.5-1.3.5-1.3-1.7-.9-1.4-7.8-1.7 2-1.7 2m85.3 0s-1 5.4-2.6 7.1-.5-1.3-.5-1.3 1.7-.9 1.4-7.8 1.7 2 1.7 2\"/><g fill=\"#3e2723\"><circle cx=\"54.5\" cy=\"70.5\" r=\".8\"/><circle cx=\"49.9\" cy=\"75.3\" r=\".8\"/><circle cx=\"48.4\" cy=\"70.5\" r=\".8\"/></g><g fill=\"#3e2723\"><circle cx=\"74\" cy=\"70.5\" r=\".8\"/><circle cx=\"78.6\" cy=\"75.3\" r=\".8\"/><circle cx=\"80.1\" cy=\"70.5\" r=\".8\"/></g></g></svg>","handlebars":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ff7043\" d=\"M12.023 12a4 4 0 0 0-3.94 3.182 1 1 0 0 1-.972.818H5.229C4.446 16 4 15.552 4 15v-1H3a1 1 0 0 0-1 1v1c0 3.866 3.134 6 7 6 3.425 0 6.275-1.675 6.881-4.745.545-2.764-1.041-5.24-3.858-5.255\"/><path fill=\"#ff7043\" d=\"M29 14h-1v1c0 .552-.446 1-1.229 1H24.89a1 1 0 0 1-.973-.818A4 4 0 0 0 19.977 12c-2.817.016-4.403 2.491-3.858 5.255C16.725 20.325 19.575 22 23 22c3.866 0 7-2.134 7-6v-1a1 1 0 0 0-1-1\"/></svg>","twig":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 50 50\"><path fill=\"#8bc34a\" d=\"M9.727 47.556c-.125-.223-.297-2.168-.183-2.087.034.025.171.267.304.537s.282.487.332.482c.123-.011.075-1.196-.1-2.454-.331-2.397-1.176-4.434-2.358-5.69-.2-.212-.344-.4-.319-.418.093-.067 1.327.842 1.842 1.358.293.293.735.825.981 1.182.328.474.465.618.51.533.078-.147-.21-9.903-.376-12.7-.074-1.256.063-1.023.61 1.034 1.064 4.007 1.858 7.922 2.342 11.55.086.637.173 1.173.195 1.19s.092.002.157-.033c.888-.484 1.524-.667 2.55-.736.727-.049.945.062.35.177-1.15.223-1.99 1.013-2.344 2.201-.315 1.061-.327 2.707-.024 3.435.152.365.037.425-1.067.56-.716.088-.977.095-1.202.037-.356-.093-1.118-.098-1.195-.009-.031.037-.243.066-.47.066-.38 0-.423-.017-.534-.215zm1.974-3.232c.152-.205.072-.412-.204-.522-.225-.091-.263-.089-.437.024-.21.137-.252.43-.08.554.18.13.607.096.72-.056zm1.248.085a.8.8 0 0 0 .214-.202c.241-.33-.352-.622-.745-.366-.406.264.08.785.531.568m2.288 3.094c-.033-.038.117-.387.334-.774.216-.388.411-.666.433-.619.07.153-.201 1.28-.33 1.373-.15.107-.354.116-.437.02m-7.036-.41c-.29-.344-.221-.434.14-.183.176.124.321.264.321.311 0 .164-.279.086-.46-.129zm8.649-.146c0-.053.102-.18.227-.282.25-.204.312-.113.143.208-.095.18-.37.235-.37.074m8.065-.827c-.243-.025-.48-.088-.527-.14-.11-.125-.114-3.044-.004-3.044.045 0 .132.15.193.331q.189.57.31.124c.094-.337.065-3.471-.039-4.296-.449-3.55-1.865-6.124-4.342-7.89-1.086-.774-2.653-1.437-4.047-1.712-.764-.15-.522-.224.598-.182 2.364.09 4.167.707 5.847 2.002a11 11 0 0 1 2.32 2.501c.453.682.64.854.64.584 0-.07.063-.882.139-1.805.679-8.26 2.396-15.1 4.984-19.86 1.86-3.422 5.108-6.817 7.885-8.244 1.397-.717 2.539-.988 4.02-.952.933.023 1.01.036 1.77.308a6.8 6.8 0 0 1 1.363.661c.612.407 1.309 1.004 1.234 1.058-.025.018-.342-.165-.704-.407-2.657-1.771-5.062-1.52-7.12.742-1.108 1.22-2.652 3.53-3.634 5.443-2.828 5.503-4.541 11.464-5.291 18.413-.163 1.509-.282 3.76-.195 3.703.032-.022.266-.52.518-1.108 1.597-3.723 3.578-6.428 5.79-7.908.672-.45 1.612-.904 1.714-.83.023.016-.17.22-.43.453-1.958 1.755-3.25 3.76-4.233 6.573-.938 2.68-1.366 5.588-1.369 9.299 0 1.742.189 4.385.367 5.102.125.505.08.546-.585.546-.55 0-2.306.138-3.417.27-.413.05-.816.04-1.608-.036-.58-.056-1.13-.119-1.219-.14-.164-.037-.18-.014-.198.302-.012.186-.1.203-.73.139m2.507-6.725c.294-.11.375-.22.375-.517 0-.63-1.309-.706-1.524-.088-.074.212.13.51.42.616.297.109.413.107.73-.011zm2.369-.052c.277-.222.318-.364.174-.611-.4-.69-1.755-.307-1.428.405.121.265.299.35.738.353.227.001.387-.044.516-.147m3.011 6.681c-.027-.05.088-.267.256-.483.879-1.135 1.22-1.545 1.285-1.545.039 0 .055.037.035.083l-.423.963c-.213.484-.445.925-.519.977-.169.122-.57.125-.634.005m2.446-.596c0-.12.853-.683.896-.59.018.04-.056.21-.166.377-.168.258-.238.304-.464.304-.164 0-.266-.035-.266-.09zm-13.04-.124c-.176-.159-.493-.656-.461-.725.018-.038.248.1.512.309s.456.405.428.438c-.076.088-.372.074-.479-.022\"/></svg>","astro":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#7c4dff\" d=\"M12.106 25.849c-1.262-1.156-1.63-3.586-1.105-5.346a5.18 5.18 0 0 0 3.484 1.66 9.68 9.68 0 0 0 5.882-.734c.215-.106.413-.247.648-.39a3.5 3.5 0 0 1 .16 1.555 4.26 4.26 0 0 1-1.798 3.021c-.404.3-.832.569-1.25.852a2.613 2.613 0 0 0-1.15 3.372l.048.161a3.4 3.4 0 0 1-1.5-1.285 3.6 3.6 0 0 1-.578-1.962 9 9 0 0 0-.05-1.037c-.114-.831-.504-1.204-1.238-1.225a1.45 1.45 0 0 0-1.507 1.18c-.012.056-.028.112-.046.178M4.901 20a17.75 17.75 0 0 1 7.4-2l2.913-8.38a.765.765 0 0 1 1.527 0L19.7 18a14.24 14.24 0 0 1 7.399 2S20.704 2.877 20.692 2.842C20.51 2.33 20.202 2 19.787 2h-7.619c-.415 0-.71.33-.904.842z\"/></svg>","mdx":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ffca28\" d=\"m14 10-4 3.5L6 10H4v12h4v-6l2 2 2-2v6h4V10zm12 6v-6h-4v6h-4l6 8 6-8z\"/></svg>","nodejs":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#8bc34a\" d=\"M16 20.003v2h4a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2v-2h4v-2h-4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2v2Z\"/><path fill=\"#8bc34a\" d=\"m16 3.003-12 7v14l4 2h6v-13.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v11.5H8l-2-1.034V11.15l10-5.833 10 5.833v11.703l-10 5.833-1.745-1.022L13 29.253l3 1.75 12-7v-14Z\"/></svg>","tsconfig":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#757575\" d=\"M15 2H6a2.006 2.006 0 0 0-2 2v22a2.006 2.006 0 0 0 2 2h6v-4H6v-2h6v-2H6v-2h6v-2H6v-2h6v-2h2V4l8 8h2v-1Z\" data-mit-no-recolor=\"true\"/><path fill=\"#0288d1\" d=\"M12 12v18h18V12Zm8 6h-2v8h-2v-8h-2v-2h6Zm8 0h-4v2h2a2.006 2.006 0 0 1 2 2v2a2.006 2.006 0 0 1-2 2h-4v-2h4v-2h-2a2.006 2.006 0 0 1-2-2v-2a2.006 2.006 0 0 1 2-2h4Z\"/></svg>","git":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#e64a19\" d=\"M13.172 2.828 11.78 4.22l1.91 1.91 2 2A2.986 2.986 0 0 1 20 10.81a3.25 3.25 0 0 1-.31 1.31l2.06 2a2.68 2.68 0 0 1 3.37.57 2.86 2.86 0 0 1 .88 2.117 3.02 3.02 0 0 1-.856 2.109A2.9 2.9 0 0 1 23 19.81a2.93 2.93 0 0 1-2.13-.87 2.694 2.694 0 0 1-.56-3.38l-2-2.06a3 3 0 0 1-.31.12V20a3 3 0 0 1 1.44 1.09 2.92 2.92 0 0 1 .56 1.72 2.88 2.88 0 0 1-.878 2.128 2.98 2.98 0 0 1-2.048.871 2.981 2.981 0 0 1-2.514-4.719A3 3 0 0 1 16 20v-6.38a2.96 2.96 0 0 1-1.44-1.09 2.9 2.9 0 0 1-.56-1.72 2.9 2.9 0 0 1 .31-1.31l-3.9-3.9-7.579 7.572a4 4 0 0 0-.001 5.658l10.342 10.342a4 4 0 0 0 5.656 0l10.344-10.344a4 4 0 0 0 0-5.656L18.828 2.828a4 4 0 0 0-5.656 0\"/></svg>","readme":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 16 16\"><path d=\"M0 0h24v24H0z\"/><path fill=\"#42a5f5\" d=\"M8 1C4.136 1 1 4.136 1 8s3.136 7 7 7 7-3.136 7-7-3.136-7-7-7m1 11H7V7.5h2zm0-6H7V4h2z\"/></svg>","license":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path fill=\"#ff5722\" d=\"M8 1a5.5 5.5 0 0 0-4 9.26V15l4-1.5 4 1.5v-4.74A5.49 5.49 0 0 0 8 1m0 1.5a4 4 0 1 1 0 8 4 4 0 0 1 0-8m0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4\"/></svg>","prettier":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path fill=\"#f44336\" d=\"M2 8h4v1H2zm0 6h4v1H2zm9-10h3v1h-3zM2 2h3v1H2z\"/><path fill=\"#f9a825\" d=\"M9 2h3v1H9zm1 4h4v1h-4zm-5 6h1v1H5zm-3-2h6v1H2z\"/><path fill=\"#26a69a\" d=\"M2 12h3v1H2zm7-4h5v1H9zM2 4h4v1H2zm3-2h4v1H5z\"/><path fill=\"#ba68c8\" d=\"M2 6h3v1H2zm7-2h2v1H9zm-1 6h4v1H8z\"/></svg>","eslint":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#3f51b5\" d=\"M22.713 4H9.287a.5.5 0 0 0-.432.248l-6.708 11.5a.5.5 0 0 0 0 .504l6.708 11.5a.5.5 0 0 0 .432.248h13.426a.5.5 0 0 0 .432-.248l6.708-11.5a.5.5 0 0 0 0-.504l-6.708-11.5A.5.5 0 0 0 22.713 4m-6.937 20.888-7.5-3.75A.5.5 0 0 1 8 20.691v-9.382a.5.5 0 0 1 .276-.447l7.5-3.75a.5.5 0 0 1 .448 0l7.5 3.75a.5.5 0 0 1 .276.447v9.382a.5.5 0 0 1-.276.447l-7.5 3.75a.5.5 0 0 1-.448 0\"/><path fill=\"#7986cb\" d=\"M22 19.441v-6.882a.5.5 0 0 0-.276-.447l-5.5-2.75a.5.5 0 0 0-.448 0l-5.5 2.75a.5.5 0 0 0-.276.447v6.882a.5.5 0 0 0 .276.447l5.5 2.75a.5.5 0 0 0 .448 0l5.5-2.75a.5.5 0 0 0 .276-.447\"/></svg>","vite":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#a0f\" d=\"M29.313 12h-6.664a1.427 1.427 0 0 1-1.1-2.24l4.398-6.676A.703.703 0 0 0 25.397 2H8.428a.62.62 0 0 0-.55.289l-5.77 8.627A.703.703 0 0 0 2.658 12h8.175a1.427 1.427 0 0 1 1.099 2.24l-4.48 6.676A.702.702 0 0 0 8 22l6.695.002A1.34 1.34 0 0 1 16 23.375v5.934a.652.652 0 0 0 1.168.433l12.694-16.586a.725.725 0 0 0-.55-1.156\"/></svg>","webpack":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#fafafa\" fill-opacity=\".785\" d=\"m19.376 15.988-7.708 4.45-7.709-4.45v-8.9l7.709-4.451 7.708 4.45z\"/><path fill=\"#90caf9\" d=\"M12.286 1.98c-.21 0-.41.059-.57.179l-7.9 4.44c-.32.17-.53.5-.53.88v9c0 .38.21.711.53.881l7.9 4.44c.16.12.36.18.57.18s.41-.06.57-.18l7.9-4.44c.32-.17.53-.5.53-.88v-9c0-.38-.21-.712-.53-.882l-7.9-4.44a.95.95 0 0 0-.57-.179zm0 2.15 7 3.94v2.103h-.016v5.177h.016v.54l-7 3.939-7-3.94V8.07zm0 2.08-4.9 2.83 4.9 2.83 4.9-2.83zm-5 5.08v3.58l4 2.309v-3.58l-4-2.31zm10 0-4 2.308v3.58l4-2.308z\"/><path fill=\"#0277bd\" d=\"m12.286 6.21-4.9 2.83 4.9 2.83 4.9-2.83zm-5 5.08v3.58l4 2.309v-3.58l-4-2.31zm10 0-4 2.308v3.58l4-2.308z\"/></svg>","favicon":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ffd54f\" d=\"m16 24 10 6-4-10 8-8-10-.032L16 2l-4 10H2l8 8-4 10Z\"/></svg>","yarn":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#0288d1\" d=\"M27.575 23.967a9.9 9.9 0 0 0-3.751 1.726 22.6 22.6 0 0 1-5.537 2.504 1.55 1.55 0 0 1-.931.52 59 59 0 0 1-6.11.548c-1.102.008-1.777-.282-1.965-.735a1.49 1.49 0 0 1 .82-1.965 3.6 3.6 0 0 1-.486-.359c-.163-.162-.334-.487-.385-.367-.213.52-.324 1.794-.897 2.366-.786.795-2.273.53-3.153.069-.965-.513.069-1.718.069-1.718a.69.69 0 0 1-.94-.324 4.6 4.6 0 0 1-.632-2.794 5.2 5.2 0 0 1 1.674-2.76 8.84 8.84 0 0 1 .624-4.17 9.9 9.9 0 0 1 3-3.469S7.136 11.015 7.82 9.177c.444-1.196.623-1.187.769-1.239a3.44 3.44 0 0 0 1.375-.811 4.99 4.99 0 0 1 4.178-1.607s1.094-3.357 2.12-2.7a17.4 17.4 0 0 1 1.452 2.735s1.213-.71 1.35-.445a10.74 10.74 0 0 1 .495 5.81 13.3 13.3 0 0 1-2.46 5.127c-.129.214 1.47.889 2.477 3.683.932 2.554.103 4.699.248 4.938.026.043.034.06.034.06s1.068.085 3.213-1.24a8.05 8.05 0 0 1 4.05-1.52 1.026 1.026 0 0 1 .453 2Z\"/></svg>","editorconfig":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" clip-rule=\"evenodd\" image-rendering=\"optimizeQuality\" shape-rendering=\"geometricPrecision\" text-rendering=\"geometricPrecision\" viewBox=\"0 0 3473 3473\"><path fill=\"#ede7f6\" d=\"M989.342 1977.409c41.146-26.835 75.137-93.922 54.564-141.33-56.353 24.151-53.67 79.61-54.564 141.33m636.877 153.851c44.724-14.311 87.66-64.402 63.509-116.283-34.886 24.151-57.248 57.247-63.51 116.284z\"/><g fill=\"#fafafa\"><path d=\"M374.827 2871.899c0 56.352 14.312 117.178 53.67 138.645 144.907 81.4 652.977 17.89 825.614-20.573 90.343-20.573 163.692-87.66 248.668-124.334 191.421-83.187 330.067-150.274 483.025-262.085 110.916-81.399 287.131-310.388 305.915-447.245l-151.169-33.991c-3.578 153.852-38.463 188.737-175.32 224.517-92.132 25.046-271.925 30.413-365.846 14.312-124.334-20.574-180.687-85.871-237.04-160.114-109.128-144.907 24.151-245.985-148.485-255.824-181.582 222.728-501.81 62.614-642.244 40.252-59.93 86.765-200.366 650.294-198.577 779.1 86.766-29.517 141.33 2.684 219.15 33.097 275.503 106.444 34.885 200.366-75.137 172.636-75.137-17.89-98.394-67.086-142.224-98.393m360.48-1285.383c111.81 21.468 211.1 67.982 305.915 115.39 154.747 76.926 182.476 66.192 196.788 173.53 1.789 19.68-1.789 30.413 54.564 48.303 94.816 29.518-54.564-23.257 199.471-22.362 151.169.894 497.337 61.72 609.148 132.384 46.513 29.519 37.568 67.087 194.999 62.615-1.79-185.16-50.986-461.557-123.44-631.51-88.554-205.733-205.733-237.04-444.561-313.966-139.54-44.725-549.217-93.922-676.235-15.207-118.967 74.243-141.33 162.798-252.246 318.439-32.202 45.619-43.83 80.504-64.403 132.384\"/><path d=\"M1720.14 1966.675c89.45 36.674-4.472 273.714-128.806 216.466-40.252-113.6 55.458-178.003 81.398-228.99-53.67-8.05-206.627-32.2-252.246-15.206-59.036 22.363-72.454 148.486-42.041 207.522 143.118 280.87 775.523 220.94 708.436 2.684-26.835-88.555-51.88-102.867-142.224-133.28-72.454-24.15-144.907-49.196-224.517-49.196m-1124.374-31.307c71.56 68.875 233.462 79.61 338.117 84.976 13.418-138.646 25.046-242.407 135.963-234.356 54.564 74.242 25.94 161.902-31.307 218.255 97.5-.894 153.852-74.242 139.54-180.687-82.293-59.036-331.856-177.109-457.084-194.104-34.885 37.569-120.756 243.301-125.229 305.916\"/></g><path d=\"M427.602 2820.913c59.036-5.367 212.889 39.357 225.412 89.449-95.71 11.628-217.361 2.683-225.412-89.45zm-52.775 50.986c43.83 31.307 67.087 80.504 142.224 98.393 110.022 27.73 350.64-66.192 75.137-172.636-77.82-30.413-132.384-62.614-219.15-33.096-1.789-128.807 138.646-692.336 198.577-779.101 140.435 22.362 460.662 182.476 642.244-40.252 172.636 9.84 39.357 110.917 148.485 255.824 56.353 74.243 112.706 139.54 237.04 160.114 93.921 16.1 273.714 10.734 365.846-14.312 136.857-35.78 171.742-70.665 175.32-224.517l151.17 33.99c-18.785 136.858-195 365.847-305.916 447.246-152.958 111.81-291.604 178.898-483.025 262.085-84.976 36.674-158.325 103.761-248.668 124.334-172.637 38.463-680.707 101.972-825.614 20.574-39.358-21.468-53.67-82.294-53.67-138.646M1626.22 2131.26c6.261-59.037 28.623-92.133 63.508-116.284 24.152 51.88-18.784 101.972-63.508 116.284m93.921-164.586c79.61 0 152.063 25.045 224.517 49.197 90.344 30.412 115.39 44.724 142.224 133.279 67.087 218.255-565.318 278.186-708.436-2.684-30.413-59.036-16.995-185.16 42.041-207.522 45.619-16.995 198.577 7.156 252.246 15.207-25.94 50.986-121.65 115.389-81.398 228.99 124.334 57.247 218.255-179.793 128.806-216.467m-730.798 10.734c.894-61.72-1.79-117.179 54.564-141.33 20.573 47.408-13.418 114.495-54.564 141.33m-393.576-42.041c4.473-62.615 90.344-268.347 125.229-305.916 125.228 16.995 374.791 135.068 457.084 194.104 14.312 106.445-42.04 179.793-139.54 180.687 57.247-56.353 85.87-144.013 31.307-218.255-110.917-8.05-122.545 95.71-135.963 234.356-104.655-5.367-266.558-16.1-338.117-84.976m-89.449-71.56c-33.096-91.238-33.096-233.462 107.339-245.09l-71.56 199.471c-18.783 42.936-18.783 33.096-35.779 45.62zm228.99-277.292c20.573-51.88 32.201-86.765 64.403-132.384 110.917-155.641 133.279-244.196 252.246-318.439 127.018-78.715 536.694-29.518 676.235 15.207 238.828 76.926 356.007 108.233 444.561 313.966 72.454 169.953 121.65 446.35 123.44 631.51-157.43 4.472-148.486-33.096-195-62.615-111.81-70.664-457.978-131.49-609.147-132.384-254.035-.895-104.655 51.88-199.471 22.362-56.353-17.89-52.775-28.624-54.564-48.302-14.312-107.34-42.041-96.605-196.788-173.531-94.816-47.408-194.104-93.922-305.915-115.39m1583.247-43.83c-16.995-56.352 14.312-52.775 68.876-91.238 31.307-22.362 56.353-45.619 94.816-67.086 144.013-80.504 412.36-93.922 526.854 1.789 46.514 38.463 122.545 113.6 110.917 211.994-24.151 195.893-158.325 303.232-268.347 392.68-111.811 91.239-297.865 185.16-490.18 122.546-16.101-39.358-3.578-288.92-22.363-381.053-16.995-82.293-8.05-91.238 39.358-140.435 139.54-144.907 441.878-250.457 613.62-126.123 72.454 53.67 51.88 74.243 89.449 115.39 46.513-50.092-40.252-218.256-360.48-207.522-217.36 7.156-311.282 177.109-402.52 169.058m-1302.377-508.964c4.472-124.335 118.967-381.948 233.461-471.397 138.646-107.338 283.554-208.416 496.442-87.66 52.775 29.519 50.092 44.725 55.459 118.073 4.472 70.665-1.79 96.605-19.679 153.852-141.33 456.19-259.402 194.105-712.014 302.338 16.995-148.485 145.802-280.87 217.361-349.746 122.545-118.967 211.1-195.893 395.365-170.847 50.986 84.976 56.352 138.646-5.367 237.934-82.293 132.385-102.867 124.334-90.344 214.678 64.403-16.101 84.082-78.715 113.6-141.33 179.793-375.686-81.398-421.305-241.512-352.429-107.339 45.62-298.76 256.719-361.374 383.736-12.523 25.046-25.94 57.248-37.568 84.977zm708.436 18.784c18.784-111.811 129.7-139.54 129.7-483.92 0-148.485-182.475-281.764-421.304-182.475-204.838 84.082-236.145 148.485-345.273 313.071-102.867 155.642-99.289 326.49-187.843 470.502-25.94 41.147-49.197 55.458-77.82 96.605-20.574 30.413-35.78 68.876-56.354 104.655-42.04 68.876-84.976 118.968-118.967 201.26-107.339 2.684-197.682 4.473-208.416 115.39-14.312 152.063 57.247 189.632 57.247 246.879-.894 61.72-251.351 684.285-181.581 1055.498 19.679 101.972 86.765 102.867 194.104 115.39 258.508 31.307 593.942 20.573 825.614-72.454l420.41-201.26c106.445-59.931 285.343-173.532 364.953-256.72 56.353-58.141 85.87-107.338 134.173-176.214 66.192-96.605 67.981-94.816 82.293-226.306 87.66 16.101 251.352 54.564 305.916 101.972-6.262 61.72-36.674 32.202-36.674 87.66 34.885.895 93.027-42.935 107.339-91.238-36.675-53.67-75.138-44.724-127.913-87.66 42.042-33.096 118.073-48.302 176.215-72.453 125.229-51.88 339.012-209.311 391.787-352.43 42.04-115.389 10.734-307.704-57.248-382.841-71.559-78.715-237.934-118.967-373.897-118.967-161.902 0-329.172 116.283-459.767 166.375-50.092-43.83-53.67-93.922-90.344-142.224-42.04-57.248-315.755-200.366-446.35-228.095\"/><path fill=\"#efebe9\" d=\"M2318.554 1542.686c91.238 8.05 185.16-161.902 402.52-169.058 320.228-10.734 406.993 157.43 360.48 207.521-37.569-41.146-16.995-61.72-89.45-115.389-171.741-124.334-474.079-18.784-613.62 126.123-47.407 49.197-56.352 58.142-39.357 140.435 18.785 92.133 6.262 341.695 22.362 381.053 192.316 62.614 378.37-31.307 490.181-122.545 110.022-89.45 244.196-196.788 268.347-392.681 11.628-98.394-64.403-173.531-110.917-211.994-114.494-95.71-382.841-82.293-526.854-1.79-38.463 21.468-63.51 44.725-94.816 67.087-54.564 38.464-85.871 34.886-68.876 91.238m-1302.377-508.964 43.83-77.821c11.628-27.73 25.045-59.93 37.568-84.977 62.614-127.017 254.035-338.117 361.374-383.736 160.114-68.876 421.305-23.257 241.512 352.43-29.518 62.614-49.197 125.228-113.6 141.329-12.523-90.344 8.05-82.293 90.344-214.678 61.72-99.288 56.353-152.958 5.367-237.934-184.265-25.046-272.82 51.88-395.365 170.847-71.56 68.876-200.366 201.26-217.361 349.746 452.612-108.233 570.685 153.852 712.014-302.338 17.89-57.247 24.151-83.187 19.679-153.852-5.367-73.348-2.684-88.554-55.459-118.073-212.888-120.756-357.796-19.678-496.442 87.66-114.494 89.45-228.989 347.062-233.461 471.397\"/><path fill=\"#eee\" d=\"M506.317 1863.808c16.996-12.523 16.996-2.683 35.78-45.619l71.559-199.47c-140.435 11.627-140.435 153.851-107.339 245.09z\"/><path fill=\"#efebe9\" d=\"M653.014 2910.362c-12.523-50.092-166.376-94.816-225.412-89.45 8.05 92.133 129.701 101.078 225.412 89.45\"/></svg>","babel":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"#fdd835\" d=\"M18.23 11.21q-.045-.24-1.32-1.65c-.02-.19.29-.45.9-.8l1.74-1.55c.39-.5.62-1.28.69-2.38l-.02-.26c-.07-.78-.63-1.4-1.69-1.89-.63-.42-1.76-.65-3.38-.68-1.35.11-3.11.59-5.28 1.43-.6.43-1.28.86-2.04 1.28l.01.14.21-.08c.08-.01.13.03.14.11l.13-.07.07-.01.01.06c0 .07-.47.44-1.76 1.35l-.06.12c-.31.02-.61.25-.91.67l.08.12.25-.09.18.24c.32-.33.66-.62 1.03-.87.19.05.29.11.44.16 1.02-.75 2.03-1.3 3.04-1.64l.01.14c-.2.27-.32.42-.38.42l.1.23c.01.19-2.55 7-6.66 14.44l.08.19c.35-.08.58-.17.75-.26l.01.13.4-.03-.67 1.76.14.06c.57-.64 1-1.29 1.3-1.88 1.67-.49 2.94-.97 3.82-1.44.88-.08 1.56-.31 2.02-.7l.92-.47c1.27-.98 2.22-1.67 2.87-2.08 1.33-.98 2.2-1.93 2.6-2.85zm-3.46 2.31L13 14.91c-1.29.85-2 1.3-2.09 1.3-2.07 1.13-3.36 1.72-3.86 1.76l-.05.01c.04-.23.96-2.12 2.75-5.67.78-.06 2.02-.43 3.71-1.1l.41-.03c.85-.08 1.49.09 1.91.49l.03.26c-.31.9-.67 1.44-1.04 1.59m1.09-5.78q-.27.33-1.5 1.11c-.27.03-1.27.42-3.01 1.18l-.28-.05-.01-.12c-.02-.25.09-.57.34-.95.13-.7.28-1.12.44-1.2l1.45-3.28c-.02-.22.29-.35.93-.46l.21-.02.01.18 1.16-.16c1.15-.1 1.75.14 1.8.7l.13-.02-.03-.32.15-.02c.35.19.52.4.54.68.02.18-.08.41-.29.68-.09.01-.14-.06-.15-.18l-.14.01-.03.4c-.58.87-1.01 1.31-1.27 1.34z\"/></svg>","makefile":"<svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><path fill=\"#ef5350\" d=\"m29.5 24.02-1.6-.92a4.4 4.4 0 0 0 .09-.9A1.3 1.3 0 0 0 28 22a5.6 5.6 0 0 0-.1-1.1l1.6-.92a.493.493 0 0 0 .18-.68l-1.5-2.6a.45.45 0 0 0-.18-.18V6.01a2.006 2.006 0 0 0-2-2H4a2.006 2.006 0 0 0-2 2V22a2.006 2.006 0 0 0 2 2h10.53l-.03.02a.493.493 0 0 0-.18.68l1.5 2.6a.493.493 0 0 0 .68.18l1.6-.92a5.9 5.9 0 0 0 1.9 1.09v1.85a.495.495 0 0 0 .5.5h3a.495.495 0 0 0 .5-.5v-1.85a5.9 5.9 0 0 0 1.9-1.09l1.6.92a.493.493 0 0 0 .68-.18l1.5-2.6a.493.493 0 0 0-.18-.68M24 22.01a1.99 1.99 0 0 1-.88 1.65l-.18.11a2.04 2.04 0 0 1-1.88 0l-.18-.11a1.99 1.99 0 0 1-.88-1.65V22a2 2 0 0 1 .88-1.66l.18-.11a2.04 2.04 0 0 1 1.88 0l.18.11A2 2 0 0 1 24 22Zm2-4.63-.1.06a5.9 5.9 0 0 0-1.9-1.09V14.5a.495.495 0 0 0-.5-.5h-3a.495.495 0 0 0-.5.5v1.85a5.9 5.9 0 0 0-1.9 1.09l-1.6-.92a.493.493 0 0 0-.68.18l-1.5 2.6a.493.493 0 0 0 .18.68l1.6.92A5.6 5.6 0 0 0 16 22v.01L4 22V10.01h22Z\"/></svg>","file":"<svg aria-hidden=\"true\" viewBox=\"0 0 16 16\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"m8.668 6h3.6641l-3.6641-3.668v3.668m-4.668-4.668h5.332l4 4v8c0 0.73828-0.59375 1.3359-1.332 1.3359h-8c-0.73828 0-1.332-0.59766-1.332-1.3359v-10.664c0-0.74219 0.59375-1.3359 1.332-1.3359m3.332 1.3359h-3.332v10.664h8v-6h-4.668z\" fill=\"#90a4ae\" /></svg>"};
+      var ICONE_VSCODE_EXTENSAO = {"html":"html","htm":"html","css":"css","scss":"sass","sass":"sass","less":"less","js":"javascript","mjs":"javascript","cjs":"javascript","ts":"typescript","jsx":"react","tsx":"react_ts","json":"json","xml":"xml","md":"markdown","markdown":"markdown","svg":"svg","txt":"document","py":"python","java":"java","c":"c","cpp":"cpp","h":"h","hpp":"hpp","cs":"csharp","php":"php","rb":"ruby","go":"go","rs":"rust","swift":"swift","kt":"kotlin","sql":"database","sh":"console","bash":"console","yml":"yaml","yaml":"yaml","toml":"toml","ini":"settings","env":"tune","csv":"table","vue":"vue","svelte":"svelte","lua":"lua","dart":"dart","r":"r","pl":"prolog","gradle":"gradle","vb":"visualstudio","bat":"console","ps1":"powershell","png":"image","jpg":"image","jpeg":"image","gif":"image","webp":"image","ico":"image","pdf":"pdf","zip":"zip","lock":"lock","log":"log","dockerfile":"docker","http":"http","graphql":"graphql","prisma":"prisma","tex":"tex","ejs":"ejs","pug":"pug","hbs":"handlebars","twig":"twig","astro":"astro","mdx":"mdx","jsonc":"json","cfg":"settings","conf":"settings"};
+      var ICONE_VSCODE_NOME = {"package.json":"nodejs","package-lock.json":"nodejs","tsconfig.json":"tsconfig",".gitignore":"git",".gitattributes":"git","readme.md":"readme","license":"license","dockerfile":"docker","docker-compose.yml":"docker",".prettierrc":"prettier",".eslintrc.json":"eslint",".eslintrc.js":"eslint","vite.config.js":"vite","vite.config.ts":"vite","webpack.config.js":"webpack","favicon.ico":"favicon","yarn.lock":"yarn",".editorconfig":"editorconfig",".babelrc":"babel","makefile":"makefile"};
+      var ICONE_VSCODE_PADRAO = "file";
+      function iconeDeArquivo(nome, linguagem) {
+        var base = String(nome || '').split('/').pop().toLowerCase();
+        var extensao = (base.match(/\.([a-z0-9]+)$/) || [])[1];
+        var id = ICONE_VSCODE_NOME[base] || (extensao && ICONE_VSCODE_EXTENSAO[extensao]) || null;
+        return ICONES_VSCODE[id || ICONE_VSCODE_PADRAO] || ICONES_DE_LINGUAGEM.plaintext;
+      }
 
       // ==================================================================
       // PROJETO DO ALUNO — independente do curso. Guarda só os arquivos e
@@ -4069,6 +4447,7 @@
         iframesPreviewPorIdPane = {};
         offsetsLinhaJSPorIdPane = {};
         ultimoHtmlPorIdPane = {};
+        ultimoTemaPreviewPorIdPane = {};
         previewAtivoIdPane = null;
         ultimaAssinaturaCssJs = null;
         if (previewTabsContainer) {
@@ -4092,6 +4471,7 @@
           iframesPreviewPorIdPane = {};
           offsetsLinhaJSPorIdPane = {};
           ultimoHtmlPorIdPane = {};
+          ultimoTemaPreviewPorIdPane = {};
           previewAtivoIdPane = null;
           return;
         }
@@ -4105,6 +4485,7 @@
             delete iframesPreviewPorIdPane[idPane];
             delete offsetsLinhaJSPorIdPane[idPane];
             delete ultimoHtmlPorIdPane[idPane];
+            delete ultimoTemaPreviewPorIdPane[idPane];
           }
         });
 
@@ -4171,6 +4552,7 @@
       var iframesPreviewPorIdPane = {};   // idPane -> elemento <iframe>
       var offsetsLinhaJSPorIdPane = {};   // idPane -> offset de linhas (mapeamento de erro por página)
       var ultimoHtmlPorIdPane = {};       // idPane -> último HTML usado para montar aquele iframe
+      var ultimoTemaPreviewPorIdPane = {}; // idPane -> tema usado para montar aquele iframe
       var ultimaAssinaturaCssJs = null;   // detecta mudança no CSS/JS compartilhado entre todas as páginas
 
       function escaparHtmlParaPreview(texto) {
@@ -4371,6 +4753,7 @@
             var conteudoAtual = arquivo.editor.getValue();
             var iframeJaExistia = !!iframesPreviewPorIdPane[arquivo.idPane];
             var conteudoMudou = ultimoHtmlPorIdPane[arquivo.idPane] !== conteudoAtual;
+            var temaMudou = ultimoTemaPreviewPorIdPane[arquivo.idPane] !== previewTemaEscuro;
             var iframe = iframesPreviewPorIdPane[arquivo.idPane];
 
             if (!iframe) {
@@ -4384,9 +4767,10 @@
             iframe.classList.toggle('preview-iframe--dark', previewTemaEscuro);
             iframe.classList.toggle('is-preview-ativo', arquivo.idPane === previewAtivoIdPane);
 
-            if (!iframeJaExistia || conteudoMudou || cssOuJsMudou) {
+            if (!iframeJaExistia || conteudoMudou || cssOuJsMudou || temaMudou) {
               iframe.srcdoc = montarCodigoPreview(arquivo);
               ultimoHtmlPorIdPane[arquivo.idPane] = conteudoAtual;
+              ultimoTemaPreviewPorIdPane[arquivo.idPane] = previewTemaEscuro;
             }
           });
 
@@ -4765,7 +5149,7 @@
           item.className = 'file-tool-menu-item';
           item.setAttribute('role', 'menuitem');
           item.disabled = !!definicao.desabilitado;
-          item.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + definicao.icone + '"/></svg><span></span>' + (definicao.atalho ? '<kbd class="file-tool-menu-shortcut"></kbd>' : '');
+          item.innerHTML = (definicao.svg ? definicao.svg.replace('<svg ', '<svg class="icone-arquivo" ') : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + definicao.icone + '"/></svg>') + '<span></span>' + (definicao.atalho ? '<kbd class="file-tool-menu-shortcut"></kbd>' : '');
           item.querySelector('span').textContent = definicao.label;
           if (definicao.atalho) item.querySelector('kbd').textContent = definicao.atalho;
           item.addEventListener('click', function () {
@@ -4849,7 +5233,7 @@
         botaoFavicon.setAttribute('aria-expanded', 'false');
         botaoFavicon.title = 'Ferramentas de ' + arquivo.nome;
         botaoFavicon.setAttribute('aria-label', 'Ferramentas de ' + arquivo.nome);
-        botaoFavicon.innerHTML = ICONES_DE_LINGUAGEM[arquivo.linguagem] || ICONES_DE_LINGUAGEM.plaintext;
+        botaoFavicon.innerHTML = iconeDeArquivo(arquivo.nome, arquivo.linguagem);
         cabecalho.appendChild(botaoFavicon);
 
         var nomeSpan = document.createElement('span');
@@ -4986,10 +5370,12 @@
       }
 
       function limparArquivo(arquivo) {
-        if (!window.confirm('Deseja limpar o conteúdo de ' + arquivo.nome + '?')) return;
-        arquivo.editor.setValue('', -1);
-        arquivo.editor.focus();
-        mostrarToast(arquivo.nome + ' foi limpo.');
+        confirmarAcao('Todo o conteúdo de "' + arquivo.nome + '" será removido.', { titulo: 'Limpar arquivo', confirmar: 'Limpar', destrutiva: true }).then(function (confirmado) {
+          if (!confirmado) return;
+          arquivo.editor.setValue('', -1);
+          arquivo.editor.focus();
+          mostrarToast(arquivo.nome + ' foi limpo.');
+        });
       }
 
       function renomearArquivo(arquivo, aba) {
@@ -4997,24 +5383,26 @@
         // model no Monaco permanece a mesma, então imports/referências
         // cruzadas continuam resolvendo pelo caminho antigo — aceitável
         // para o escopo desta melhoria (ver avaliacao-monaco-ide.md, item 15).
-        var novoNome = window.prompt('Novo nome do arquivo:', arquivo.nome);
-        if (!novoNome || novoNome.trim() === arquivo.nome) return;
-        novoNome = nomeUnicoDoArquivo(novoNome.trim());
-        arquivo.nome = novoNome;
-        var textoDaAba = aba.querySelector('.tab-text');
-        if (textoDaAba) textoDaAba.textContent = novoNome;
-        aba.setAttribute('aria-label', novoNome);
-        aba.setAttribute('title', novoNome);
-        if (arquivo.spanNomeNaBarra) arquivo.spanNomeNaBarra.textContent = novoNome;
-        if (arquivo.botaoFavicon) {
-          arquivo.botaoFavicon.title = 'Ferramentas de ' + novoNome;
-          arquivo.botaoFavicon.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
-        }
-        if (arquivo.menuDeFerramentas) arquivo.menuDeFerramentas.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
-        sincronizarDependenciasLocais();
-        agendarSalvamentoAutomatico();
-        agendarAtualizacaoPreview();
-        mostrarToast('Arquivo renomeado para ' + novoNome + '.');
+        solicitarTexto('Informe o novo nome do arquivo.', arquivo.nome, { titulo: 'Renomear arquivo', confirmar: 'Renomear' }).then(function (novoNome) {
+          if (!novoNome || novoNome.trim() === arquivo.nome) return;
+          novoNome = nomeUnicoDoArquivo(novoNome.trim());
+          arquivo.nome = novoNome;
+          var textoDaAba = aba.querySelector('.tab-text');
+          if (textoDaAba) textoDaAba.textContent = novoNome;
+          aba.setAttribute('aria-label', novoNome);
+          aba.setAttribute('title', novoNome);
+          if (arquivo.spanNomeNaBarra) arquivo.spanNomeNaBarra.textContent = novoNome;
+          if (arquivo.botaoFavicon) {
+            arquivo.botaoFavicon.title = 'Ferramentas de ' + novoNome;
+            arquivo.botaoFavicon.innerHTML = iconeDeArquivo(novoNome, arquivo.linguagem);
+            arquivo.botaoFavicon.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
+          }
+          if (arquivo.menuDeFerramentas) arquivo.menuDeFerramentas.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
+          sincronizarDependenciasLocais();
+          agendarSalvamentoAutomatico();
+          agendarAtualizacaoPreview();
+          mostrarToast('Arquivo renomeado para ' + novoNome + '.');
+        });
       }
 
       function duplicarArquivo(arquivo) {
@@ -5192,6 +5580,7 @@
         if (arquivo.spanNomeNaBarra) arquivo.spanNomeNaBarra.textContent = novoNome;
         if (arquivo.botaoFavicon) {
           arquivo.botaoFavicon.title = 'Ferramentas de ' + novoNome;
+          arquivo.botaoFavicon.innerHTML = iconeDeArquivo(novoNome, arquivo.linguagem);
           arquivo.botaoFavicon.setAttribute('aria-label', 'Ferramentas de ' + novoNome);
         }
       }
@@ -5283,12 +5672,13 @@
       }
 
       function renomearNoProjeto(caminho, ehPasta) {
-        var novoNome = window.prompt('Novo nome:', nomeBaseDoCaminho(caminho));
-        if (novoNome === null) return;
-        novoNome = novoNome.trim().replace(/[\\/]+/g, '-');
-        if (!novoNome || novoNome === nomeBaseDoCaminho(caminho)) return;
-        var pai = pastaPaiDoCaminho(caminho);
-        moverNoProjeto(caminho, caminhoCompletoNoExplorer(pai, novoNome), ehPasta);
+        solicitarTexto('Informe o novo nome.', nomeBaseDoCaminho(caminho), { titulo: ehPasta ? 'Renomear pasta' : 'Renomear arquivo', confirmar: 'Renomear' }).then(function (novoNome) {
+          if (novoNome === null) return;
+          novoNome = novoNome.trim().replace(/[\\/]+/g, '-');
+          if (!novoNome || novoNome === nomeBaseDoCaminho(caminho)) return;
+          var pai = pastaPaiDoCaminho(caminho);
+          moverNoProjeto(caminho, caminhoCompletoNoExplorer(pai, novoNome), ehPasta);
+        });
       }
 
       function duplicarNoProjeto(caminho, ehPasta) {
@@ -5303,14 +5693,16 @@
         var texto = ehPasta
           ? 'Excluir a pasta "' + caminho + '" e os ' + itens.arquivos.length + ' arquivo(s) dentro dela? Isso não pode ser desfeito.'
           : 'Excluir "' + caminho + '"? Isso não pode ser desfeito.';
-        if (!window.confirm(texto)) return;
-        itens.arquivos.forEach(function (c) { fecharAbaDoProjeto(c); delete projeto.arquivos[c]; });
-        itens.pastas.forEach(function (c) { delete projeto.pastas[c]; delete pastasAbertasNoExplorer[c]; });
-        if (itemSelecionadoNoExplorer && itemSelecionadoNoExplorer.caminho === caminho) itemSelecionadoNoExplorer = null;
-        if (pastaSelecionadaNoExplorer === caminho || pastaSelecionadaNoExplorer.indexOf(caminho + '/') === 0) pastaSelecionadaNoExplorer = '';
-        projetoAgendarPersistencia();
-        agendarAtualizacaoPreview();
-        renderizarExplorer();
+        confirmarAcao(texto, { titulo: ehPasta ? 'Excluir pasta' : 'Excluir arquivo', confirmar: 'Excluir', destrutiva: true }).then(function (confirmado) {
+          if (!confirmado) return;
+          itens.arquivos.forEach(function (c) { fecharAbaDoProjeto(c); delete projeto.arquivos[c]; });
+          itens.pastas.forEach(function (c) { delete projeto.pastas[c]; delete pastasAbertasNoExplorer[c]; });
+          if (itemSelecionadoNoExplorer && itemSelecionadoNoExplorer.caminho === caminho) itemSelecionadoNoExplorer = null;
+          if (pastaSelecionadaNoExplorer === caminho || pastaSelecionadaNoExplorer.indexOf(caminho + '/') === 0) pastaSelecionadaNoExplorer = '';
+          projetoAgendarPersistencia();
+          agendarAtualizacaoPreview();
+          renderizarExplorer();
+        });
       }
 
       function colarNoProjeto(pastaDestino) {
@@ -5392,7 +5784,7 @@
         linha.tabIndex = 0;
         linha.setAttribute('data-caminho', item.caminho);
         linha.draggable = true;
-        var favicon = (ICONES_DE_LINGUAGEM[item.linguagem] || ICONES_DE_LINGUAGEM.plaintext).replace('<svg ', '<svg class="explorer-node-favicon" ');
+        var favicon = iconeDeArquivo(item.caminho, item.linguagem).replace('<svg ', '<svg class="explorer-node-favicon" ');
         linha.innerHTML = '<span class="explorer-node-caret" aria-hidden="true" style="visibility:hidden">' + ICONE_CARET_EXPLORER + '</span>' + favicon + '<span class="explorer-node-name"></span>';
         linha.querySelector('.explorer-node-name').textContent = item.nomeExibido;
         var botaoMenu = document.createElement('button');
@@ -5435,28 +5827,69 @@
       }
 
       function criarPastaNoExplorer(pastaBase) {
-        var nome = window.prompt('Nome da nova pasta:', '');
-        if (!nome) return;
-        nome = nome.trim().replace(/[\\/]+/g, '-');
-        if (!nome) return;
-        var caminho = caminhoUnicoNoProjeto(caminhoCompletoNoExplorer(pastaBase != null ? pastaBase : pastaSelecionadaNoExplorer, nome));
-        projeto.pastas[caminho] = true;
-        garantirPastasPai(caminho);
-        pastasAbertasNoExplorer[caminho] = true;
-        pastaSelecionadaNoExplorer = caminho;
-        projetoAgendarPersistencia();
-        renderizarExplorer();
+        solicitarTexto('Informe o nome da nova pasta.', '', { titulo: 'Nova pasta', confirmar: 'Criar pasta' }).then(function (nome) {
+          if (!nome) return;
+          nome = nome.trim().replace(/[\\/]+/g, '-');
+          if (!nome) return;
+          var caminho = caminhoUnicoNoProjeto(caminhoCompletoNoExplorer(pastaBase != null ? pastaBase : pastaSelecionadaNoExplorer, nome));
+          projeto.pastas[caminho] = true;
+          garantirPastasPai(caminho);
+          pastasAbertasNoExplorer[caminho] = true;
+          pastaSelecionadaNoExplorer = caminho;
+          projetoAgendarPersistencia();
+          renderizarExplorer();
+        });
+      }
+
+      // Dropdown padrão (mesmo dos menus do Explorer) para escolher o tipo do
+      // novo arquivo. Usado pelo botão do Explorer e pelo botão "+" da barra.
+      var TIPOS_DE_NOVO_ARQUIVO = [
+        { rotulo: 'HTML', ext: 'html', linguagem: 'html', sugerido: 'pagina.html' },
+        { rotulo: 'CSS', ext: 'css', linguagem: 'css', sugerido: 'estilo.css' },
+        { rotulo: 'JavaScript', ext: 'js', linguagem: 'javascript', sugerido: 'script.js' },
+        { rotulo: 'SCSS', ext: 'scss', linguagem: 'scss', sugerido: 'estilo.scss' },
+        { rotulo: 'TypeScript', ext: 'ts', linguagem: 'typescript', sugerido: 'app.ts' },
+        { rotulo: 'React', ext: 'jsx', linguagem: 'javascriptreact', sugerido: 'App.jsx' },
+        { rotulo: 'Markdown', ext: 'md', linguagem: 'markdown', sugerido: 'README.md' },
+        { rotulo: 'SVG', ext: 'svg', linguagem: 'svg', sugerido: 'imagem.svg' },
+        { rotulo: 'JSON', ext: 'json', linguagem: 'json', sugerido: 'dados.json' },
+        { rotulo: 'XML', ext: 'xml', linguagem: 'xml', sugerido: 'dados.xml' }
+      ];
+      function abrirDropdownNovoArquivo(botao, pastaBase) {
+        if (menuDeFerramentasAberto && menuDeFerramentasAberto.__botaoTrigger === botao) { fecharMenuDeFerramentas(); return; }
+        var itens = TIPOS_DE_NOVO_ARQUIVO.map(function (tipo) {
+          return {
+            label: tipo.rotulo,
+            svg: iconeDeArquivo(tipo.sugerido, tipo.linguagem),
+            atalho: '.' + tipo.ext,
+            acao: function () {
+              var pasta = pastaBase || '';
+              solicitarTexto('Informe o nome do novo arquivo (.' + tipo.ext + ').', tipo.sugerido, { titulo: 'Novo arquivo ' + tipo.rotulo, confirmar: 'Criar arquivo' }).then(function (nome) {
+                if (nome === null) return;
+                nome = nome.trim() || tipo.sugerido;
+                if (/[<>:"|?*\u0000-\u001f]/.test(nome)) { mostrarToast('O nome contém caracteres inválidos ( < > : " | ? * ).'); return; }
+                if (!/\.[A-Za-z0-9]+$/.test(nome)) nome += '.' + tipo.ext;
+                if (pasta) pastasAbertasNoExplorer[pasta] = true;
+                criarArquivoDoProjeto(tipo.linguagem, caminhoCompletoNoExplorer(pasta, nome), '', true);
+              });
+            }
+          };
+        });
+        itens.push({ separador: true });
+        itens.push({ label: 'Importar arquivo do computador…', icone: ICONES_MENU.importar || 'M12 4v11 M8 11l4 4 4-4 M5 20h14', acao: function () { if (inputImportFile) inputImportFile.click(); } });
+        abrirMenuGenerico(botao, itens);
       }
 
       function criarArquivoNoExplorer(pastaBase) {
         var pasta = pastaBase != null ? pastaBase : pastaSelecionadaNoExplorer;
-        var nome = window.prompt('Nome do novo arquivo (com extensão, ex.: estilo.css):', 'arquivo.js');
-        if (!nome) return;
-        nome = nome.trim();
-        if (!nome) return;
-        var linguagem = linguagemDoArquivo(nome) || 'plaintext';
-        if (pasta) pastasAbertasNoExplorer[pasta] = true;
-        criarArquivoDoProjeto(linguagem, caminhoCompletoNoExplorer(pasta, nome), '', true);
+        solicitarTexto('Informe o nome do novo arquivo, com extensão.', 'arquivo.js', { titulo: 'Novo arquivo', confirmar: 'Criar arquivo' }).then(function (nome) {
+          if (!nome) return;
+          nome = nome.trim();
+          if (!nome) return;
+          var linguagem = linguagemDoArquivo(nome) || 'plaintext';
+          if (pasta) pastasAbertasNoExplorer[pasta] = true;
+          criarArquivoDoProjeto(linguagem, caminhoCompletoNoExplorer(pasta, nome), '', true);
+        });
       }
 
       function ativarArquivoNoExplorer(arquivo) {
@@ -5554,7 +5987,7 @@
       var explorerInputImportar = document.getElementById('explorer-input-importar');
 
       if (explorerNovaPasta) explorerNovaPasta.addEventListener('click', function () { criarPastaNoExplorer(pastaSelecionadaNoExplorer); });
-      if (explorerNovoArquivo) explorerNovoArquivo.addEventListener('click', function () { criarArquivoNoExplorer(pastaSelecionadaNoExplorer); });
+      if (explorerNovoArquivo) explorerNovoArquivo.addEventListener('click', function (evento) { evento.stopPropagation(); abrirDropdownNovoArquivo(explorerNovoArquivo, pastaSelecionadaNoExplorer); });
       if (explorerImportarProjeto && explorerInputImportar) {
         explorerImportarProjeto.addEventListener('click', function () { explorerInputImportar.click(); });
         explorerInputImportar.addEventListener('change', function () {
@@ -5640,13 +6073,14 @@
       }
       var explorerNomeProjeto = document.getElementById('explorer-nome-projeto');
       if (explorerNomeProjeto) explorerNomeProjeto.addEventListener('click', function () {
-        var novo = window.prompt('Nome do projeto:', projeto.nome);
-        if (novo === null) return;
-        novo = novo.trim().slice(0, 100);
-        if (!novo) return;
-        projeto.nome = novo;
-        atualizarNomeDoProjetoNoExplorer();
-        projetoAgendarPersistencia();
+        solicitarTexto('Informe o nome do projeto.', projeto.nome, { titulo: 'Renomear projeto', confirmar: 'Salvar nome' }).then(function (novo) {
+          if (novo === null) return;
+          novo = novo.trim().slice(0, 100);
+          if (!novo) return;
+          projeto.nome = novo;
+          atualizarNomeDoProjetoNoExplorer();
+          projetoAgendarPersistencia();
+        });
       });
 
       // ---- ZIP (sem compressão — "store" — sem dependências) ---------------
@@ -5780,7 +6214,7 @@
         try { pasta = await window.showDirectoryPicker({ id: 'coding-loop-explorer', mode: 'readwrite' }); }
         catch (erro) { if (erro && erro.name !== 'AbortError') mostrarToast('Não foi possível abrir a pasta.'); return; }
         if ((projetoTemArquivos() || Object.keys(projeto.pastas).length) &&
-          !window.confirm('Abrir "' + pasta.name + '" substitui o projeto atual neste navegador. Uma cópia do projeto atual fica guardada nas versões locais ("Backup do projeto → Restaurar"). Continuar?')) return;
+          !await confirmarAcao('Abrir "' + pasta.name + '" substituirá o projeto atual neste navegador. Uma cópia do projeto atual ficará guardada nas versões locais.', { titulo: 'Abrir pasta', confirmar: 'Abrir', destrutiva: true })) return;
         mostrarToast('Lendo a pasta…');
         var lidos = { arquivos: {}, pastas: [], ignorados: 0, total: 0, estourou: false };
         try { await lerPastaReal(pasta, '', lidos); }
@@ -5860,7 +6294,7 @@
           return;
         }
         var total = Object.keys(dados.arquivos).length;
-        if (!window.confirm('Restaurar o projeto "' + dados.nome + '" (' + total + ' arquivo(s))? O projeto atual será substituído. Uma cópia dele fica guardada nas versões locais.')) return;
+        if (!await confirmarAcao('O projeto atual será substituído por "' + dados.nome + '" (' + total + ' arquivo(s)). Uma cópia dele ficará guardada nas versões locais.', { titulo: 'Restaurar projeto', confirmar: 'Restaurar', destrutiva: true })) return;
         await projetoGuardarVersaoLocal(true);
         if (pastaRealHandle) desvincularPastaReal(); // não sobrescreve a pasta do computador com outro projeto
         await projetoAplicar(dados);
@@ -6045,18 +6479,20 @@
 
       function substituirTudoNoProjeto() {
         if (!buscaUltima.re || !buscaUltima.total) { mostrarToast('Nada para substituir.'); return; }
-        if (!window.confirm('Substituir ' + buscaUltima.total + ' ocorrência(s) em ' + buscaUltima.resultados.length + ' arquivo(s) do projeto?')) return;
-        var re = buscaUltima.re;
-        var troca = textoDeSubstituicao();
-        var arquivosAfetados = buscaUltima.resultados.map(function (r) { return r.caminho; });
-        arquivosAfetados.forEach(function (caminho) {
-          re.lastIndex = 0;
-          gravarConteudoNoArquivoDoProjeto(caminho, conteudoAtualDoArquivoDoProjeto(caminho).replace(re, troca));
+        confirmarAcao('Substituir ' + buscaUltima.total + ' ocorrência(s) em ' + buscaUltima.resultados.length + ' arquivo(s) do projeto?', { titulo: 'Substituir tudo', confirmar: 'Substituir', destrutiva: true }).then(function (confirmado) {
+          if (!confirmado) return;
+          var re = buscaUltima.re;
+          var troca = textoDeSubstituicao();
+          var arquivosAfetados = buscaUltima.resultados.map(function (r) { return r.caminho; });
+          arquivosAfetados.forEach(function (caminho) {
+            re.lastIndex = 0;
+            gravarConteudoNoArquivoDoProjeto(caminho, conteudoAtualDoArquivoDoProjeto(caminho).replace(re, troca));
+          });
+          projetoAgendarPersistencia();
+          agendarAtualizacaoPreview();
+          mostrarToast(buscaUltima.total + ' ocorrência(s) substituída(s) em ' + arquivosAfetados.length + ' arquivo(s).');
+          executarBuscaNoExplorer();
         });
-        projetoAgendarPersistencia();
-        agendarAtualizacaoPreview();
-        mostrarToast(buscaUltima.total + ' ocorrência(s) substituída(s) em ' + arquivosAfetados.length + ' arquivo(s).');
-        executarBuscaNoExplorer();
       }
 
       function substituirNaLinha(caminho, numeroDaLinha) {
@@ -6628,10 +7064,12 @@
           e.preventDefault();
           e.stopPropagation();
           var editor = obterEditorPorTipo(botao.getAttribute('data-editor'));
-          if (editor && window.confirm('Deseja limpar este editor?')) {
+          if (!editor) return;
+          confirmarAcao('Todo o conteúdo deste editor será removido.', { titulo: 'Limpar editor', confirmar: 'Limpar', destrutiva: true }).then(function (confirmado) {
+            if (!confirmado) return;
             editor.setValue('', -1);
             agendarAtualizacaoPreview();
-          }
+          });
         });
       });
 
@@ -6978,9 +7416,9 @@
           campoNome.setSelectionRange(0, ponto > 0 ? ponto : campoNome.value.length);
         }
 
-        btnNewFile.addEventListener('click', function () {
-          if (!newFileMenu.hidden) return fecharMenuNovoArquivo();
-          abrirMenuNovoArquivo();
+        btnNewFile.addEventListener('click', function (evento) {
+          evento.stopPropagation();
+          abrirDropdownNovoArquivo(btnNewFile, '');
         });
         passoTipos.addEventListener('click', function (event) {
           var botaoDoTipo = event.target.closest('button.new-file-type');

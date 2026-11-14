@@ -25,7 +25,8 @@
       /* A cor do curso é definida por data-curso em ide.js. */
       --course-accent: #e44d26;
       --ide-splitter-size: 2px;
-      --ide-splitter-handle: color-mix(in srgb, var(--ide-control-contrast) 28%, transparent);
+      --ide-splitter-handle: #d9481f;
+      --ide-splitter-handle-hover: #ff6a24;
     }
 
     .learning-platform-root[data-curso="html"] {
@@ -48,7 +49,8 @@
     .theory-pane {
       width: 33.3333%;
       min-width: 300px;
-      max-width: 720px;
+      max-width: none;
+      flex: 0 0 33.3333%;
       background: #ffffff;
       border-right: 1px solid #e1e4e8;
       display: flex;
@@ -2189,23 +2191,37 @@
     }
 
     .theory-content {
+      display: flex;
       flex: 1;
-      padding: 16px 0 16px 20px;
-      overflow-y: auto;
-      /* Reserva a faixa do scroll vertical para que controles laterais não
-         fiquem por baixo dele quando a etapa for extensa. */
-      scrollbar-gutter: stable;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+      /* A rolagem fica em cada painel (.step-panels > .step-section), não no
+         contêiner comum, para que controles laterais nunca fiquem por baixo
+         da barra de rolagem de uma etapa extensa. */
+    }
+
+    /* O índice e o conteúdo de uma etapa são modos mutuamente exclusivos
+       da Learn Platform. A regra explícita preserva o atributo hidden,
+       que teria sua prioridade vencida pelo display:flex acima. */
+    .theory-content[hidden] {
+      display: none;
     }
 
     .step-card {
       display: none;
       position: relative;
+      min-height: 0;
       /* O retorno e as abas compartilham a mesma faixa horizontal. */
       padding-top: 0;
     }
 
     .step-card.active {
-      display: block;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
     }
 
     .step-tabs-scroll-wrapper {
@@ -2251,6 +2267,26 @@
       min-width: 100%;
     }
 
+    .step-tab-control {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .step-tab-pin {
+      width: 14px;
+      height: 14px;
+      margin: 0 0 0 3px;
+      accent-color: var(--cl-primary, #268bd2);
+      cursor: pointer;
+    }
+
+    .step-tab-pin:disabled {
+      cursor: not-allowed;
+    }
+
+
     .step-tab {
       flex: 0 0 auto;
       position: relative;
@@ -2284,6 +2320,74 @@
 
     .step-section[hidden] {
       display: none;
+    }
+
+    .step-panels {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      align-items: stretch;
+      width: 100%;
+      height: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+    }
+
+    .step-panels>.step-section {
+      height: 100%;
+      max-height: 100%;
+      min-width: 120px;
+      min-height: 0;
+      padding-right: 12px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overflow-wrap: anywhere;
+      overscroll-behavior-y: contain;
+      scrollbar-gutter: stable;
+    }
+
+    .step-section .step-content-title {
+      margin: 0 0 12px;
+      color: var(--cl-primary, #268bd2);
+      font-size: 1.1rem;
+    }
+
+    .step-panel-resizer {
+      position: relative;
+      z-index: 1;
+      width: 8px;
+      height: 100%;
+      min-height: 0;
+      border-radius: 4px;
+      background: var(--cl-border, #586e75);
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .step-panel-resizer::after {
+      position: absolute;
+      top: 50%;
+      left: 2px;
+      width: 4px;
+      height: 28px;
+      border-radius: 4px;
+      background: var(--cl-text-muted, #93a1a1);
+      content: '';
+      transform: translateY(-50%);
+    }
+
+    .step-panel-resizer:hover,
+    .step-panel-resizer.is-dragging,
+    .step-panel-resizer:focus-visible {
+      background: var(--cl-primary, #268bd2);
+      outline: none;
+    }
+
+    .step-panel-resizer:focus-visible {
+      box-shadow: 0 0 0 2px var(--cl-bg, #002b36), 0 0 0 4px var(--cl-primary, #268bd2);
     }
 
     .step-section h3 {
@@ -2405,7 +2509,9 @@
     .step-nav-footer {
       display: flex;
       justify-content: flex-end;
-      margin-top: 20px;
+      width: 100%;
+      margin: 16px 0 0;
+      padding: 0;
     }
 
     .step-nav-btn--next {
@@ -2435,35 +2541,33 @@
     }
 
     /* ==================================================================
-       Explorer do projeto. Fica dentro de .ide-container-pane, ao lado de
-       #editorCodigoWrapper — não é overlay, é um irmão flex de verdade,
-       por isso "empurra" a área de editores quando aparece (o reflow de
-       editores/preview é disparado via o evento ide:resize já existente,
-       reaproveitado — ver abrirExplorer/fecharExplorer em ide.js).
+       Explorer do projeto. Mora DENTRO da janela do IDE (#ide-body, dentro
+       de #main-window-container), ao lado de .window-content — por isso
+       acompanha o IDE em tela cheia e nunca mexe na largura da Teoria. É
+       um irmão flex de verdade: "empurra" os editores ao abrir, e a
+       largura é ajustável por #explorer-resizer (ver ide.js).
        ================================================================== */
     .explorer-panel {
       display: flex;
-      flex: 0 0 260px;
+      flex: 0 0 var(--explorer-largura, 240px);
       flex-direction: column;
-      width: 260px;
-      min-width: 260px;
-      max-width: 260px;
+      width: var(--explorer-largura, 240px);
+      min-width: 140px;
+      max-width: 80%;
       height: 100%;
       overflow: hidden;
       background: #0d1117;
-      border-right: 1px solid #30363d;
     }
 
-    .explorer-panel[hidden] {
+    .explorer-panel[hidden],
+    .editor-split-resizer.explorer-resizer[hidden] {
       display: none;
     }
 
-    /* Enquanto o Explorer está trocando espaço com a Teoria (fora de tela
-       cheia), travar o resizer evita que o usuário arraste por cima de um
-       cálculo que está no meio da troca — mesma cautela que .ide-recolhido
-       já usa para o recolher/expandir do IDE. */
-    .learning-platform-root.explorer-aberto .pane-resizer {
-      display: none !important;
+    /* Divisor entre Explorer e editores: reaproveita o visual de
+       .editor-split-resizer (linha discreta + pegador central). */
+    .explorer-resizer {
+      z-index: 30;
     }
 
     .explorer-header {
@@ -2471,8 +2575,10 @@
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
-      height: 34px;
-      padding: 0 6px 0 10px;
+      /* altura livre: com 8 botões a barra quebra em 2 linhas (antes era fixa
+         em 34px e a 2ª linha ficava debaixo da árvore). */
+      min-height: 34px;
+      padding: 4px 6px 4px 10px;
       border-bottom: 1px solid #30363d;
     }
 
@@ -2624,7 +2730,7 @@
 
     /* Painel Direito: onde o IDE é encaixado */
     .ide-container-pane {
-      flex: 1;
+      flex: 0 0 66.6667%;
       height: 100%;
       min-width: 0;
       background: #161b22;
@@ -2696,23 +2802,21 @@
       transition: background-color 0.15s ease;
     }
 
+    /* Alça de três pontos, oculta em repouso. Vertical: pontos empilhados.
+       Sem ::after: a área de interação é a própria faixa de 2px e não invade
+       os painéis vizinhos. */
     .pane-resizer::before {
       content: '';
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 5px;
-      height: 24px;
+      width: 4px;
+      height: 18px;
       transform: translate(-50%, -50%);
-      border-radius: 2px;
-      background: var(--ide-splitter-handle);
-      transition: background-color 0.15s ease;
-    }
-
-    .pane-resizer::after {
-      content: '';
-      position: absolute;
-      inset: 0 -7px;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 4px 6px repeat-y;
+      transition: opacity 0.15s ease;
     }
 
     .pane-resizer:hover,
@@ -2720,10 +2824,23 @@
       background: #161b22;
     }
 
+    /* Ao interagir, a alça aparece e fica #ff6a24 (repouso: #d9481f). */
+    .pane-resizer:hover,
+    .pane-resizer:focus-visible,
+    .pane-resizer.is-dragging,
+    .editor-split-resizer:hover,
+    .editor-split-resizer:focus-visible,
+    .editor-split-resizer.is-dragging,
+    .preview-split-resizer:hover,
+    .preview-split-resizer:focus-visible,
+    .preview-split-resizer.is-dragging {
+      --ide-splitter-handle: var(--ide-splitter-handle-hover);
+    }
+
     .pane-resizer:hover::before,
     .pane-resizer:focus-visible::before,
     .pane-resizer.is-dragging::before {
-      background: #4ab5f7;
+      opacity: 1;
     }
 
     .pane-resizer:focus-visible {
@@ -3253,6 +3370,13 @@
       box-shadow: 0 10px 26px rgba(0, 0, 0, .35);
     }
 
+    /* `display: flex` acima vence a regra [hidden] do navegador: sem esta
+       linha, o menu de cada arquivo ficava sempre visível (fixed + z-index
+       alto), cobrindo a barra superior e interceptando os cliques. */
+    .file-tools-menu[hidden] {
+      display: none;
+    }
+
     .file-tool-menu-item {
       position: relative;
       display: flex;
@@ -3385,12 +3509,30 @@
       font-weight: 600;
     }
 
+    .ide-body {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex: 1 1 auto;
+      width: 100%;
+      min-width: 0;
+      height: calc(100% - 28px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .browser-window.is-collapsed .ide-body {
+      display: none !important;
+    }
+
     .window-content {
       position: relative;
       z-index: 20;
       display: flex;
-      width: 100%;
-      height: calc(100% - 28px);
+      flex: 1 1 0;
+      width: auto;
+      min-width: 0;
+      height: 100%;
       min-height: 0;
       flex-direction: column;
       overflow: hidden;
@@ -3479,16 +3621,9 @@
       cursor: row-resize;
     }
 
-    /* Mesmo padrão da divisória Plataforma/IDE: barra discreta e um
-       pequeno pegador central, com área de clique maior que a linha. */
-    .editor-split-resizer::after,
-    .preview-split-resizer::after {
-      content: '';
-      position: absolute;
-      inset: 0 -6px;
-      background: transparent;
-    }
-
+    /* Mesmo padrão da divisória Plataforma/IDE: faixa de 2px e alça de três
+       pontos oculta em repouso. Sem ::after — a área de interação é a própria
+       faixa e não invade os painéis vizinhos. */
     .editor-split-resizer::before,
     .preview-split-resizer::before {
       content: '';
@@ -3496,17 +3631,20 @@
       top: 50%;
       left: 50%;
       z-index: 1;
-      width: 5px;
-      height: 24px;
+      width: 4px;
+      height: 18px;
       transform: translate(-50%, -50%);
-      border-radius: 2px;
-      background: var(--ide-splitter-handle);
-      transition: background-color .15s ease;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 4px 6px repeat-y;
+      transition: opacity .15s ease;
     }
 
+    /* Horizontal (Preview abaixo dos editores): pontos lado a lado. */
     .preview-split-resizer::before {
-      width: 24px;
-      height: 5px;
+      width: 18px;
+      height: 4px;
+      background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 6px 4px repeat-x;
     }
 
     .editor-split-resizer:hover,
@@ -3524,7 +3662,7 @@
     .preview-split-resizer:hover::before,
     .preview-split-resizer:focus-visible::before,
     .preview-split-resizer.is-dragging::before {
-      background: #4ab5f7;
+      opacity: 1;
     }
 
     .editor-split-resizer:focus-visible,
@@ -3866,7 +4004,10 @@
       background: #002b36;
     }
 
-    @media (max-width: 900px) {
+    /* Retrato: Learn Platform em cima (1/3 da altura) e IDE embaixo (2/3).
+       Paisagem: lado a lado, inclusive em janelas estreitas (ex.: 982x539).
+       A decisão é pela orientação, não por um breakpoint de largura. */
+    @media (orientation: portrait) {
       .learning-platform-root {
         flex-direction: column;
       }
@@ -3875,7 +4016,7 @@
         width: auto;
         max-width: 100%;
         min-width: 0;
-        flex: 0 0 40vh;
+        flex: 0 0 33.3333%;
       }
 
       .indice-panel[data-curso] {
@@ -3887,17 +4028,12 @@
       }
 
       .ide-container-pane {
-        flex: 1 1 auto;
+        flex: 0 0 66.6667%;
         height: auto;
         min-height: 0;
-        /* sem isso o item flex não encolhe abaixo do
-        conteúdo (Monaco/preview) e extrapola os ~60vh disponíveis;
-        o excesso fica cortado pelo overflow:hidden do .learning-platform-root — visualmente "some" na borda */
-      }
-
-      .ide-container-pane {
-        flex: 1 1 auto;
-        height: auto;
+        /* sem isso o item flex não encolhe abaixo do conteúdo
+        (Monaco/preview) e extrapola o espaço disponível; o excesso ficaria
+        cortado pelo overflow:hidden do .learning-platform-root */
       }
 
       .browser-window:not(.is-fullscreen) {
@@ -3914,13 +4050,11 @@
         touch-action: none;
       }
 
+      /* Eixo horizontal: três pontos lado a lado. */
       .pane-resizer::before {
-        width: 24px;
-        height: 5px;
-      }
-
-      .pane-resizer::after {
-        inset: -14px 0;
+        width: 18px;
+        height: 4px;
+        background: radial-gradient(circle, var(--ide-splitter-handle) 1.5px, transparent 1.6px) center / 6px 4px repeat-x;
       }
     }
 
@@ -4065,7 +4199,7 @@
     .pane-resizer::before,
     .editor-split-resizer::before,
     .preview-split-resizer::before {
-      background: var(--ide-splitter-handle);
+      color: var(--ide-control-contrast);
     }
 
     .back-to-dashboard-btn,
@@ -4904,3 +5038,146 @@
         height: 60%;
       }
     }
+
+@media (max-width: 640px) {
+  .explorer-panel { max-width: 70%; }
+}
+
+/* ---- Explorer: menu de contexto, seleção e rótulo de origem ---- */
+.file-tool-menu-sep { height: 1px; margin: 4px 6px; background: #30363d; }
+.file-tool-menu-item:disabled { opacity: .45; cursor: default; }
+.file-tool-menu-shortcut { margin-left: auto; padding-left: 16px; color: #8b949e; font: inherit; font-size: 11px; }
+.explorer-node-row.is-selecionado { background: rgba(74, 181, 247, .14); outline: 1px solid rgba(74, 181, 247, .35); outline-offset: -1px; }
+/* Só aparece quando há arquivo do projeto aberto junto com o exercício,
+   para o aluno saber de qual lado é cada aba. */
+.mistura-contextos .code-tab[data-origem="exercicio"] .tab-text::after,
+.mistura-contextos .file-toolbar-name[data-origem="exercicio"]::after {
+  content: ' · exercício'; font-weight: 400; font-size: 10.5px; opacity: .65;
+}
+
+/* ---- Explorer: barra de ações (2 linhas), nome do projeto e pesquisa ---- */
+.explorer-header { flex-wrap: wrap; row-gap: 4px; }
+.explorer-header-actions { flex-wrap: wrap; justify-content: flex-start; width: 100%; gap: 2px; }
+.explorer-title-btn { max-width: 100%; padding: 2px 4px; border: 0; border-radius: 4px; background: transparent; color: #8b949e; font-family: inherit; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.explorer-title-btn:hover, .explorer-title-btn:focus-visible { background: rgba(255,255,255,.08); color: #e6edf3; }
+.explorer-search { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; padding: 4px 8px 8px; gap: 4px; }
+.explorer-search[hidden] { display: none; }
+.explorer-panel.is-pesquisando .explorer-tree { display: none; }
+.explorer-search-row { display: flex; align-items: center; gap: 4px; }
+.explorer-search-row[hidden] { display: none; }
+.explorer-search input { flex: 1 1 auto; min-width: 0; height: 26px; padding: 0 8px; border: 1px solid #30363d; border-radius: 4px; background: #0b0f14; color: #e6edf3; font: inherit; font-size: 12px; }
+.explorer-search input:focus { outline: 1px solid #4ab5f7; border-color: #4ab5f7; }
+.explorer-search-toggle, .explorer-search-action { height: 26px; padding: 0 6px; border: 1px solid #30363d; border-radius: 4px; background: #161b22; color: #c9d1d9; font: inherit; font-size: 11px; cursor: pointer; white-space: nowrap; }
+.explorer-search-toggle[aria-pressed="true"] { border-color: #4ab5f7; color: #4ab5f7; background: rgba(74,181,247,.12); }
+.explorer-search-action:hover, .explorer-search-toggle:hover { background: #21262d; }
+.explorer-search-summary { margin: 0; font-size: 11px; color: #8b949e; min-height: 14px; }
+.explorer-search-summary.is-error { color: #f85149; }
+.explorer-search-results { flex: 1 1 auto; min-height: 0; margin: 0; padding: 0; overflow: auto; list-style: none; font-size: 12px; }
+.explorer-search-file { display: flex; align-items: center; gap: 6px; padding: 4px 6px; font-weight: 600; color: #c9d1d9; cursor: pointer; }
+.explorer-search-file:hover { background: rgba(255,255,255,.06); }
+.explorer-search-file .explorer-search-count { margin-left: auto; padding: 0 6px; border-radius: 8px; background: #30363d; font-size: 10px; font-weight: 400; }
+.explorer-search-line { display: flex; align-items: center; gap: 6px; padding: 2px 6px 2px 22px; color: #8b949e; cursor: pointer; }
+.explorer-search-line:hover { background: rgba(74,181,247,.12); }
+.explorer-search-line-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: pre; }
+.explorer-search-line mark { background: rgba(255,200,0,.3); color: #e6edf3; border-radius: 2px; }
+.explorer-search-line .explorer-search-replace-one { display: none; flex: 0 0 auto; height: 20px; padding: 0 6px; border: 1px solid #30363d; border-radius: 3px; background: #161b22; color: #c9d1d9; font: inherit; font-size: 10px; cursor: pointer; }
+.explorer-search.is-substituir .explorer-search-line:hover .explorer-search-replace-one { display: inline-block; }
+.explorer-node-row.is-drop-alvo, .explorer-tree.is-drop-alvo { outline: 1px dashed #4ab5f7; outline-offset: -1px; background: rgba(74,181,247,.1); }
+/* Abrir arquivo (Ctrl+P) */
+.quick-open { position: absolute; z-index: 10030; top: 40px; left: 50%; width: min(520px, calc(100% - 24px)); transform: translateX(-50%); border: 1px solid #30363d; border-radius: 8px; background: #21262d; box-shadow: 0 10px 26px rgba(0,0,0,.45); overflow: hidden; }
+.quick-open[hidden] { display: none; }
+.quick-open input { box-sizing: border-box; width: 100%; height: 34px; padding: 0 12px; border: 0; border-bottom: 1px solid #30363d; background: #0d1117; color: #e6edf3; font: inherit; font-size: 13px; outline: none; }
+.quick-open ul { max-height: 260px; margin: 0; padding: 4px; overflow: auto; list-style: none; }
+.quick-open li { display: flex; gap: 8px; padding: 5px 8px; border-radius: 4px; color: #c9d1d9; font-size: 12.5px; cursor: pointer; }
+.quick-open li small { margin-left: auto; color: #8b949e; }
+.quick-open li.is-ativo, .quick-open li:hover { background: rgba(74,181,247,.18); }
+.quick-open p { margin: 0; padding: 10px 12px; color: #8b949e; font-size: 12px; }
+
+/* ==========================================================================
+   Correção: IDE em tela cheia (movida para o <body>, fora de .learning-platform-root)
+   ========================================================================== */
+
+/* Variáveis dos divisores disponíveis também fora de .learning-platform-root */
+:root {
+  --ide-splitter-size: 2px;
+  --ide-splitter-handle: #d9481f;
+  --ide-splitter-handle-hover: #ff6a24;
+}
+
+/* Ícones de traço: mesmo fill/stroke em qualquer tamanho/modo da IDE */
+#main-window-container button.explorer-icon-btn svg,
+#main-window-container button.explorer-icon-btn:hover svg,
+#main-window-container button.explorer-icon-btn:focus svg,
+#main-window-container button.explorer-icon-btn:focus-visible svg,
+#main-window-container .file-preview-toggle svg,
+#main-window-container .file-toolbar-close-btn svg,
+#main-window-container .file-tool-menu-item svg,
+#main-window-container .bottom-panel-close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#main-window-container button.explorer-icon-btn { color: #8b949e; }
+#main-window-container button.explorer-icon-btn:hover,
+#main-window-container button.explorer-icon-btn:focus-visible,
+#main-window-container button.explorer-icon-btn.is-active { color: #4ab5f7; }
+#main-window-container .file-favicon-btn svg { stroke: none; }
+#main-window-container .file-preview-toggle svg circle { fill: currentColor; stroke: none; }
+
+/* Explorer, nome do projeto e menus (dropdown): cores iguais nos temas dark e light */
+html .explorer-title-btn,
+html .explorer-panel button.explorer-icon-btn,
+html .file-tools-menu button.file-tool-menu-item,
+html .file-tools-menu button.file-tool-menu-item .file-tool-menu-shortcut {
+  color: #fdf6e3;
+}
+html .file-tools-menu button.file-tool-menu-item svg {
+  fill: none;
+  stroke: #fdf6e3;
+}
+
+/* hover / foco (igual nos dois temas) */
+html .explorer-title-btn:hover,
+html .explorer-title-btn:focus-visible,
+html .explorer-panel button.explorer-icon-btn:hover,
+html .explorer-panel button.explorer-icon-btn:focus-visible,
+html .file-tools-menu button.file-tool-menu-item:hover,
+html .file-tools-menu button.file-tool-menu-item:focus-visible,
+html .file-tools-menu button.file-tool-menu-item.is-active {
+  color: #4ab5f7;
+}
+html .file-tools-menu button.file-tool-menu-item:hover svg,
+html .file-tools-menu button.file-tool-menu-item:focus-visible svg,
+html .file-tools-menu button.file-tool-menu-item.is-active svg {
+  fill: none;
+  stroke: #4ab5f7;
+}
+
+/* Explorer inteiro em cor padrão (igual nos temas dark e light).
+   O nome do projeto não muda de cor ao clicar/focar (renomear) nem ao trocar o tema. */
+html .explorer-panel button:not(.explorer-icon-btn):not([aria-pressed="true"]),
+html .explorer-panel button.explorer-title-btn,
+html .explorer-panel button.explorer-title-btn:hover,
+html .explorer-panel button.explorer-title-btn:focus,
+html .explorer-panel button.explorer-title-btn:focus-visible,
+html .explorer-panel button.explorer-title-btn:active {
+  color: #fdf6e3;
+}
+html .explorer-panel button.explorer-icon-btn:focus:not(:hover):not(:focus-visible):not(.is-active) {
+  color: #fdf6e3;
+}
+
+/* Ícones de arquivo do VS Code (Material Icon Theme): mantêm as cores originais
+   em qualquer tema — anulam o fill/stroke único dos botões da IDE. */
+html .file-favicon-btn svg,
+html .file-favicon-btn:hover svg,
+html .file-favicon-btn:focus svg,
+html .file-favicon-btn:focus-visible svg,
+html .file-favicon-btn[aria-expanded="true"] svg,
+html .explorer-node-favicon {
+  fill: initial;
+  stroke: none;
+}
+html .explorer-node-favicon { width: 16px; height: 16px; }
