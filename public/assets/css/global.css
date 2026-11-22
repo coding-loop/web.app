@@ -875,6 +875,29 @@ body {
 
 }
 
+/* Cabeçalho da página inicial */
+#cl-landing-header {
+  height: var(--cl-header-height);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: var(--cl-space-4);
+  padding-inline: var(--cl-space-6);
+  background: var(--cl-surface);
+  border-bottom: var(--cl-border-width) solid var(--cl-border);
+}
+
+#cl-landing-brand {
+  justify-content: flex-start !important;
+  width: auto !important;
+}
+
+.cl-landing-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cl-space-3);
+}
+
 
 /* 1. Faz a div da marca agir como container Flex */
 .cl-header-brand {
@@ -2489,4 +2512,22 @@ body {
 
 *::-webkit-scrollbar-thumb:hover {
   background: var(--cl-info);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--cl-info);
+}
+
+/* ===================================================== */
+/* LANDING PAGE - BUTTON LOGIN
+   Remove o plano de fundo azul do botão de login
+   ===================================================== */
+
+#cl-landing-btn-login {
+  background: transparent !important;
+  border: none;
+}
+
+#cl-landing-btn-login:hover {
+  background: rgba(38, 139, 210, 0.1) !important;
 }
